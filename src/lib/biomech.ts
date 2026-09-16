@@ -92,7 +92,7 @@ const SQUAT_LEAN_LIMIT = 40;
 
 export class SquatAnalyzer extends Analyzer {
   label = "Agachamento";
-  state = "standing";
+  override state = "standing";
   private deepEnough = false;
   private leanFlag = false;
 
@@ -152,7 +152,7 @@ const HIP_DEVIATION_LIMIT = 25;
 
 export class PushUpAnalyzer extends Analyzer {
   label = "Flexão de Braço";
-  state = "high";
+  override state = "high";
   private deepEnough = false;
   private hipFlag = false;
 
@@ -217,7 +217,7 @@ export class PushUpAnalyzer extends Analyzer {
 
 export class JumpingJackAnalyzer extends Analyzer {
   label = "Polichinelo";
-  state = "closed";
+  override state = "closed";
   private armsOk = false;
   private legsOk = false;
 
