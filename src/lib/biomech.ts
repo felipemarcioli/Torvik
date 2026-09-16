@@ -53,8 +53,15 @@ export type AnalysisResult = {
   correctReps: number;
 };
 
+const ORIGIN: Landmark = { x: 0, y: 0, z: 0, visibility: 0 };
+
+/** Safe landmark access. */
+function g(lms: Landmark[], i: number): Landmark {
+  return lms[i] ?? ORIGIN;
+}
+
 function visible(lms: Landmark[], idx: number[]): boolean {
-  return idx.every((i) => lms[i] && lms[i].visibility >= VIS_THRESHOLD);
+  return idx.every((i) => g(lms, i).visibility >= VIS_THRESHOLD);
 }
 
 export abstract class Analyzer {
