@@ -29,6 +29,18 @@ const STATE_LABELS: Record<string, string> = {
   open: "Aberto",
 };
 
+function useIsPortraitPhone() {
+  const [portrait, setPortrait] = useState(false);
+  useEffect(() => {
+    const mql = window.matchMedia("(orientation: portrait) and (max-width: 767px)");
+    const onChange = () => setPortrait(mql.matches);
+    onChange();
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
+  return portrait;
+}
+
 export function WorkoutScreen({
   exercise,
   onFinish,
@@ -48,6 +60,8 @@ export function WorkoutScreen({
   const [seconds, setSeconds] = useState(0);
   const [status, setStatus] = useState<"loading" | "running" | "error">("loading");
   const [errorMsg, setErrorMsg] = useState("");
+  const [showRotateHint, setShowRotateHint] = useState(true);
+  const isPortraitPhone = useIsPortraitPhone();
   const [result, setResult] = useState<AnalysisResult>({
     message: "Posicione-se na frente da câmera",
     level: "warning",
@@ -186,75 +200,96 @@ export function WorkoutScreen({
   };
 
   return (
-    <div className="relative min-h-screen bg-background">
-      <div className="relative mx-auto aspect-video max-h-screen w-full max-w-[1400px] overflow-hidden bg-black">
-        <video ref={videoRef} playsInline muted className="size-full -scale-x-100 object-cover" />
-        <canvas
-          ref={canvasRef}
-          className="pointer-events-none absolute inset-0 size-full -scale-x-100 object-cover"
-        />
+    <div className="relative h-[100dvh] w-full overflow-hidden bg-black">
+      <div className="absolute inset-0 md:flex md:items-center md:justify-center">
+        <div className="relative size-full md:aspect-video md:size-auto md:max-h-full md:w-full md:max-w-[1400px]">
+          <video ref={videoRef} playsInline muted className="size-full -scale-x-100 object-cover" />
+          <canvas
+            ref={canvasRef}
+            className="pointer-events-none absolute inset-0 size-full -scale-x-100 object-cover"
+          />
+        </div>
+      </div>
 
-        {/* HUD */}
-        <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-4 md:p-6">
-          <div className="flex flex-wrap items-start gap-3">
-            <div className="rounded-2xl border border-border bg-background/70 px-5 py-3 backdrop-blur">
-              <p className="text-xs uppercase tracking-widest text-muted-foreground">Tempo</p>
-              <p className="font-display text-3xl font-bold tabular-nums">{formatTime(seconds)}</p>
-            </div>
-            <div className="rounded-2xl border border-primary/50 bg-background/70 px-5 py-3 backdrop-blur">
-              <p className="text-xs uppercase tracking-widest text-muted-foreground">Repetições</p>
-              <p className="font-display text-5xl font-bold leading-none text-primary tabular-nums">
-                {result.totalReps}
-              </p>
-              <p className="mt-1 text-sm text-success">{result.correctReps} corretas</p>
-            </div>
-            <div className="rounded-2xl border border-accent/50 bg-background/70 px-5 py-3 backdrop-blur">
-              <p className="text-xs uppercase tracking-widest text-muted-foreground">Estado</p>
-              <p className="text-lg font-semibold text-accent">
-                {STATE_LABELS[result.state] ?? result.state}
-              </p>
-            </div>
-            <div className="ml-auto rounded-2xl border border-border bg-background/70 px-4 py-3 text-sm font-semibold backdrop-blur">
-              {exerciseName}
-            </div>
+      {/* HUD */}
+      <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-3 pb-[calc(env(safe-area-inset-bottom)+5.5rem)] sm:p-4 md:p-6 md:pb-6">
+        <div className="flex flex-wrap items-start gap-2 sm:gap-3">
+          <div className="rounded-xl border border-border bg-background/70 px-3 py-2 backdrop-blur sm:rounded-2xl sm:px-5 sm:py-3">
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground sm:text-xs">
+              Tempo
+            </p>
+            <p className="font-display text-xl font-bold tabular-nums sm:text-3xl">
+              {formatTime(seconds)}
+            </p>
           </div>
+          <div className="rounded-xl border border-primary/50 bg-background/70 px-3 py-2 backdrop-blur sm:rounded-2xl sm:px-5 sm:py-3">
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground sm:text-xs">
+              Repetições
+            </p>
+            <p className="font-display text-3xl font-bold leading-none text-primary tabular-nums sm:text-5xl">
+              {result.totalReps}
+            </p>
+            <p className="mt-1 text-xs text-success sm:text-sm">{result.correctReps} corretas</p>
+          </div>
+          <div className="rounded-xl border border-accent/50 bg-background/70 px-3 py-2 backdrop-blur sm:rounded-2xl sm:px-5 sm:py-3">
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground sm:text-xs">
+              Estado
+            </p>
+            <p className="text-sm font-semibold text-accent sm:text-lg">
+              {STATE_LABELS[result.state] ?? result.state}
+            </p>
+          </div>
+          <div className="ml-auto rounded-xl border border-border bg-background/70 px-3 py-2 text-xs font-semibold backdrop-blur sm:rounded-2xl sm:px-4 sm:py-3 sm:text-sm">
+            {exerciseName}
+          </div>
+        </div>
 
+        <div className="flex flex-col items-center gap-2">
+          {isPortraitPhone && showRotateHint && status !== "error" && (
+            <button
+              type="button"
+              onClick={() => setShowRotateHint(false)}
+              className="pointer-events-auto w-full max-w-md rounded-xl border border-border bg-background/80 px-4 py-2 text-xs text-muted-foreground backdrop-blur"
+            >
+              Gire o celular na horizontal para enquadrar o corpo inteiro. Toque para dispensar.
+            </button>
+          )}
           <div
-            className={`mx-auto w-full max-w-2xl rounded-2xl border px-6 py-4 text-center text-xl font-bold backdrop-blur ${LEVEL_STYLES[result.level]}`}
+            className={`w-full max-w-2xl rounded-2xl border px-4 py-3 text-center text-base font-bold backdrop-blur sm:px-6 sm:py-4 sm:text-xl ${LEVEL_STYLES[result.level]}`}
           >
             {status === "loading" ? "Carregando modelo e câmera..." : result.message}
           </div>
         </div>
-
-        {status === "error" && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/95 p-6">
-            <div className="max-w-md rounded-2xl border border-destructive/50 bg-card p-6 text-center">
-              <h2 className="text-xl font-bold text-destructive">Câmera indisponível</h2>
-              <p className="mt-3 text-sm text-muted-foreground">{errorMsg}</p>
-              <button
-                type="button"
-                onClick={onCancel}
-                className="mt-6 rounded-xl bg-primary px-6 py-3 font-bold text-primary-foreground"
-              >
-                Voltar
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
-      <div className="fixed bottom-6 left-1/2 flex -translate-x-1/2 gap-3">
+      {status === "error" && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/95 p-6">
+          <div className="max-w-md rounded-2xl border border-destructive/50 bg-card p-6 text-center">
+            <h2 className="text-xl font-bold text-destructive">Câmera indisponível</h2>
+            <p className="mt-3 text-sm text-muted-foreground">{errorMsg}</p>
+            <button
+              type="button"
+              onClick={onCancel}
+              className="mt-6 rounded-xl bg-primary px-6 py-3 font-bold text-primary-foreground"
+            >
+              Voltar
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="absolute inset-x-0 bottom-0 z-20 flex justify-center gap-3 px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-3">
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-full border border-border bg-card/90 px-6 py-3 font-semibold backdrop-blur transition hover:bg-secondary"
+          className="flex-1 rounded-full border border-border bg-card/90 px-6 py-3 font-semibold backdrop-blur transition hover:bg-secondary sm:flex-none"
         >
           Cancelar
         </button>
         <button
           type="button"
           onClick={finish}
-          className="rounded-full bg-primary px-8 py-3 font-bold text-primary-foreground shadow-[var(--shadow-glow)] transition hover:brightness-110"
+          className="flex-1 rounded-full bg-primary px-6 py-3 font-bold text-primary-foreground shadow-[var(--shadow-glow)] transition hover:brightness-110 sm:flex-none sm:px-8"
         >
           Finalizar Treino
         </button>
