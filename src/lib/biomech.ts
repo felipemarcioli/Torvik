@@ -89,12 +89,12 @@ export class SquatAnalyzer extends Analyzer {
   private deepEnough = false;
   private leanFlag = false;
 
-  analyze(lms: Landmark[]): AnalysisResult {
+  override analyze(lms: Landmark[]): AnalysisResult {
     const need = [LM.LEFT_HIP, LM.LEFT_KNEE, LM.LEFT_ANKLE, LM.LEFT_SHOULDER];
     if (!visible(lms, need)) return this.notVisible();
 
-    const knee = calculateAngle(lms[LM.LEFT_HIP], lms[LM.LEFT_KNEE], lms[LM.LEFT_ANKLE]);
-    const lean = verticalInclination(lms[LM.LEFT_SHOULDER], lms[LM.LEFT_HIP]);
+    const knee = calculateAngle(g(lms, LM.LEFT_HIP), g(lms, LM.LEFT_KNEE), g(lms, LM.LEFT_ANKLE));
+    const lean = verticalInclination(g(lms, LM.LEFT_SHOULDER), g(lms, LM.LEFT_HIP));
 
     let message = "Mantenha o ritmo";
     let level: FeedbackLevel = "posture";
@@ -149,7 +149,7 @@ export class PushUpAnalyzer extends Analyzer {
   private deepEnough = false;
   private hipFlag = false;
 
-  analyze(lms: Landmark[]): AnalysisResult {
+  override analyze(lms: Landmark[]): AnalysisResult {
     const need = [
       LM.LEFT_SHOULDER,
       LM.LEFT_ELBOW,
@@ -162,10 +162,10 @@ export class PushUpAnalyzer extends Analyzer {
     ];
     if (!visible(lms, need)) return this.notVisible();
 
-    const left = calculateAngle(lms[LM.LEFT_SHOULDER], lms[LM.LEFT_ELBOW], lms[LM.LEFT_WRIST]);
-    const right = calculateAngle(lms[LM.RIGHT_SHOULDER], lms[LM.RIGHT_ELBOW], lms[LM.RIGHT_WRIST]);
+    const left = calculateAngle(g(lms, LM.LEFT_SHOULDER), g(lms, LM.LEFT_ELBOW), g(lms, LM.LEFT_WRIST));
+    const right = calculateAngle(g(lms, LM.RIGHT_SHOULDER), g(lms, LM.RIGHT_ELBOW), g(lms, LM.RIGHT_WRIST));
     const elbow = (left + right) / 2;
-    const hipAngle = calculateAngle(lms[LM.LEFT_SHOULDER], lms[LM.LEFT_HIP], lms[LM.LEFT_KNEE]);
+    const hipAngle = calculateAngle(g(lms, LM.LEFT_SHOULDER), g(lms, LM.LEFT_HIP), g(lms, LM.LEFT_KNEE));
     const hipOff = Math.abs(180 - hipAngle);
 
     if (elbow < PUSH_UP_UP && this.state === "high") {
@@ -214,7 +214,7 @@ export class JumpingJackAnalyzer extends Analyzer {
   private armsOk = false;
   private legsOk = false;
 
-  analyze(lms: Landmark[]): AnalysisResult {
+  override analyze(lms: Landmark[]): AnalysisResult {
     const need = [
       LM.NOSE,
       LM.LEFT_SHOULDER,
@@ -226,13 +226,13 @@ export class JumpingJackAnalyzer extends Analyzer {
     ];
     if (!visible(lms, need)) return this.notVisible();
 
-    const nose = lms[LM.NOSE];
-    const ls = lms[LM.LEFT_SHOULDER];
-    const rs = lms[LM.RIGHT_SHOULDER];
-    const lw = lms[LM.LEFT_WRIST];
-    const rw = lms[LM.RIGHT_WRIST];
-    const la = lms[LM.LEFT_ANKLE];
-    const ra = lms[LM.RIGHT_ANKLE];
+    const nose = g(lms, LM.NOSE);
+    const ls = g(lms, LM.LEFT_SHOULDER);
+    const rs = g(lms, LM.RIGHT_SHOULDER);
+    const lw = g(lms, LM.LEFT_WRIST);
+    const rw = g(lms, LM.RIGHT_WRIST);
+    const la = g(lms, LM.LEFT_ANKLE);
+    const ra = g(lms, LM.RIGHT_ANKLE);
 
     const armsUp = lw.y < nose.y && rw.y < nose.y;
     const armsDown = lw.y > ls.y && rw.y > rs.y;
