@@ -1,24 +1,67 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { HomeScreen } from "@/components/torvik/HomeScreen";
+import { WorkoutScreen } from "@/components/torvik/WorkoutScreen";
+import { ReportScreen, type SessionReport } from "@/components/torvik/ReportScreen";
+import type { ExerciseId } from "@/lib/biomech";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
+const title = "Torvik — Treino guiado por análise biomecânica na webcam";
+const description =
+  "Conte e corrija agachamentos, flexões e polichinelos em tempo real pela webcam. Roda 100% no navegador, sem cadastro.";
+
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title },
+      { name: "description", content: description },
+      { property: "og:title", content: title },
+      { property: "og:description", content: description },
+    ],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
+  const [screen, setScreen] = useState<"home" | "workout" | "report">("home");
+  const [exercise, setExercise] = useState<ExerciseId>("squat");
+  const [report, setReport] = useState<SessionReport | null>(null);
+  const [sessionKey, setSessionKey] = useState(0);
+
+  if (screen === "workout") {
+    return (
+      <WorkoutScreen
+        key={sessionKey}
+        exercise={exercise}
+        onFinish={(r) => {
+          setReport(r);
+          setScreen("report");
+        }}
+        onCancel={() => setScreen("home")}
       />
-    </div>
+    );
+  }
+
+  if (screen === "report" && report) {
+    return (
+      <ReportScreen
+        report={report}
+        onRestart={() => {
+          setSessionKey((k) => k + 1);
+          setScreen("workout");
+        }}
+        onHome={() => setScreen("home")}
+      />
+    );
+  }
+
+  return (
+    <HomeScreen
+      selected={exercise}
+      onSelect={setExercise}
+      onStart={() => {
+        setSessionKey((k) => k + 1);
+        setScreen("workout");
+      }}
+    />
   );
 }
