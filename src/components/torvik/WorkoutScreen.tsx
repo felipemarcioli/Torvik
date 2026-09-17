@@ -91,7 +91,14 @@ export function WorkoutScreen({
         pose = await createPose();
         pose.onResults(onResults);
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: 1280, height: 720, facingMode: "user" },
+          video: {
+            width: { ideal: 1920, max: 1920 },
+            height: { ideal: 1080, max: 1080 },
+            aspectRatio: { ideal: 16 / 9 },
+            facingMode: "user",
+            // @ts-expect-error - non-standard hint, ignored where unsupported
+            resizeMode: "none",
+          },
           audio: false,
         });
         if (cancelled) return;
@@ -202,11 +209,16 @@ export function WorkoutScreen({
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden bg-black">
       <div className="absolute inset-0 md:flex md:items-center md:justify-center">
-        <div className="relative size-full md:aspect-video md:size-auto md:max-h-full md:w-full md:max-w-[1400px]">
-          <video ref={videoRef} playsInline muted className="size-full -scale-x-100 object-cover" />
+        <div className="relative flex size-full items-center justify-center md:max-w-[1400px]">
+          <video
+            ref={videoRef}
+            playsInline
+            muted
+            className="size-full -scale-x-100 object-contain"
+          />
           <canvas
             ref={canvasRef}
-            className="pointer-events-none absolute inset-0 size-full -scale-x-100 object-cover"
+            className="pointer-events-none absolute inset-0 size-full -scale-x-100 object-contain"
           />
         </div>
       </div>
