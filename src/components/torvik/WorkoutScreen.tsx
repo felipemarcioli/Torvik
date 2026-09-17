@@ -217,17 +217,17 @@ export function WorkoutScreen({
 
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden bg-black">
-      <div className="absolute inset-0 md:flex md:items-center md:justify-center">
-        <div className="relative flex size-full items-center justify-center md:max-w-[1400px]">
+      <div className="absolute inset-0">
+        <div className="relative size-full">
           <video
             ref={videoRef}
             playsInline
             muted
-            className="size-full -scale-x-100 object-contain"
+            className="size-full -scale-x-100 object-cover"
           />
           <canvas
             ref={canvasRef}
-            className="pointer-events-none absolute inset-0 size-full -scale-x-100 object-contain"
+            className="pointer-events-none absolute inset-0 size-full -scale-x-100 object-cover"
           />
         </div>
       </div>
