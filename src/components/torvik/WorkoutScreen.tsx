@@ -91,7 +91,14 @@ export function WorkoutScreen({
         pose = await createPose();
         pose.onResults(onResults);
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: 1280, height: 720, facingMode: "user" },
+          video: {
+            width: { ideal: 1920, max: 1920 },
+            height: { ideal: 1080, max: 1080 },
+            aspectRatio: { ideal: 16 / 9 },
+            facingMode: "user",
+            // @ts-expect-error - non-standard hint, ignored where unsupported
+            resizeMode: "none",
+          },
           audio: false,
         });
         if (cancelled) return;
