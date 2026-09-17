@@ -47,7 +47,7 @@ export function HomeScreen({ selected, onSelect, onStart }: Props) {
               você!
             </div>
             <img
-              src={mascot.url}
+              src="/torvik-image-3d.png"
               alt="Torvik, o canguru mascote do app, em pose shaka"
               className="w-[180px] drop-shadow-2xl sm:w-[240px] md:mt-6 md:w-[340px]"
             />
