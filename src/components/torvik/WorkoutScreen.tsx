@@ -92,16 +92,25 @@ export function WorkoutScreen({
         pose.onResults(onResults);
         stream = await navigator.mediaDevices.getUserMedia({
           video: {
-            width: { ideal: 1920, max: 1920 },
-            height: { ideal: 1080, max: 1080 },
-            aspectRatio: { ideal: 16 / 9 },
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
             facingMode: "user",
-            // @ts-expect-error - non-standard hint, ignored where unsupported
-            resizeMode: "none",
           },
           audio: false,
         });
         if (cancelled) return;
+
+        // Use the widest field of view the camera offers (remove any digital zoom)
+        const track = stream.getVideoTracks()[0];
+        try {
+          const caps: any = track?.getCapabilities?.() ?? {};
+          if (caps.zoom && typeof caps.zoom.min === "number") {
+            await track!.applyConstraints({ advanced: [{ zoom: caps.zoom.min }] } as any);
+          }
+        } catch {
+          /* zoom control unsupported */
+        }
+
         const video = videoRef.current!;
         video.srcObject = stream;
         await video.play();
