@@ -36,7 +36,7 @@ export function ReportScreen({
     <div className="hero-glow min-h-screen">
       <div className="mx-auto w-full max-w-4xl px-4 pb-16 pt-8 sm:px-5 sm:pb-20 sm:pt-12">
         <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 sm:gap-4">
-          <img src={mascot.url} alt="Mascote Torvik" className="w-14 shrink-0 sm:w-20" />
+          <img src="/torvik-image-2d.png" alt="Mascote Torvik" className="w-14 shrink-0 sm:w-20" />
           <div className="min-w-0">
             <p className="text-xs uppercase tracking-[0.2em] text-primary sm:text-sm sm:tracking-[0.3em]">
               Relatório
