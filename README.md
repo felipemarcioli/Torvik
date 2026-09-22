@@ -5,11 +5,13 @@ Crie o web app Torvik: aplicativo de análise biomecânica em tempo real via web
 Requisitos e Especificações:
 
 1. Identidade e Assets:
+
 - Nome do app: Torvik.
 - Mascote: Torvik (o canguru estiloso dos anexos). Utilize as imagens anexadas no cabeçalho/logo e na tela inicial com um balão de fala receptivo e motivador ("Olá, me chamo Torvik, sou seu assistente de treino em tempo real...").
 - UI moderna, esportiva, clean, sem necessidade de login.
 
 2. Fluxo de Telas (SPA):
+
 - Tela Inicial:
   - Apresentação do Torvik com dicas rápidas para posicionamento da câmera.
   - Seletor de exercício em cards interativos com badge e instruções: Agachamento (Squat), Flexão de Braço (Push-up) e Polichinelo (Jumping Jack).
@@ -27,6 +29,7 @@ Requisitos e Especificações:
   - Botão para iniciar novo treino ou voltar ao início.
 
 3. Lógica Biomecânica Fiel ao Código Python Fornecido:
+
 - Implementar em TypeScript/JavaScript o cálculo vetorial de ângulos no vértice b para 3 pontos (usando produto escalar e arco-cosseno com proteção contra divisão por zero e clamp [-1, 1]).
 - Tolerância de visibilidade de landmark: >= 0.5.
 - Agachamento (SquatAnalyzer):
@@ -49,6 +52,7 @@ Requisitos e Especificações:
   - Validação de braços e pernas com contagem correta e feedbacks: "Abra mais as pernas" / "Eleve os braços acima da cabeça".
 
 4. Integração do MediaPipe:
+
 - Carregar @mediapipe/pose e @mediapipe/camera_utils ou usar Pose via CDN / script tag resiliente para compatibilidade total no browser. Incluir tratamento de permissão de câmera gracioso com instruções caso seja negada ou indisponível.
 
 This project was built with [Lovable](https://lovable.dev).

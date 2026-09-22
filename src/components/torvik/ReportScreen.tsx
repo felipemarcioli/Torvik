@@ -56,7 +56,9 @@ export function ReportScreen({
         <div className="mt-4 rounded-2xl border border-border bg-card p-4 sm:mt-6 sm:p-6">
           <div className="flex items-end justify-between gap-3">
             <h2 className="text-base font-bold sm:text-lg">Taxa de precisão</h2>
-            <span className="shrink-0 text-2xl font-bold text-primary sm:text-3xl">{accuracy}%</span>
+            <span className="shrink-0 text-2xl font-bold text-primary sm:text-3xl">
+              {accuracy}%
+            </span>
           </div>
           <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-secondary sm:mt-4 sm:h-4">
             <div
@@ -117,7 +119,9 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
   return (
     <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
       <p className="text-xs uppercase tracking-widest text-muted-foreground">{label}</p>
-      <p className={`mt-1.5 text-2xl font-bold sm:mt-2 sm:text-3xl ${accent ? "text-success" : ""}`}>
+      <p
+        className={`mt-1.5 text-2xl font-bold sm:mt-2 sm:text-3xl ${accent ? "text-success" : ""}`}
+      >
         {value}
       </p>
     </div>

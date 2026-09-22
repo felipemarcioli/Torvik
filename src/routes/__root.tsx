@@ -8,6 +8,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { Analytics } from "@vercel/analytics/react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -81,7 +82,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "Treino guiado por análise biomecânica em tempo real." },
       { name: "author", content: "Torvik" },
       { property: "og:title", content: "Torvik" },
-      { property: "og:description", content: "Treino guiado por análise biomecânica em tempo real." },
+      {
+        property: "og:description",
+        content: "Treino guiado por análise biomecânica em tempo real.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -114,6 +118,7 @@ function RootShell({ children }: { children: ReactNode }) {
       <body>
         {children}
         <Scripts />
+        <Analytics />
       </body>
     </html>
   );

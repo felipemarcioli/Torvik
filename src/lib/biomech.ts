@@ -169,10 +169,22 @@ export class PushUpAnalyzer extends Analyzer {
     ];
     if (!visible(lms, need)) return this.notVisible();
 
-    const left = calculateAngle(g(lms, LM.LEFT_SHOULDER), g(lms, LM.LEFT_ELBOW), g(lms, LM.LEFT_WRIST));
-    const right = calculateAngle(g(lms, LM.RIGHT_SHOULDER), g(lms, LM.RIGHT_ELBOW), g(lms, LM.RIGHT_WRIST));
+    const left = calculateAngle(
+      g(lms, LM.LEFT_SHOULDER),
+      g(lms, LM.LEFT_ELBOW),
+      g(lms, LM.LEFT_WRIST),
+    );
+    const right = calculateAngle(
+      g(lms, LM.RIGHT_SHOULDER),
+      g(lms, LM.RIGHT_ELBOW),
+      g(lms, LM.RIGHT_WRIST),
+    );
     const elbow = (left + right) / 2;
-    const hipAngle = calculateAngle(g(lms, LM.LEFT_SHOULDER), g(lms, LM.LEFT_HIP), g(lms, LM.LEFT_KNEE));
+    const hipAngle = calculateAngle(
+      g(lms, LM.LEFT_SHOULDER),
+      g(lms, LM.LEFT_HIP),
+      g(lms, LM.LEFT_KNEE),
+    );
     const hipOff = Math.abs(180 - hipAngle);
 
     if (elbow < PUSH_UP_UP && this.state === "high") {

@@ -6,7 +6,7 @@ function loadScript(src: string) {
   return new Promise<void>((resolve, reject) => {
     const existing = document.querySelector<HTMLScriptElement>(`script[src="${src}"]`);
     if (existing) {
-      if (existing.dataset['loaded'] === "true") return resolve();
+      if (existing.dataset["loaded"] === "true") return resolve();
       existing.addEventListener("load", () => resolve());
       existing.addEventListener("error", () => reject(new Error("script error")));
       return;
@@ -16,7 +16,7 @@ function loadScript(src: string) {
     el.crossOrigin = "anonymous";
     el.async = true;
     el.onload = () => {
-      el.dataset['loaded'] = "true";
+      el.dataset["loaded"] = "true";
       resolve();
     };
     el.onerror = () => reject(new Error(`Falha ao carregar ${src}`));
