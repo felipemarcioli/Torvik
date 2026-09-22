@@ -219,12 +219,7 @@ export function WorkoutScreen({
     <div className="relative h-[100dvh] w-full overflow-hidden bg-black">
       <div className="absolute inset-0">
         <div className="relative size-full">
-          <video
-            ref={videoRef}
-            playsInline
-            muted
-            className="size-full -scale-x-100 object-cover"
-          />
+          <video ref={videoRef} playsInline muted className="size-full -scale-x-100 object-cover" />
           <canvas
             ref={canvasRef}
             className="pointer-events-none absolute inset-0 size-full -scale-x-100 object-cover"
