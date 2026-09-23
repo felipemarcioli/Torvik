@@ -11,9 +11,9 @@ export function HomeScreen({ selected, onSelect, onStart, onHistory }: Props) {
   const [interactive, setInteractive] = useState(false);
   useEffect(() => setInteractive(true), []);
   return (
-    <main className="hero-glow min-h-screen">
-      <div className="mx-auto max-w-6xl px-4 pt-4 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:px-6 sm:pt-8 sm:pb-12">
-        <header className="flex items-center justify-between gap-3 border-b border-border/70 pb-4">
+    <main className="home-screen hero-glow min-h-screen">
+      <div className="home-content mx-auto max-w-6xl px-4 pt-4 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:px-6 sm:pt-8 sm:pb-12">
+        <header className="home-header flex items-center justify-between gap-3 border-b border-border/70 pb-4">
           <p className="font-display text-xl font-extrabold tracking-[0.12em] text-primary">
             TORVIK
           </p>
@@ -26,7 +26,7 @@ export function HomeScreen({ selected, onSelect, onStart, onHistory }: Props) {
             Meu histórico
           </button>
         </header>
-        <section className="mt-5 grid grid-cols-[minmax(0,1fr)_76px] items-center gap-3 sm:mt-8 sm:grid-cols-[minmax(0,1fr)_150px] md:grid-cols-[minmax(0,1fr)_190px]">
+        <section className="home-hero mt-5 grid grid-cols-[minmax(0,1fr)_76px] items-center gap-3 sm:mt-8 sm:grid-cols-[minmax(0,1fr)_150px] md:grid-cols-[minmax(0,1fr)_190px]">
           <div>
             <p className="torvik-kicker">Seu treino, com atenção ao movimento</p>
             <h1 className="mt-2 max-w-lg text-[clamp(1.8rem,7vw,3rem)] font-bold leading-[1.08]">
@@ -47,7 +47,7 @@ export function HomeScreen({ selected, onSelect, onStart, onHistory }: Props) {
             className="h-auto w-full drop-shadow-lg"
           />
         </section>
-        <section className="mt-6 sm:mt-8" aria-labelledby="exercise-heading">
+        <section className="home-exercises mt-6 sm:mt-8" aria-labelledby="exercise-heading">
           <div className="flex items-end justify-between gap-4">
             <h2 id="exercise-heading" className="text-2xl font-bold leading-tight sm:text-3xl">
               Escolha o exercício
@@ -69,7 +69,7 @@ export function HomeScreen({ selected, onSelect, onStart, onHistory }: Props) {
             ))}
           </fieldset>
         </section>
-        <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-18px_40px_-24px_#000] backdrop-blur-lg sm:static sm:mt-6 sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none">
+        <div className="home-action fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-18px_40px_-24px_#000] backdrop-blur-lg sm:static sm:mt-6 sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none">
           <div className="mx-auto max-w-6xl">
             <button
               type="button"
@@ -81,7 +81,7 @@ export function HomeScreen({ selected, onSelect, onStart, onHistory }: Props) {
             </button>
           </div>
         </div>
-        <section className="torvik-panel mt-8 p-5 sm:mt-10 sm:p-6">
+        <section className="home-tips torvik-panel mt-8 p-5 sm:mt-10 sm:p-6">
           <p className="torvik-kicker">Preparação</p>
           <h2 className="mt-1 text-xl font-bold">Antes de começar</h2>
           <ul className="mt-4 grid gap-3 text-sm text-muted-foreground sm:grid-cols-2">

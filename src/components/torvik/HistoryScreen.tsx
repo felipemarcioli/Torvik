@@ -42,8 +42,8 @@ export function HistoryScreen({ onHome }: { onHome: () => void }) {
     }
   }
   return (
-    <main className="hero-glow min-h-screen">
-      <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-12">
+    <main className="history-screen hero-glow min-h-screen">
+      <div className="history-content mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-12">
         <button type="button" className="torvik-secondary text-sm" onClick={onHome}>
           Voltar ao início
         </button>
@@ -64,7 +64,7 @@ export function HistoryScreen({ onHome }: { onHome: () => void }) {
           </p>
         )}
         {!loading && !error && !sessions.length && (
-          <section className="torvik-panel mt-6 flex items-center gap-5 p-6 sm:p-8">
+          <section className="history-empty torvik-panel mt-6 flex items-center gap-5 p-6 sm:p-8">
             <img
               src="/torvik-image-2d.webp"
               width="160"
@@ -80,11 +80,11 @@ export function HistoryScreen({ onHome }: { onHome: () => void }) {
             </div>
           </section>
         )}
-        <ul className="mt-6 space-y-4">
+        <ul className="history-list mt-6 space-y-4">
           {sessions.map((r, index) => {
             const previous = sessions.slice(index + 1).find((other) => comparableReports(r, other));
             return (
-              <li key={r.id} className="torvik-panel p-5 sm:p-6">
+              <li key={r.id} className="history-card torvik-panel p-5 sm:p-6">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="torvik-kicker">Sessão salva</p>
@@ -96,7 +96,7 @@ export function HistoryScreen({ onHome }: { onHome: () => void }) {
                     {new Date(r.createdAt).toLocaleString("pt-BR")}
                   </p>
                 </div>
-                <div className="mt-4 grid grid-cols-3 gap-2 border-y border-border py-4 text-center sm:gap-4">
+                <div className="history-stats mt-4 grid grid-cols-3 gap-2 border-y border-border py-4 text-center sm:gap-4">
                   <div>
                     <p className="font-display text-2xl font-bold tabular-nums">{r.totalReps}</p>
                     <p className="text-xs text-muted-foreground">avaliadas</p>
@@ -123,7 +123,7 @@ export function HistoryScreen({ onHome }: { onHome: () => void }) {
                     {previous.correctReps} dentro dos critérios.
                   </p>
                 )}
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="history-actions mt-4 flex flex-wrap gap-2">
                   <button
                     type="button"
                     className="torvik-secondary"

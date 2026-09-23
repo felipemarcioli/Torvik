@@ -32,9 +32,9 @@ export function ReportScreen({
     }
   };
   return (
-    <main className="hero-glow min-h-screen">
-      <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-12">
-        <header className="flex items-center gap-4 border-b border-border pb-5">
+    <main className="report-screen hero-glow min-h-screen">
+      <div className="report-content mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-12">
+        <header className="report-header flex items-center gap-4 border-b border-border pb-5">
           <img
             src="/torvik-image-2d.webp"
             width="160"
@@ -49,7 +49,7 @@ export function ReportScreen({
             </h1>
           </div>
         </header>
-        <section className="torvik-panel mt-6 overflow-hidden">
+        <section className="report-result torvik-panel mt-6 overflow-hidden">
           <div className="border-b border-border p-5 sm:p-7">
             <p className="torvik-kicker">Resultado da sessão</p>
             <h2 className="mt-2 text-lg font-bold">Repetições dentro dos critérios do app</h2>
@@ -79,13 +79,13 @@ export function ReportScreen({
               nem substitui avaliação profissional.
             </p>
           </div>
-          <dl className="grid grid-cols-3 divide-x divide-border">
+          <dl className="report-stats grid grid-cols-3 divide-x divide-border">
             <Stat label="Tempo ativo" value={formatTime(report.seconds)} />
             <Stat label="Repetições avaliadas" value={String(report.totalReps)} />
             <Stat label="Dentro dos critérios" value={String(report.correctReps)} />
           </dl>
         </section>
-        <section className="torvik-panel mt-4 p-5 sm:p-6">
+        <section className="report-review torvik-panel mt-4 p-5 sm:p-6">
           <p className="torvik-kicker">Revisão</p>
           <h2 className="mt-1 text-xl font-bold">Pontos de atenção</h2>
           {ranking.length ? (
@@ -116,13 +116,13 @@ export function ReportScreen({
             rastreamento não entram no tempo ativo.
           </p>
         </section>
-        <section className="torvik-panel mt-4 p-5 sm:p-6">
+        <section className="report-history torvik-panel mt-4 p-5 sm:p-6">
           <h2 className="text-xl font-bold">Seu histórico, neste dispositivo</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Salve apenas se quiser. Nenhum vídeo é gravado. Os dados podem ser apagados pelo
             navegador; exporte uma cópia para preservá-los.
           </p>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="report-history-actions mt-3 flex flex-wrap gap-2">
             <button
               type="button"
               className="torvik-secondary"
@@ -144,7 +144,7 @@ export function ReportScreen({
             </p>
           )}
         </section>
-        <div className="mt-6 flex flex-wrap gap-3 pb-[env(safe-area-inset-bottom)]">
+        <div className="report-actions mt-6 flex flex-wrap gap-3 pb-[env(safe-area-inset-bottom)]">
           <button type="button" className="torvik-primary flex-1 sm:flex-none" onClick={onRestart}>
             Novo treino
           </button>

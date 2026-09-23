@@ -38,7 +38,7 @@ export function WorkoutScreen({
   const details = EXERCISES.find((e) => e.id === exercise)!;
   return (
     <main className="workout-layout bg-background" aria-label={`Treino de ${details.name}`}>
-      <header className="flex items-center justify-between gap-4 border-b border-border bg-card px-4 py-2.5 sm:px-6">
+      <header className="workout-header flex items-center justify-between gap-4 border-b border-border bg-card px-4 py-2.5 sm:px-6">
         <div className="min-w-0">
           <p className="torvik-kicker text-[0.625rem]">Torvik · treino local</p>
           <h1 className="truncate text-lg font-bold leading-tight sm:text-xl">{details.name}</h1>
@@ -69,7 +69,7 @@ export function WorkoutScreen({
         {w.phase === "countdown" && (
           <div
             role="status"
-            className="absolute top-3 left-1/2 z-10 w-[min(18rem,calc(100%-2rem))] -translate-x-1/2 rounded-2xl border border-primary/60 bg-background/95 px-4 py-3 text-center shadow-xl backdrop-blur-md sm:top-5"
+            className="workout-countdown absolute top-3 left-1/2 z-10 w-[min(18rem,calc(100%-2rem))] -translate-x-1/2 rounded-2xl border border-primary/60 bg-background/95 px-4 py-3 text-center shadow-xl backdrop-blur-md sm:top-5"
           >
             <p
               key={w.countdown}
@@ -122,7 +122,7 @@ export function WorkoutScreen({
       </section>
       <section className="workout-controls border-t border-border bg-card px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-6">
         {(w.phase === "running" || w.phase === "paused") && (
-          <div className="mx-auto mb-3 flex max-w-3xl items-center justify-between gap-5 border-b border-border pb-3">
+          <div className="workout-metrics mx-auto mb-3 flex max-w-3xl items-center justify-between gap-5 border-b border-border pb-3">
             <div className="flex items-baseline gap-3">
               <p className="font-display text-[clamp(3.5rem,12vw,4.5rem)] font-extrabold leading-none text-primary tabular-nums">
                 {w.result.totalReps}
