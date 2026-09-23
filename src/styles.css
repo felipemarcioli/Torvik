@@ -97,3 +97,72 @@
 @utility hero-glow {
   background-image: var(--gradient-hero);
 }
+
+@layer base {
+  button,
+  input,
+  select,
+  a {
+    outline-offset: 4px;
+  }
+  :where(button, input, select, a):focus-visible {
+    outline: 3px solid var(--accent);
+  }
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+@utility torvik-primary {
+  min-height: 44px;
+  border-radius: 0.8rem;
+  padding: 0.65rem 1rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-weight: 700;
+}
+@utility torvik-secondary {
+  min-height: 44px;
+  border-radius: 0.8rem;
+  padding: 0.65rem 1rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  font-weight: 600;
+}
+.workout-layout {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto minmax(240px, 1fr) auto;
+}
+.camera-region {
+  min-height: 40dvh;
+}
+@media (min-height: 650px) {
+  .workout-layout {
+    height: 100dvh;
+  }
+  .camera-region {
+    min-height: 0;
+  }
+}
+@media (orientation: landscape) and (max-height: 649px) {
+  .workout-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(230px, 34%);
+    grid-template-rows: auto minmax(230px, 1fr);
+  }
+  .workout-layout > header {
+    grid-column: 1 / -1;
+  }
+  .camera-region {
+    min-height: 230px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

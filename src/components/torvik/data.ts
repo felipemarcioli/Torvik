@@ -15,11 +15,11 @@ export const EXERCISES: Exercise[] = [
     name: "Agachamento",
     badge: "Pernas & Glúteos",
     emoji: "🦵",
-    summary: "Joelho a 90°, tronco ereto e subida completa.",
+    summary: "Descida controlada e retorno à posição inicial.",
     instructions: [
       "Fique de lado para a câmera, corpo inteiro visível",
-      "Desça até o joelho atingir 90°",
-      "Mantenha o peito aberto (inclinação até 40°)",
+      "O app estima a amplitude da descida em 2D",
+      "Mantenha o movimento confortável e controlado",
     ],
   },
   {
@@ -27,11 +27,11 @@ export const EXERCISES: Exercise[] = [
     name: "Flexão de Braço",
     badge: "Peito & Tríceps",
     emoji: "💪",
-    summary: "Cotovelos a 90° e quadril alinhado com o corpo.",
+    summary: "Descida controlada e corpo alinhado.",
     instructions: [
       "Posicione a câmera lateralmente, no nível do chão",
-      "Desça até os cotovelos formarem 90°",
-      "Evite quadril alto ou caído (desvio até 25°)",
+      "Deixe ombro, cotovelo, punho, quadril e joelho visíveis",
+      "Observe o alinhamento do tronco e do quadril",
     ],
   },
   {

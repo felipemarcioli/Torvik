@@ -2,12 +2,15 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { HomeScreen } from "@/components/torvik/HomeScreen";
 import { WorkoutScreen } from "@/components/torvik/WorkoutScreen";
-import { ReportScreen, type SessionReport } from "@/components/torvik/ReportScreen";
+import { ReportScreen } from "@/components/torvik/ReportScreen";
+import { HistoryScreen } from "@/components/torvik/HistoryScreen";
+import type { SessionReport } from "@/lib/session";
+import { useEffect, useRef } from "react";
 import type { ExerciseId } from "@/lib/biomech";
 
-const title = "Torvik — Treino guiado por análise biomecânica na webcam";
+const title = "Torvik — Acompanhe seu movimento pela câmera";
 const description =
-  "Conte e corrija agachamentos, flexões e polichinelos em tempo real pela webcam. Roda 100% no navegador, sem cadastro.";
+  "Acompanhe agachamentos, flexões e polichinelos com análise local de movimento. Sem cadastro.";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -22,10 +25,22 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const [screen, setScreen] = useState<"home" | "workout" | "report">("home");
+  const [screen, setScreen] = useState<"home" | "workout" | "report" | "history">("home");
   const [exercise, setExercise] = useState<ExerciseId>("squat");
   const [report, setReport] = useState<SessionReport | null>(null);
   const [sessionKey, setSessionKey] = useState(0);
+
+  const previousScreen = useRef(screen);
+  useEffect(() => {
+    if (previousScreen.current === screen) return;
+    previousScreen.current = screen;
+    window.scrollTo(0, 0);
+    const heading = document.querySelector<HTMLElement>("h1");
+    heading?.setAttribute("tabindex", "-1");
+    heading?.focus({ preventScroll: true });
+  }, [screen, sessionKey]);
+
+  if (screen === "history") return <HistoryScreen onHome={() => setScreen("home")} />;
 
   if (screen === "workout") {
     return (
@@ -56,6 +71,7 @@ function Index() {
 
   return (
     <HomeScreen
+      onHistory={() => setScreen("history")}
       selected={exercise}
       onSelect={setExercise}
       onStart={() => {

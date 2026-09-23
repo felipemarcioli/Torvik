@@ -1,21 +1,7 @@
-import mascot from "@/assets/torvik-flat.png.asset.json";
+import { useState } from "react";
 import { EXERCISES } from "./data";
-import type { ExerciseId } from "@/lib/biomech";
-
-export type SessionReport = {
-  exercise: ExerciseId;
-  seconds: number;
-  totalReps: number;
-  correctReps: number;
-  feedbackCounts: Record<string, number>;
-};
-
-export function formatTime(seconds: number) {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-}
-
+import { formatTime, type SessionReport } from "@/lib/session";
+import { createHistoryStore, exportReport } from "@/lib/history";
 export function ReportScreen({
   report,
   onRestart,
@@ -25,101 +11,145 @@ export function ReportScreen({
   onRestart: () => void;
   onHome: () => void;
 }) {
-  const exercise = EXERCISES.find((e) => e.id === report.exercise);
-  const accuracy = report.totalReps ? Math.round((report.correctReps / report.totalReps) * 100) : 0;
-  const ranking = Object.entries(report.feedbackCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5);
-  const maxCount = ranking[0]?.[1] ?? 1;
-
+  const [saved, setSaved] = useState(false),
+    [saving, setSaving] = useState(false),
+    [error, setError] = useState("");
+  const exercise = EXERCISES.find((e) => e.id === report.exercise)!;
+  const percent = report.totalReps
+    ? Math.round((report.correctReps / report.totalReps) * 100)
+    : null;
+  const ranking = Object.entries(report.feedbackCounts).sort((a, b) => b[1] - a[1]);
+  const save = async () => {
+    setSaving(true);
+    setError("");
+    try {
+      await createHistoryStore().save(report);
+      setSaved(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Não foi possível salvar.");
+    } finally {
+      setSaving(false);
+    }
+  };
   return (
-    <div className="hero-glow min-h-screen">
-      <div className="mx-auto w-full max-w-4xl px-4 pb-16 pt-8 sm:px-5 sm:pb-20 sm:pt-12">
-        <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 sm:gap-4">
-          <img src="/torvik-image-2d.png" alt="Mascote Torvik" className="w-14 shrink-0 sm:w-20" />
-          <div className="min-w-0">
-            <p className="text-xs uppercase tracking-[0.2em] text-primary sm:text-sm sm:tracking-[0.3em]">
-              Relatório
-            </p>
-            <h1 className="text-2xl font-bold sm:text-3xl">
-              {exercise?.name ?? "Treino"} concluído
-            </h1>
+    <main className="hero-glow min-h-screen">
+      <div className="mx-auto max-w-4xl px-4 py-8 sm:py-12">
+        <header className="flex items-center gap-4">
+          <img
+            src="/torvik-image-2d.webp"
+            width="160"
+            height="240"
+            alt="Mascote Torvik"
+            className="h-20 w-auto"
+          />
+          <div>
+            <p className="text-xs uppercase tracking-widest text-primary">Relatório local</p>
+            <h1 className="text-2xl font-bold sm:text-3xl">{exercise.name} concluído</h1>
           </div>
-        </div>
-
-        <div className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-3 sm:gap-4">
-          <Stat label="Tempo total" value={formatTime(report.seconds)} />
-          <Stat label="Repetições totais" value={String(report.totalReps)} />
-          <Stat label="Repetições corretas" value={String(report.correctReps)} accent />
-        </div>
-
-        <div className="mt-4 rounded-2xl border border-border bg-card p-4 sm:mt-6 sm:p-6">
-          <div className="flex items-end justify-between gap-3">
-            <h2 className="text-base font-bold sm:text-lg">Taxa de precisão</h2>
-            <span className="shrink-0 text-2xl font-bold text-primary sm:text-3xl">{accuracy}%</span>
-          </div>
-          <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-secondary sm:mt-4 sm:h-4">
-            <div
-              className="h-full rounded-full bg-primary transition-all"
-              style={{ width: `${accuracy}%` }}
-            />
-          </div>
-        </div>
-
-        <div className="mt-4 rounded-2xl border border-border bg-card p-4 sm:mt-6 sm:p-6">
-          <h2 className="text-base font-bold sm:text-lg">Pontos de atenção</h2>
-          {ranking.length === 0 ? (
-            <p className="mt-3 text-sm text-muted-foreground">
-              Nenhum alerta registrado. Execução limpa!
+        </header>
+        <dl className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <Stat label="Tempo ativo" value={formatTime(report.seconds)} />
+          <Stat label="Repetições avaliadas" value={String(report.totalReps)} />
+          <Stat label="Dentro dos critérios" value={String(report.correctReps)} />
+        </dl>
+        <section className="mt-4 rounded-2xl border border-border bg-card p-5">
+          <h2 className="text-lg font-bold">Repetições dentro dos critérios do app</h2>
+          {percent === null ? (
+            <p className="mt-3 text-muted-foreground">
+              Dados insuficientes: nenhuma repetição completa foi avaliada.
             </p>
           ) : (
-            <ul className="mt-4 space-y-3">
+            <>
+              <p className="mt-2 text-3xl font-bold text-primary">{percent}%</p>
+              <progress
+                className="mt-3 h-3 w-full accent-primary"
+                max="100"
+                value={percent}
+                aria-label="Proporção de repetições dentro dos critérios"
+              />
+              <p className="mt-2 text-sm text-muted-foreground">
+                {report.correctReps} de {report.totalReps} repetições completas atenderam às regras
+                do aplicativo.
+              </p>
+            </>
+          )}
+          <p className="mt-3 text-sm text-muted-foreground">
+            Esta proporção descreve regras automáticas de movimento. Não mede precisão científica
+            nem substitui avaliação profissional.
+          </p>
+        </section>
+        <section className="mt-4 rounded-2xl border border-border bg-card p-5">
+          <h2 className="text-lg font-bold">Pontos de atenção</h2>
+          {ranking.length ? (
+            <ul className="mt-3 space-y-2">
               {ranking.map(([message, count]) => (
-                <li key={message}>
-                  <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 text-sm">
-                    <span className="min-w-0">{message}</span>
-                    <span className="shrink-0 text-muted-foreground">{count}x</span>
-                  </div>
-                  <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-secondary">
-                    <div
-                      className="h-full rounded-full bg-accent"
-                      style={{ width: `${(count / maxCount) * 100}%` }}
-                    />
-                  </div>
+                <li key={message} className="flex justify-between gap-4 text-sm">
+                  <span>{message}</span>
+                  <span className="shrink-0 text-caution">{count}×</span>
                 </li>
               ))}
             </ul>
+          ) : (
+            <p className="mt-3 text-sm text-muted-foreground">
+              {report.totalReps
+                ? "Nenhuma correção registrada nas repetições avaliadas."
+                : "Complete um movimento para receber um resumo dos critérios."}
+            </p>
           )}
-        </div>
-
-        <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap">
-          <button
-            type="button"
-            onClick={onRestart}
-            className="w-full rounded-xl bg-primary px-6 py-3.5 font-bold text-primary-foreground transition hover:brightness-110 sm:w-auto sm:py-3"
-          >
+          <p className="mt-3 text-sm text-muted-foreground">
+            Ciclos interrompidos: {report.interruptedCycles} • Perdas de rastreamento:{" "}
+            {report.trackingLosses}
+          </p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Um ciclo pode ter mais de um ponto de atenção. Pausas, preparação e períodos sem
+            rastreamento não entram no tempo ativo.
+          </p>
+        </section>
+        <section className="mt-4 rounded-2xl border border-border p-5">
+          <h2 className="font-bold">Seu histórico, neste dispositivo</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Salve apenas se quiser. Nenhum vídeo é gravado. Os dados podem ser apagados pelo
+            navegador; exporte uma cópia para preservá-los.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="torvik-secondary"
+              disabled={saving || saved}
+              onClick={() => void save()}
+            >
+              {saved ? "Salvo neste dispositivo" : saving ? "Salvando…" : "Salvar sessão"}
+            </button>
+            <button type="button" className="torvik-secondary" onClick={() => exportReport(report)}>
+              Exportar relatório
+            </button>
+          </div>
+          <p role="status" className="mt-2 text-sm">
+            {saved ? "Sessão salva." : ""}
+          </p>
+          {error && (
+            <p role="alert" className="mt-2 text-sm text-caution">
+              {error}
+            </p>
+          )}
+        </section>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <button type="button" className="torvik-primary" onClick={onRestart}>
             Novo treino
           </button>
-          <button
-            type="button"
-            onClick={onHome}
-            className="w-full rounded-xl border border-border px-6 py-3.5 font-semibold transition hover:bg-secondary sm:w-auto sm:py-3"
-          >
+          <button type="button" className="torvik-secondary" onClick={onHome}>
             Voltar ao início
           </button>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
-
-function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
-      <p className="text-xs uppercase tracking-widest text-muted-foreground">{label}</p>
-      <p className={`mt-1.5 text-2xl font-bold sm:mt-2 sm:text-3xl ${accent ? "text-success" : ""}`}>
-        {value}
-      </p>
+    <div className="rounded-2xl border border-border bg-card p-4">
+      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dd className="mt-1 text-2xl font-bold">{value}</dd>
     </div>
   );
 }
