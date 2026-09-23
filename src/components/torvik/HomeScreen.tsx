@@ -9,7 +9,12 @@ type Props = {
 };
 export function HomeScreen({ selected, onSelect, onStart, onHistory }: Props) {
   const [interactive, setInteractive] = useState(false);
+  const [openPreview, setOpenPreview] = useState<ExerciseId | null>(null);
   useEffect(() => setInteractive(true), []);
+  const togglePreview = (id: ExerciseId) => {
+    onSelect(id);
+    setOpenPreview((current) => (current === id ? null : id));
+  };
   return (
     <main className="home-screen hero-glow min-h-screen">
       <div className="home-content mx-auto max-w-6xl px-4 pt-4 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:px-6 sm:pt-8 sm:pb-12">
@@ -85,6 +90,8 @@ export function HomeScreen({ selected, onSelect, onStart, onHistory }: Props) {
                 exercise={ex}
                 active={selected === ex.id}
                 onSelect={() => onSelect(ex.id)}
+                previewOpen={openPreview === ex.id}
+                onPreviewToggle={() => togglePreview(ex.id)}
               />
             ))}
           </fieldset>
@@ -135,15 +142,24 @@ function ExerciseCard({
   exercise,
   active,
   onSelect,
+  previewOpen,
+  onPreviewToggle,
 }: {
   exercise: Exercise;
   active: boolean;
   onSelect: () => void;
+  previewOpen: boolean;
+  onPreviewToggle: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const previewId = `exercise-preview-${exercise.id}`;
   return (
-    <div className="exercise-card torvik-panel p-4 sm:p-5" data-selected={active}>
-      <label className="flex cursor-pointer items-start gap-3">
+    <div
+      className="exercise-card torvik-panel p-4 sm:p-5"
+      data-selected={active}
+      data-preview-open={previewOpen}
+    >
+      <label className="desktop-exercise-select flex cursor-pointer items-start gap-3">
         <input
           type="radio"
           name="exercise"
@@ -158,6 +174,45 @@ function ExerciseCard({
             {exercise.name}
           </span>
           <span className="mt-0.5 block text-xs font-semibold text-accent">{exercise.badge}</span>
+        </span>
+      </label>
+      <label
+        className="mobile-exercise-select hidden cursor-pointer items-center gap-3"
+        onClick={(event) => {
+          if (event.target instanceof HTMLInputElement) return;
+          event.preventDefault();
+          onPreviewToggle();
+        }}
+      >
+        <input
+          type="radio"
+          name="mobile-exercise"
+          value={exercise.id}
+          checked={active}
+          aria-expanded={previewOpen}
+          aria-controls={previewId}
+          onChange={onPreviewToggle}
+          onKeyDown={(event) => {
+            if (event.key === " " && active) {
+              event.preventDefault();
+              onPreviewToggle();
+            }
+          }}
+          className="size-5 shrink-0 accent-primary"
+        />
+        <span className="min-w-0 flex-1">
+          <span className="block text-[0.9375rem] font-bold leading-tight">
+            <span aria-hidden="true">{exercise.emoji} </span>
+            {exercise.name}
+          </span>
+          <span className="mt-0.5 block text-[0.6875rem] font-semibold text-accent">
+            {exercise.badge}
+          </span>
+        </span>
+        <span className="exercise-preview-chevron" aria-hidden="true">
+          <svg viewBox="0 0 20 20" className="size-4" fill="none">
+            <path d="m6 8 4 4 4-4" stroke="currentColor" strokeWidth="1.8" />
+          </svg>
         </span>
       </label>
       <p className="exercise-summary mt-2 text-sm text-muted-foreground sm:mt-3">
@@ -182,6 +237,28 @@ function ExerciseCard({
           <li key={i}>{i}</li>
         ))}
       </ul>
+      <div
+        id={previewId}
+        className="mobile-exercise-preview hidden"
+        data-open={previewOpen}
+        aria-hidden={!previewOpen}
+      >
+        <div className="mobile-exercise-preview-clip">
+          <div className="mobile-exercise-preview-content">
+            <div className="exercise-sprite-window" role="img" aria-label={exercise.previewAlt}>
+              <img
+                src={exercise.previewSprite}
+                width="1536"
+                height="256"
+                alt=""
+                aria-hidden="true"
+                className="exercise-preview-sprite"
+              />
+            </div>
+            <p>{exercise.previewInstruction}</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

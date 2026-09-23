@@ -7,6 +7,9 @@ export type Exercise = {
   emoji: string;
   summary: string;
   instructions: string[];
+  previewSprite: string;
+  previewAlt: string;
+  previewInstruction: string;
 };
 
 export const EXERCISES: Exercise[] = [
@@ -16,6 +19,9 @@ export const EXERCISES: Exercise[] = [
     badge: "Pernas & Glúteos",
     emoji: "🦵",
     summary: "Descida controlada e retorno à posição inicial.",
+    previewSprite: "/exercise-previews/torvik-squat-sprite.webp",
+    previewAlt: "Torvik demonstrando o movimento de agachar e subir",
+    previewInstruction: "Mantenha os pés alinhados e desça com controle.",
     instructions: [
       "Fique de lado para a câmera, corpo inteiro visível",
       "O app estima a amplitude da descida em 2D",
@@ -28,6 +34,9 @@ export const EXERCISES: Exercise[] = [
     badge: "Peito & Tríceps",
     emoji: "💪",
     summary: "Descida controlada e corpo alinhado.",
+    previewSprite: "/exercise-previews/torvik-pushup-sprite.webp",
+    previewAlt: "Torvik demonstrando uma flexão de braço",
+    previewInstruction: "Mantenha o corpo reto e desça de forma controlada.",
     instructions: [
       "Posicione a câmera lateralmente, no nível do chão",
       "Deixe ombro, cotovelo, punho, quadril e joelho visíveis",
@@ -40,6 +49,9 @@ export const EXERCISES: Exercise[] = [
     badge: "Cardio",
     emoji: "⚡",
     summary: "Braços acima da cabeça e pernas bem abertas.",
+    previewSprite: "/exercise-previews/torvik-jumpingjack-sprite.webp",
+    previewAlt: "Torvik demonstrando um polichinelo completo",
+    previewInstruction: "Abra braços e pernas ao mesmo tempo em um ritmo constante.",
     instructions: [
       "Fique de frente, com espaço livre nas laterais",
       "Leve os pulsos acima da cabeça",

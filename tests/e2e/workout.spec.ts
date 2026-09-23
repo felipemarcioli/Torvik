@@ -27,14 +27,90 @@ async function setup(page: Page, visible = true) {
   );
   await page.goto("/");
 }
-test("instruções por teclado não mudam o exercício", async ({ page }) => {
+test("controles de exercício funcionam por teclado", async ({ page }) => {
   await setup(page);
   await page.getByRole("radio", { name: /Flexão de Braço/ }).check();
+  if ((page.viewportSize()?.width ?? 0) < 600) {
+    const flex = page.getByRole("radio", { name: /Flexão de Braço/ });
+    await expect(flex).toBeChecked();
+    await expect(flex).toHaveAttribute("aria-expanded", "true");
+    await flex.press("Space");
+    await expect(flex).toBeChecked();
+    await expect(flex).toHaveAttribute("aria-expanded", "false");
+    return;
+  }
   const button = page.locator('button[aria-controls="instructions-squat"]');
   await button.focus();
   await button.press("Enter");
   await expect(button).toHaveAttribute("aria-expanded", "true");
   await expect(page.getByRole("radio", { name: /Flexão de Braço/ })).toBeChecked();
+});
+
+test("accordion mobile abre somente o exercício selecionado", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await setup(page);
+
+  const squat = page.locator(".exercise-card").filter({ hasText: "Agachamento" });
+  const pushup = page.locator(".exercise-card").filter({ hasText: "Flexão de Braço" });
+  const jumpingJack = page.locator(".exercise-card").filter({ hasText: "Polichinelo" });
+  const pushupBefore = await pushup.boundingBox();
+
+  await expect(page.getByRole("radio", { name: /Agachamento/ })).toBeChecked();
+  await expect(page.locator("#exercise-preview-squat")).toHaveAttribute("aria-hidden", "true");
+
+  await squat.locator(".mobile-exercise-select").click();
+  await expect(page.locator("#exercise-preview-squat")).toHaveAttribute("aria-hidden", "false");
+  await expect(page.getByText("Mantenha os pés alinhados e desça com controle.")).toBeVisible();
+  await expect(page.locator('.exercise-card[data-preview-open="true"]')).toHaveCount(1);
+  await expect
+    .poll(async () => (await pushup.boundingBox())?.y ?? 0)
+    .toBeGreaterThan(pushupBefore!.y + 60);
+
+  await squat.locator(".mobile-exercise-select").click();
+  await expect(page.locator("#exercise-preview-squat")).toHaveAttribute("aria-hidden", "true");
+  await expect(page.getByRole("radio", { name: /Agachamento/ })).toBeChecked();
+
+  await pushup.locator(".mobile-exercise-select").click();
+  await expect(page.getByRole("radio", { name: /Flexão de Braço/ })).toBeChecked();
+  await expect(page.locator("#exercise-preview-pushup")).toHaveAttribute("aria-hidden", "false");
+  await expect(page.locator("#exercise-preview-squat")).toHaveAttribute("aria-hidden", "true");
+  await expect(page.locator('.exercise-card[data-preview-open="true"]')).toHaveCount(1);
+
+  const jumpingJackRadio = page.getByRole("radio", { name: /Polichinelo/ });
+  await jumpingJackRadio.focus();
+  await jumpingJackRadio.press("Space");
+  await expect(jumpingJackRadio).toBeChecked();
+  await expect(page.locator("#exercise-preview-jumpingjack")).toHaveAttribute(
+    "aria-hidden",
+    "false",
+  );
+  await jumpingJackRadio.press("Space");
+  await expect(jumpingJackRadio).toBeChecked();
+  await expect(page.locator("#exercise-preview-jumpingjack")).toHaveAttribute(
+    "aria-hidden",
+    "true",
+  );
+
+  await jumpingJack.locator(".mobile-exercise-select").click();
+  await expect(jumpingJack.locator(".exercise-preview-sprite")).toHaveCSS(
+    "animation-name",
+    "torvik-exercise-frames",
+  );
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(jumpingJack.locator(".exercise-preview-sprite")).toHaveCSS("animation-name", "none");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  for (const size of [
+    { width: 390, height: 844 },
+    { width: 360, height: 800 },
+  ]) {
+    await page.setViewportSize(size);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+    const action = await page.getByRole("button", { name: "Preparar câmera" }).boundingBox();
+    expect(action).not.toBeNull();
+    expect(action!.y + action!.height).toBeLessThanOrEqual(size.height);
+  }
 });
 test("preparação, treino, pausa, relatório, histórico e reinício", async ({ page }) => {
   await setup(page);
