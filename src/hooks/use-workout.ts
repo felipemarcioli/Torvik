@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { RULES, createAnalyzer, type AnalysisResult, type ExerciseId } from "@/lib/biomech";
 import { CameraController, cameraErrorMessage, type PipelineStage } from "@/lib/camera";
 import { SessionLedger } from "@/lib/session";
+import { PreparationStart } from "@/lib/preparation";
 import { drawPose } from "@/lib/draw-pose";
 export type WorkoutPhase = "loading" | "preparing" | "countdown" | "running" | "paused" | "error";
 const initialResult: AnalysisResult = {
@@ -37,14 +38,14 @@ export function useWorkout(exercise: ExerciseId) {
   const resultRef = useRef(initialResult);
   const held = useRef<{ until: number; result: AnalysisResult } | null>(null);
   const [seconds, setSeconds] = useState(0),
-    [countdown, setCountdown] = useState(3);
+    [countdown, setCountdown] = useState(5);
   const [attempt, setAttempt] = useState(0),
     [deviceId, setDeviceId] = useState("");
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]),
     [mirrored, setMirrored] = useState(true);
   const lastFrameAt = useRef<number | null>(null);
   const dimensions = useRef<string | null>(null);
-  const countdownDeadline = useRef<number | null>(null);
+  const preparation = useRef(new PreparationStart());
   const interrupt = useCallback(() => {
     const { analyzer, ledger } = runtime.current!;
     const now = performance.now();
@@ -58,7 +59,7 @@ export function useWorkout(exercise: ExerciseId) {
       correctReps: analyzer.correctReps,
     };
     setResult(resultRef.current);
-    countdownDeadline.current = null;
+    preparation.current.reset();
     lastFrameAt.current = null;
   }, []);
   const refreshDevices = useCallback(async () => {
@@ -71,6 +72,7 @@ export function useWorkout(exercise: ExerciseId) {
   }, []);
   useEffect(() => {
     if (!videoRef.current) return;
+    const preparationStart = preparation.current;
     let disposed = false,
       first = true;
     setPhase("loading");
@@ -113,9 +115,10 @@ export function useWorkout(exercise: ExerciseId) {
           ledger.tracking(next.tracking);
           ledger.clock.setRunning(next.tracking && next.ready, now);
         }
-        if (phaseRef.current === "countdown" && (!next.tracking || !next.ready)) {
-          countdownDeadline.current = null;
-          setPhase("preparing");
+        if (phaseRef.current === "preparing" || phaseRef.current === "countdown") {
+          preparation.current.observe(next.tracking, now);
+          setCountdown(preparation.current.remaining(now));
+          setPhase(preparation.current.phase);
         }
         if (next.event?.type === "repetition") held.current = { until: now + 1500, result: next };
         const display = !next.tracking
@@ -142,6 +145,7 @@ export function useWorkout(exercise: ExerciseId) {
     return () => {
       disposed = true;
       camera.stop();
+      preparationStart.reset();
       runtime.current!.ledger.clock.setRunning(false, performance.now());
     };
   }, [exercise, deviceId, attempt, interrupt, refreshDevices, setPhase]);
@@ -168,13 +172,16 @@ export function useWorkout(exercise: ExerciseId) {
         }
       }
       setSeconds(runtime.current!.ledger.clock.seconds(now));
-      if (phaseRef.current === "countdown" && countdownDeadline.current !== null) {
-        const left = Math.ceil((countdownDeadline.current - now) / 1000);
-        setCountdown(Math.max(1, left));
-        if (left <= 0 && resultRef.current.ready) {
-          countdownDeadline.current = null;
-          setPhase("running");
-          runtime.current!.ledger.clock.setRunning(true, now);
+      if (phaseRef.current === "preparing" || phaseRef.current === "countdown") {
+        const next = preparation.current.tick(now);
+        setCountdown(preparation.current.remaining(now));
+        if (next !== phaseRef.current) {
+          setPhase(next);
+          if (next === "running")
+            runtime.current!.ledger.clock.setRunning(
+              resultRef.current.tracking && resultRef.current.ready,
+              now,
+            );
         }
       }
     }, 200);
@@ -219,9 +226,9 @@ export function useWorkout(exercise: ExerciseId) {
     pause,
     retry,
     start: () => {
-      if (!resultRef.current.ready || phaseRef.current !== "preparing") return;
-      setCountdown(3);
-      countdownDeadline.current = performance.now() + 3000;
+      if (phaseRef.current !== "preparing") return;
+      preparation.current.manual(performance.now());
+      setCountdown(5);
       setPhase("countdown");
     },
     resume: retry,

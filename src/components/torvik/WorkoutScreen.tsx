@@ -80,9 +80,14 @@ export function WorkoutScreen({
         {w.phase === "countdown" && (
           <div
             role="status"
-            className="relative rounded-full bg-background/90 px-10 py-5 text-7xl font-bold text-primary"
+            className="relative mx-4 rounded-3xl bg-background/90 px-8 py-4 text-center text-primary"
           >
-            {w.countdown}
+            <p className="text-8xl font-bold tabular-nums">{w.countdown}</p>
+            <p className="mt-2 max-w-xs text-base font-semibold text-foreground">
+              {w.result.tracking
+                ? "Prepare-se. O treino já vai começar."
+                : "Posicione-se no quadro."}
+            </p>
           </div>
         )}
         {w.phase === "loading" && (
@@ -114,7 +119,7 @@ export function WorkoutScreen({
       <section className="border-t border-border bg-card px-4 py-3">
         {w.phase === "preparing" && (
           <div className="mx-auto mb-3 max-w-3xl">
-            <h2 className="font-bold">Prepare sua posição</h2>
+            <h2 className="font-bold">Posicione-se na câmera para iniciar automaticamente</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               {details.instructions[0]}.{" "}
               {exercise === "jumpingjack"
@@ -130,7 +135,11 @@ export function WorkoutScreen({
             className={`mx-auto max-w-3xl rounded-xl border bg-background px-3 py-2 text-center ${styles[w.result.level]}`}
           >
             <p role="status" aria-live="polite" aria-atomic="true" className="font-semibold">
-              {w.result.message}
+              {w.phase === "preparing" && w.result.tracking
+                ? "Corpo detectado. Preparando o início automático…"
+                : w.phase === "countdown"
+                  ? "Mantenha os pontos do corpo visíveis. Não precisa ficar imóvel."
+                  : w.result.message}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
               {states[w.result.state] ?? w.result.state}
@@ -161,13 +170,8 @@ export function WorkoutScreen({
             Cancelar
           </button>
           {w.phase === "preparing" && (
-            <button
-              type="button"
-              className="torvik-primary"
-              disabled={!w.result.ready}
-              onClick={w.start}
-            >
-              Começar em 3 segundos
+            <button type="button" className="torvik-primary" onClick={w.start}>
+              Iniciar em 5 segundos
             </button>
           )}
           {w.phase === "running" && (

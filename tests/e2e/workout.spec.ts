@@ -1,11 +1,12 @@
 import { expect, test, type Page } from "@playwright/test";
-async function setup(page: Page) {
+async function setup(page: Page, visible = true) {
   await page.route("https://fonts.googleapis.com/**", (route) => route.abort());
   await page.route("https://cdn.jsdelivr.net/npm/@mediapipe/pose@*/pose.js", (route) =>
     route.fulfill({
       contentType: "text/javascript",
       body: `
     window.__angle = 170;
+    window.__visible = ${visible};
     window.Pose = class {
       setOptions() {} onResults(cb) { this.cb=cb; }
       async close() {}
@@ -18,7 +19,7 @@ async function setup(page: Page) {
           l[11+offset]=p(.5,.1);l[23+offset]=p(.5,.3);l[25+offset]=p(.5,.5);
           l[27+offset]=p(.5+.2*ratio*Math.sin(angle),.5-.2*Math.cos(angle));
         }
-        this.cb({poseLandmarks:l});
+        this.cb({poseLandmarks:window.__visible ? l : []});
       }
     };
   `,
@@ -38,10 +39,12 @@ test("instruções por teclado não mudam o exercício", async ({ page }) => {
 test("preparação, treino, pausa, relatório, histórico e reinício", async ({ page }) => {
   await setup(page);
   await page.getByRole("button", { name: "Preparar câmera", exact: true }).click();
-  const start = page.getByRole("button", { name: "Começar em 3 segundos" });
+  const start = page.getByRole("button", { name: "Iniciar em 5 segundos" });
   await expect(start).toBeEnabled();
   await start.click();
-  await expect(page.getByRole("button", { name: "Pausar", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Pausar", exact: true })).toBeVisible({
+    timeout: 10000,
+  });
   for (const angle of [140, 80, 170]) {
     await page.evaluate((value) => {
       (window as unknown as { __angle: number }).__angle = value;
@@ -54,7 +57,9 @@ test("preparação, treino, pausa, relatório, histórico e reinício", async ({
   await page.getByRole("button", { name: "Preparar retomada" }).click();
   await expect(start).toBeEnabled();
   await start.click();
-  await expect(page.getByRole("button", { name: "Pausar", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Pausar", exact: true })).toBeVisible({
+    timeout: 10000,
+  });
   // Simulate the browser visibility signal; resuming always requires user action.
   await page.evaluate(() => {
     Object.defineProperty(document, "hidden", { configurable: true, value: true });
@@ -100,12 +105,12 @@ test("falha no script oferece nova tentativa funcional", async ({ page }) => {
   await page.getByRole("button", { name: "Preparar câmera", exact: true }).click();
   await expect(page.getByRole("alert")).toContainText("Não foi possível carregar");
   await page.getByRole("button", { name: "Tentar novamente" }).click();
-  await expect(page.getByRole("button", { name: "Começar em 3 segundos" })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "Iniciar em 5 segundos" })).toBeEnabled();
 });
 test("imagem completa e ações sem sobreposição em retrato e paisagem", async ({ page }) => {
-  await setup(page);
+  await setup(page, false);
   await page.getByRole("button", { name: "Preparar câmera", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Começar em 3 segundos" })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "Iniciar em 5 segundos" })).toBeEnabled();
   for (const size of [
     { width: 390, height: 844 },
     { width: 844, height: 390 },
@@ -117,7 +122,7 @@ test("imagem completa e ações sem sobreposição em retrato e paisagem", async
     const camera = await page
       .getByRole("region", { name: "Prévia completa da câmera" })
       .boundingBox();
-    const button = await page.getByRole("button", { name: "Começar em 3 segundos" }).boundingBox();
+    const button = await page.getByRole("button", { name: "Iniciar em 5 segundos" }).boundingBox();
     expect(camera).not.toBeNull();
     expect(button).not.toBeNull();
     const overlapX = Math.max(
@@ -135,4 +140,72 @@ test("imagem completa e ações sem sobreposição em retrato e paisagem", async
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
     ).toBe(true);
   }
+});
+
+async function tracking(page: Page, visible: boolean) {
+  await page.evaluate((value) => {
+    (window as unknown as { __visible: boolean }).__visible = value;
+  }, visible);
+}
+test("início automático tolera movimento, cancela perda e não reinicia sessão", async ({
+  page,
+}) => {
+  test.setTimeout(45000);
+  await setup(page);
+  await page.getByRole("button", { name: "Preparar câmera", exact: true }).click();
+  await expect(page.getByRole("heading", { name: /Posicione-se na câmera/ })).toBeVisible();
+  await expect(
+    page.getByText("Prepare-se. O treino já vai começar.", { exact: true }),
+  ).toBeVisible();
+  await tracking(page, false);
+  await expect(page.getByRole("heading", { name: /Posicione-se na câmera/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Iniciar em 5 segundos" })).toBeEnabled();
+  await tracking(page, true);
+  await expect(
+    page.getByText("Prepare-se. O treino já vai começar.", { exact: true }),
+  ).toBeVisible();
+  // Movement during countdown must neither count repetitions nor require immobility.
+  for (const angle of [158, 165, 140, 80, 170]) {
+    await page.evaluate((value) => {
+      (window as unknown as { __angle: number }).__angle = value;
+    }, angle);
+    await page.waitForTimeout(400);
+    await expect(
+      page.getByText("Prepare-se. O treino já vai começar.", { exact: true }),
+    ).toBeVisible();
+  }
+  await expect(page.getByRole("button", { name: "Pausar", exact: true })).toBeVisible({
+    timeout: 10000,
+  });
+  await page.waitForTimeout(7200);
+  await expect(page.getByRole("button", { name: "Pausar", exact: true })).toBeVisible();
+  await expect(page.getByText("Prepare-se. O treino já vai começar.", { exact: true })).toHaveCount(
+    0,
+  );
+  await page.getByRole("button", { name: "Finalizar treino", exact: true }).click();
+  await expect(page.getByText(/Dados insuficientes/)).toBeVisible();
+});
+test("manual fora do quadro oferece cinco segundos e cancelamento não inicia sessão", async ({
+  page,
+}) => {
+  await setup(page, false);
+  await page.getByRole("button", { name: "Preparar câmera", exact: true }).click();
+  const manual = page.getByRole("button", { name: "Iniciar em 5 segundos" });
+  await expect(manual).toBeEnabled();
+  await manual.click();
+  await expect(page.getByText("Posicione-se no quadro.", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Pausar", exact: true })).toHaveCount(0);
+  await tracking(page, true);
+  await expect(page.getByRole("button", { name: "Pausar", exact: true })).toBeVisible({
+    timeout: 10000,
+  });
+  await page.getByRole("button", { name: "Cancelar", exact: true }).click();
+  await page.getByRole("button", { name: "Preparar câmera", exact: true }).click();
+  await expect(
+    page.getByText("Prepare-se. O treino já vai começar.", { exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Cancelar", exact: true }).click();
+  await page.waitForTimeout(5500);
+  await expect(page.getByRole("button", { name: "Preparar câmera", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Pausar", exact: true })).toHaveCount(0);
 });
