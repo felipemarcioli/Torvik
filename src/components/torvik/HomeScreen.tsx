@@ -12,27 +12,27 @@ export function HomeScreen({ selected, onSelect, onStart, onHistory }: Props) {
   useEffect(() => setInteractive(true), []);
   return (
     <main className="hero-glow min-h-screen">
-      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
-        <header className="flex items-center justify-between gap-3">
-          <p className="font-display text-xl font-extrabold tracking-wide text-primary">TORVIK</p>
+      <div className="mx-auto max-w-6xl px-4 pt-4 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:px-6 sm:pt-8 sm:pb-12">
+        <header className="flex items-center justify-between gap-3 border-b border-border/70 pb-4">
+          <p className="font-display text-xl font-extrabold tracking-[0.12em] text-primary">
+            TORVIK
+          </p>
           <button
             type="button"
-            className="torvik-secondary"
+            className="torvik-secondary text-sm"
             disabled={!interactive}
             onClick={onHistory}
           >
             Meu histórico
           </button>
         </header>
-        <section className="mt-5 grid grid-cols-[minmax(0,1fr)_100px] items-center gap-3 sm:grid-cols-[minmax(0,1fr)_180px] md:grid-cols-[minmax(0,1fr)_220px]">
+        <section className="mt-5 grid grid-cols-[minmax(0,1fr)_76px] items-center gap-3 sm:mt-8 sm:grid-cols-[minmax(0,1fr)_150px] md:grid-cols-[minmax(0,1fr)_190px]">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-primary">
-              Seu treino, com atenção ao movimento
-            </p>
-            <h1 className="mt-2 text-3xl font-bold leading-tight sm:text-5xl">
+            <p className="torvik-kicker">Seu treino, com atenção ao movimento</p>
+            <h1 className="mt-2 max-w-lg text-[clamp(1.8rem,7vw,3rem)] font-bold leading-[1.08]">
               Cada repetição conta.
             </h1>
-            <p className="mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
+            <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
               Escolha um exercício. O Torvik acompanha seu movimento pela câmera e ajuda a revisar a
               execução.
             </p>
@@ -40,18 +40,24 @@ export function HomeScreen({ selected, onSelect, onStart, onHistory }: Props) {
           <img
             src="/torvik-image-3d-360.webp"
             srcSet="/torvik-image-3d-180.webp 180w, /torvik-image-3d-360.webp 360w"
-            sizes="(min-width: 768px) 220px, (min-width: 640px) 180px, 100px"
+            sizes="(min-width: 768px) 190px, (min-width: 640px) 150px, 76px"
             width="360"
             height="540"
             alt="Torvik, o canguru assistente de treino"
-            className="h-auto w-full drop-shadow-xl"
+            className="h-auto w-full drop-shadow-lg"
           />
         </section>
-        <section className="mt-6" aria-labelledby="exercise-heading">
-          <h2 id="exercise-heading" className="text-xl font-bold sm:text-2xl">
-            Escolha o exercício
-          </h2>
-          <fieldset disabled={!interactive} className="mt-4 grid gap-3 md:grid-cols-3">
+        <section className="mt-6 sm:mt-8" aria-labelledby="exercise-heading">
+          <div className="flex items-end justify-between gap-4">
+            <h2 id="exercise-heading" className="text-2xl font-bold leading-tight sm:text-3xl">
+              Escolha o exercício
+            </h2>
+            <span className="hidden text-sm text-muted-foreground sm:inline">3 opções</span>
+          </div>
+          <fieldset
+            disabled={!interactive}
+            className="mt-3 grid gap-2 sm:mt-5 sm:gap-4 md:grid-cols-3"
+          >
             <legend className="sr-only">Exercício para o próximo treino</legend>
             {EXERCISES.map((ex) => (
               <ExerciseCard
@@ -62,21 +68,26 @@ export function HomeScreen({ selected, onSelect, onStart, onHistory }: Props) {
               />
             ))}
           </fieldset>
-          <button
-            type="button"
-            className="torvik-primary mt-5 w-full py-4 sm:w-auto"
-            disabled={!interactive}
-            onClick={onStart}
-          >
-            Preparar câmera
-          </button>
         </section>
-        <section className="mt-8 rounded-2xl border border-border bg-card/70 p-4">
-          <h2 className="font-bold">Antes de começar</h2>
-          <ul className="mt-3 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
+        <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-18px_40px_-24px_#000] backdrop-blur-lg sm:static sm:mt-6 sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none">
+          <div className="mx-auto max-w-6xl">
+            <button
+              type="button"
+              className="torvik-primary w-full sm:w-auto sm:min-w-56"
+              disabled={!interactive}
+              onClick={onStart}
+            >
+              Preparar câmera
+            </button>
+          </div>
+        </div>
+        <section className="torvik-panel mt-8 p-5 sm:mt-10 sm:p-6">
+          <p className="torvik-kicker">Preparação</p>
+          <h2 className="mt-1 text-xl font-bold">Antes de começar</h2>
+          <ul className="mt-4 grid gap-3 text-sm text-muted-foreground sm:grid-cols-2">
             {CAMERA_TIPS.map((tip) => (
               <li key={tip} className="flex gap-2">
-                <span aria-hidden="true" className="text-accent">
+                <span aria-hidden="true" className="font-bold text-accent">
                   •
                 </span>
                 {tip}
@@ -84,7 +95,7 @@ export function HomeScreen({ selected, onSelect, onStart, onHistory }: Props) {
             ))}
           </ul>
         </section>
-        <footer className="mt-6 max-w-3xl text-xs leading-relaxed text-muted-foreground">
+        <footer className="mt-6 max-w-3xl border-t border-border/70 pt-5 text-xs leading-relaxed text-muted-foreground">
           <p>
             O vídeo é analisado neste dispositivo e não é gravado pelo Torvik. O navegador baixa o
             modelo e as fontes pela internet. A hospedagem e o editor podem registrar diagnósticos
@@ -111,9 +122,7 @@ function ExerciseCard({
 }) {
   const [open, setOpen] = useState(false);
   return (
-    <div
-      className={`rounded-2xl border p-4 transition ${active ? "border-primary bg-primary/10" : "border-border bg-card"}`}
-    >
+    <div className="exercise-card torvik-panel p-4 sm:p-5" data-selected={active}>
       <label className="flex cursor-pointer items-start gap-3">
         <input
           type="radio"
@@ -124,19 +133,19 @@ function ExerciseCard({
           className="mt-1 size-5 shrink-0 accent-primary"
         />
         <span className="min-w-0">
-          <span className="block text-lg font-bold">
+          <span className="block text-base font-bold sm:text-lg">
             <span aria-hidden="true">{exercise.emoji} </span>
             {exercise.name}
           </span>
-          <span className="mt-1 block text-xs font-semibold text-accent">{exercise.badge}</span>
+          <span className="mt-0.5 block text-xs font-semibold text-accent">{exercise.badge}</span>
         </span>
       </label>
-      <p className="mt-3 text-sm text-muted-foreground">{exercise.summary}</p>
+      <p className="mt-2 text-sm text-muted-foreground sm:mt-3">{exercise.summary}</p>
       <button
         type="button"
         aria-expanded={open}
         aria-controls={`instructions-${exercise.id}`}
-        className="mt-2 min-h-11 text-sm font-semibold text-primary"
+        className="mt-1 min-h-11 rounded-md text-sm font-semibold text-primary underline-offset-4 hover:underline"
         onClick={() => setOpen((v) => !v)}
       >
         {open ? "Ocultar instruções" : "Ver instruções"}
@@ -144,7 +153,7 @@ function ExerciseCard({
       <ul
         id={`instructions-${exercise.id}`}
         hidden={!open}
-        className="mt-2 space-y-2 text-sm text-muted-foreground"
+        className="mt-2 space-y-2 border-t border-border pt-3 text-sm text-muted-foreground"
       >
         {exercise.instructions.map((i) => (
           <li key={i}>{i}</li>

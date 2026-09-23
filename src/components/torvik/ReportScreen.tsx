@@ -33,57 +33,68 @@ export function ReportScreen({
   };
   return (
     <main className="hero-glow min-h-screen">
-      <div className="mx-auto max-w-4xl px-4 py-8 sm:py-12">
-        <header className="flex items-center gap-4">
+      <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-12">
+        <header className="flex items-center gap-4 border-b border-border pb-5">
           <img
             src="/torvik-image-2d.webp"
             width="160"
             height="240"
             alt="Mascote Torvik"
-            className="h-20 w-auto"
+            className="h-16 w-auto sm:h-20"
           />
           <div>
-            <p className="text-xs uppercase tracking-widest text-primary">Relatório local</p>
-            <h1 className="text-2xl font-bold sm:text-3xl">{exercise.name} concluído</h1>
+            <p className="torvik-kicker">Relatório local</p>
+            <h1 className="mt-1 text-2xl font-bold leading-tight sm:text-3xl">
+              {exercise.name} concluído
+            </h1>
           </div>
         </header>
-        <dl className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <Stat label="Tempo ativo" value={formatTime(report.seconds)} />
-          <Stat label="Repetições avaliadas" value={String(report.totalReps)} />
-          <Stat label="Dentro dos critérios" value={String(report.correctReps)} />
-        </dl>
-        <section className="mt-4 rounded-2xl border border-border bg-card p-5">
-          <h2 className="text-lg font-bold">Repetições dentro dos critérios do app</h2>
-          {percent === null ? (
-            <p className="mt-3 text-muted-foreground">
-              Dados insuficientes: nenhuma repetição completa foi avaliada.
-            </p>
-          ) : (
-            <>
-              <p className="mt-2 text-3xl font-bold text-primary">{percent}%</p>
-              <progress
-                className="mt-3 h-3 w-full accent-primary"
-                max="100"
-                value={percent}
-                aria-label="Proporção de repetições dentro dos critérios"
-              />
-              <p className="mt-2 text-sm text-muted-foreground">
-                {report.correctReps} de {report.totalReps} repetições completas atenderam às regras
-                do aplicativo.
+        <section className="torvik-panel mt-6 overflow-hidden">
+          <div className="border-b border-border p-5 sm:p-7">
+            <p className="torvik-kicker">Resultado da sessão</p>
+            <h2 className="mt-2 text-lg font-bold">Repetições dentro dos critérios do app</h2>
+            {percent === null ? (
+              <p className="mt-3 text-lg font-semibold text-muted-foreground">
+                Dados insuficientes: nenhuma repetição completa foi avaliada.
               </p>
-            </>
-          )}
-          <p className="mt-3 text-sm text-muted-foreground">
-            Esta proporção descreve regras automáticas de movimento. Não mede precisão científica
-            nem substitui avaliação profissional.
-          </p>
+            ) : (
+              <>
+                <p className="mt-1 font-display text-5xl font-extrabold leading-none text-primary tabular-nums sm:text-6xl">
+                  {percent}%
+                </p>
+                <progress
+                  className="mt-4 h-2 w-full accent-primary"
+                  max="100"
+                  value={percent}
+                  aria-label="Proporção de repetições dentro dos critérios"
+                />
+                <p className="mt-3 text-sm text-muted-foreground">
+                  {report.correctReps} de {report.totalReps} repetições completas atenderam às
+                  regras do aplicativo.
+                </p>
+              </>
+            )}
+            <p className="mt-3 max-w-2xl text-xs leading-relaxed text-muted-foreground">
+              Esta proporção descreve regras automáticas de movimento. Não mede precisão científica
+              nem substitui avaliação profissional.
+            </p>
+          </div>
+          <dl className="grid grid-cols-3 divide-x divide-border">
+            <Stat label="Tempo ativo" value={formatTime(report.seconds)} />
+            <Stat label="Repetições avaliadas" value={String(report.totalReps)} />
+            <Stat label="Dentro dos critérios" value={String(report.correctReps)} />
+          </dl>
         </section>
-        <section className="mt-4 rounded-2xl border border-border bg-card p-5">
-          <h2 className="text-lg font-bold">Pontos de atenção</h2>
+        <section className="torvik-panel mt-4 p-5 sm:p-6">
+          <p className="torvik-kicker">Revisão</p>
+          <h2 className="mt-1 text-xl font-bold">Pontos de atenção</h2>
           {ranking.length ? (
             <ul className="mt-3 space-y-2">
               {ranking.map(([message, count]) => (
-                <li key={message} className="flex justify-between gap-4 text-sm">
+                <li
+                  key={message}
+                  className="flex justify-between gap-4 border-b border-border py-2 text-sm last:border-0"
+                >
                   <span>{message}</span>
                   <span className="shrink-0 text-caution">{count}×</span>
                 </li>
@@ -96,7 +107,7 @@ export function ReportScreen({
                 : "Complete um movimento para receber um resumo dos critérios."}
             </p>
           )}
-          <p className="mt-3 text-sm text-muted-foreground">
+          <p className="mt-4 border-t border-border pt-3 text-sm text-muted-foreground">
             Ciclos interrompidos: {report.interruptedCycles} • Perdas de rastreamento:{" "}
             {report.trackingLosses}
           </p>
@@ -105,8 +116,8 @@ export function ReportScreen({
             rastreamento não entram no tempo ativo.
           </p>
         </section>
-        <section className="mt-4 rounded-2xl border border-border p-5">
-          <h2 className="font-bold">Seu histórico, neste dispositivo</h2>
+        <section className="torvik-panel mt-4 p-5 sm:p-6">
+          <h2 className="text-xl font-bold">Seu histórico, neste dispositivo</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Salve apenas se quiser. Nenhum vídeo é gravado. Os dados podem ser apagados pelo
             navegador; exporte uma cópia para preservá-los.
@@ -133,11 +144,11 @@ export function ReportScreen({
             </p>
           )}
         </section>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <button type="button" className="torvik-primary" onClick={onRestart}>
+        <div className="mt-6 flex flex-wrap gap-3 pb-[env(safe-area-inset-bottom)]">
+          <button type="button" className="torvik-primary flex-1 sm:flex-none" onClick={onRestart}>
             Novo treino
           </button>
-          <button type="button" className="torvik-secondary" onClick={onHome}>
+          <button type="button" className="torvik-secondary flex-1 sm:flex-none" onClick={onHome}>
             Voltar ao início
           </button>
         </div>
@@ -147,9 +158,9 @@ export function ReportScreen({
 }
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-4">
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="mt-1 text-2xl font-bold">{value}</dd>
+    <div className="min-w-0 px-2 py-4 text-center sm:p-5">
+      <dt className="text-[0.65rem] leading-tight text-muted-foreground sm:text-xs">{label}</dt>
+      <dd className="mt-1 font-display text-xl font-bold tabular-nums sm:text-2xl">{value}</dd>
     </div>
   );
 }

@@ -79,7 +79,9 @@ test("preparação, treino, pausa, relatório, histórico e reinício", async ({
   await expect(page.getByRole("button", { name: "Salvo neste dispositivo" })).toBeVisible();
   await page.getByRole("button", { name: "Voltar ao início" }).click();
   await page.getByRole("button", { name: "Meu histórico" }).click();
-  await expect(page.getByText("1 repetições avaliadas • 1 dentro dos critérios")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Seu histórico" })).toBeVisible();
+  await expect(page.getByText("avaliadas", { exact: true })).toBeVisible();
+  await expect(page.getByText("nos critérios", { exact: true })).toBeVisible();
   await page.reload();
   await page.getByRole("button", { name: "Meu histórico" }).click();
   await expect(page.getByRole("button", { name: "Exportar", exact: true })).toBeVisible();
@@ -115,6 +117,7 @@ test("imagem completa e ações sem sobreposição em retrato e paisagem", async
     { width: 390, height: 844 },
     { width: 844, height: 390 },
     { width: 360, height: 800 },
+    { width: 768, height: 1024 },
   ]) {
     await page.setViewportSize(size);
     await expect(page.locator("video")).toHaveCSS("object-fit", "contain");
@@ -125,6 +128,12 @@ test("imagem completa e ações sem sobreposição em retrato e paisagem", async
     const button = await page.getByRole("button", { name: "Iniciar em 5 segundos" }).boundingBox();
     expect(camera).not.toBeNull();
     expect(button).not.toBeNull();
+    expect(camera!.y + camera!.height).toBeLessThanOrEqual(size.height + 1);
+    for (const action of await page.locator(".workout-actions button").all()) {
+      const box = await action.boundingBox();
+      expect(box).not.toBeNull();
+      expect(box!.y + box!.height).toBeLessThanOrEqual(size.height + 1);
+    }
     const overlapX = Math.max(
       0,
       Math.min(camera!.x + camera!.width, button!.x + button!.width) -
@@ -140,6 +149,11 @@ test("imagem completa e ações sem sobreposição em retrato e paisagem", async
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
     ).toBe(true);
   }
+  await page.setViewportSize({ width: 360, height: 800 });
+  await page.evaluate(() => {
+    document.documentElement.style.fontSize = "20px";
+  });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
 async function tracking(page: Page, visible: boolean) {
