@@ -7,7 +7,8 @@ export type Exercise = {
   emoji: string;
   summary: string;
   instructions: string[];
-  previewSprite: string;
+  previewAnimation: string;
+  previewStill: string;
   previewAlt: string;
   previewInstruction: string;
 };
@@ -19,7 +20,8 @@ export const EXERCISES: Exercise[] = [
     badge: "Pernas & Glúteos",
     emoji: "🦵",
     summary: "Descida controlada e retorno à posição inicial.",
-    previewSprite: "/exercise-previews/torvik-squat-sprite.webp",
+    previewAnimation: "/exercise-previews/torvik-squat.webp",
+    previewStill: "/exercise-previews/torvik-squat-still.webp",
     previewAlt: "Torvik demonstrando o movimento de agachar e subir",
     previewInstruction: "Mantenha os pés alinhados e desça com controle.",
     instructions: [
@@ -34,7 +36,8 @@ export const EXERCISES: Exercise[] = [
     badge: "Peito & Tríceps",
     emoji: "💪",
     summary: "Descida controlada e corpo alinhado.",
-    previewSprite: "/exercise-previews/torvik-pushup-sprite.webp",
+    previewAnimation: "/exercise-previews/torvik-pushup.webp",
+    previewStill: "/exercise-previews/torvik-pushup-still.webp",
     previewAlt: "Torvik demonstrando uma flexão de braço",
     previewInstruction: "Mantenha o corpo reto e desça de forma controlada.",
     instructions: [
@@ -49,7 +52,8 @@ export const EXERCISES: Exercise[] = [
     badge: "Cardio",
     emoji: "⚡",
     summary: "Braços acima da cabeça e pernas bem abertas.",
-    previewSprite: "/exercise-previews/torvik-jumpingjack-sprite.webp",
+    previewAnimation: "/exercise-previews/torvik-jumpingjack.webp",
+    previewStill: "/exercise-previews/torvik-jumpingjack-still.webp",
     previewAlt: "Torvik demonstrando um polichinelo completo",
     previewInstruction: "Abra braços e pernas ao mesmo tempo em um ritmo constante.",
     instructions: [

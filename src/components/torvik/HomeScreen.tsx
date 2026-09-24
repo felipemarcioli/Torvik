@@ -246,14 +246,17 @@ function ExerciseCard({
         <div className="mobile-exercise-preview-clip">
           <div className="mobile-exercise-preview-content">
             <div className="exercise-sprite-window" role="img" aria-label={exercise.previewAlt}>
-              <img
-                src={exercise.previewSprite}
-                width="1536"
-                height="256"
-                alt=""
-                aria-hidden="true"
-                className="exercise-preview-sprite"
-              />
+              <picture>
+                <source media="(prefers-reduced-motion: reduce)" srcSet={exercise.previewStill} />
+                <img
+                  src={previewOpen ? exercise.previewAnimation : exercise.previewStill}
+                  width="256"
+                  height="256"
+                  alt=""
+                  aria-hidden="true"
+                  className="exercise-preview-animation"
+                />
+              </picture>
             </div>
             <p>{exercise.previewInstruction}</p>
           </div>

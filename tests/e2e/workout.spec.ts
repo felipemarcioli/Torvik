@@ -92,12 +92,17 @@ test("accordion mobile abre somente o exercício selecionado", async ({ page }) 
   );
 
   await jumpingJack.locator(".mobile-exercise-select").click();
-  await expect(jumpingJack.locator(".exercise-preview-sprite")).toHaveCSS(
-    "animation-name",
-    "torvik-exercise-frames",
-  );
+  const animation = jumpingJack.locator(".exercise-preview-animation");
+  await expect(animation).toHaveAttribute("src", "/exercise-previews/torvik-jumpingjack.webp");
+  await expect
+    .poll(() =>
+      animation.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth === 256),
+    )
+    .toBe(true);
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(jumpingJack.locator(".exercise-preview-sprite")).toHaveCSS("animation-name", "none");
+  await expect
+    .poll(() => animation.evaluate((img: HTMLImageElement) => img.currentSrc))
+    .toContain("torvik-jumpingjack-still.webp");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   for (const size of [
     { width: 390, height: 844 },
