@@ -1,3 +1,4 @@
+import { useWorkoutVoice } from "@/hooks/use-workout-voice";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { HomeScreen } from "@/components/torvik/HomeScreen";
@@ -25,6 +26,11 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  const voice = useWorkoutVoice();
+  const goHome = () => {
+    voice.controller.stop();
+    setScreen("home");
+  };
   const [screen, setScreen] = useState<"home" | "workout" | "report" | "history">("home");
   const [exercise, setExercise] = useState<ExerciseId>("squat");
   const [report, setReport] = useState<SessionReport | null>(null);
@@ -40,18 +46,20 @@ function Index() {
     heading?.focus({ preventScroll: true });
   }, [screen, sessionKey]);
 
-  if (screen === "history") return <HistoryScreen onHome={() => setScreen("home")} />;
+  if (screen === "history") return <HistoryScreen onHome={goHome} />;
 
   if (screen === "workout") {
     return (
       <WorkoutScreen
         key={sessionKey}
         exercise={exercise}
+        voice={voice}
         onFinish={(r) => {
+          voice.controller.finish();
           setReport(r);
           setScreen("report");
         }}
-        onCancel={() => setScreen("home")}
+        onCancel={goHome}
       />
     );
   }
@@ -61,10 +69,11 @@ function Index() {
       <ReportScreen
         report={report}
         onRestart={() => {
+          voice.controller.begin();
           setSessionKey((k) => k + 1);
           setScreen("workout");
         }}
-        onHome={() => setScreen("home")}
+        onHome={goHome}
       />
     );
   }
@@ -75,6 +84,7 @@ function Index() {
       selected={exercise}
       onSelect={setExercise}
       onStart={() => {
+        voice.controller.begin();
         setSessionKey((k) => k + 1);
         setScreen("workout");
       }}

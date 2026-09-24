@@ -304,3 +304,148 @@ test("manual fora do quadro oferece cinco segundos e cancelamento não inicia se
   await expect(page.getByRole("button", { name: "Preparar câmera", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Pausar", exact: true })).toHaveCount(0);
 });
+
+async function mockVoice(page: Page, enabled: boolean, blocked = false) {
+  await page.addInitScript(
+    ({ enabled, blocked }) => {
+      localStorage.setItem("torvik.voice.v1", JSON.stringify({ enabled, mode: "full", volume: 1 }));
+      const state = { spoken: [] as { text: string; volume: number }[], cancellations: 0, blocked };
+      Object.assign(window, { __voice: state });
+      class Utterance {
+        text: string;
+        volume = 1;
+        onstart: (() => void) | null = null;
+        onend: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+        constructor(text: string) {
+          this.text = text;
+        }
+      }
+      let active: Utterance | null = null;
+      const synth = new EventTarget();
+      Object.assign(synth, {
+        getVoices: () => [{ lang: "pt-BR", localService: true, name: "Português local" }],
+        speak: (utterance: Utterance) => {
+          state.spoken.push({ text: utterance.text, volume: utterance.volume });
+          active = utterance;
+          queueMicrotask(() => {
+            if (active !== utterance) return;
+            if (state.blocked) utterance.onerror?.();
+            else {
+              utterance.onstart?.();
+              setTimeout(() => {
+                if (active === utterance) utterance.onend?.();
+              }, 30);
+            }
+          });
+        },
+        cancel: () => {
+          state.cancellations++;
+          active = null;
+        },
+      });
+      Object.defineProperty(window, "speechSynthesis", { configurable: true, value: synth });
+      Object.defineProperty(window, "SpeechSynthesisUtterance", {
+        configurable: true,
+        value: Utterance,
+      });
+    },
+    { enabled, blocked },
+  );
+}
+const spokenVoice = (page: Page) =>
+  page.evaluate(
+    () =>
+      (window as unknown as { __voice: { spoken: { text: string; volume: number }[] } }).__voice
+        .spoken,
+  );
+
+for (const enabled of [true, false]) {
+  test(`voz ${enabled ? "ligada" : "desligada"} preserva cinco repetições e relatório`, async ({
+    page,
+  }) => {
+    test.setTimeout(60000);
+    await mockVoice(page, enabled);
+    await setup(page);
+    await page.getByRole("button", { name: "Preparar câmera", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Pausar", exact: true })).toBeVisible({
+      timeout: 15000,
+    });
+    if (enabled) {
+      await expect
+        .poll(async () => (await spokenVoice(page)).map((v) => v.text))
+        .toContain("Vamos começar!");
+      for (const number of ["Três", "Dois", "Um"])
+        expect((await spokenVoice(page)).filter((v) => v.text === number)).toHaveLength(1);
+    }
+    for (let rep = 0; rep < 5; rep++) {
+      for (const [angle, phase] of [
+        [140, "Descendo"],
+        [80, "Agachado"],
+        [170, "Em pé"],
+      ] as const) {
+        await page.evaluate((value) => {
+          (window as unknown as { __angle: number }).__angle = value;
+        }, angle);
+        await expect(page.locator(".workout-feedback-detail")).toContainText(phase);
+      }
+      await expect(page.locator(".workout-metrics > div:first-child > p:first-child")).toHaveText(
+        String(rep + 1),
+      );
+    }
+    if (enabled)
+      await expect
+        .poll(
+          async () => (await spokenVoice(page)).filter((v) => v.text === "5 repetições!").length,
+        )
+        .toBe(1);
+    await page.getByRole("button", { name: "Finalizar treino", exact: true }).click();
+    await expect(
+      page.getByText("5 de 5 repetições completas atenderam às regras do aplicativo."),
+    ).toBeVisible();
+    if (enabled)
+      await expect
+        .poll(
+          async () => (await spokenVoice(page)).filter((v) => v.text === "Treino encerrado").length,
+        )
+        .toBe(1);
+    else expect(await spokenVoice(page)).toEqual([]);
+  });
+}
+
+test("áudio bloqueado permite recuperação, ajustes e cancelamento sem reiniciar câmera", async ({
+  page,
+}) => {
+  await mockVoice(page, true, true);
+  await setup(page, false);
+  await page.getByRole("button", { name: "Preparar câmera", exact: true }).click();
+  await page.getByText("Voz ligada", { exact: false }).first().click();
+  await expect(page.getByText(/Não foi possível reproduzir o áudio/)).toBeVisible();
+  await page.evaluate(() => {
+    (window as unknown as { __voice: { blocked: boolean } }).__voice.blocked = false;
+  });
+  await page.getByRole("button", { name: "Ativar voz", exact: true }).click();
+  await expect(page.getByText("Voz local em português pronta.")).toBeVisible();
+  await page.getByLabel("Modo de voz").selectOption("basic");
+  await page.getByRole("slider", { name: /Volume/ }).fill("0.4");
+  await page.getByRole("checkbox", { name: "Feedback por voz" }).uncheck();
+  await page.getByRole("checkbox", { name: "Feedback por voz" }).check();
+  expect((await spokenVoice(page)).at(-1)?.volume).toBe(0.4);
+  await expect(page.getByRole("button", { name: "Iniciar em 5 segundos" })).toBeEnabled();
+  await page.getByRole("button", { name: "Cancelar", exact: true }).click();
+  const count = (await spokenVoice(page)).length;
+  await page.waitForTimeout(1000);
+  expect(await spokenVoice(page)).toHaveLength(count);
+});
+
+test("síntese indisponível não bloqueia o treino", async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(window, "speechSynthesis", { configurable: true, value: undefined });
+  });
+  await setup(page, false);
+  await page.getByRole("button", { name: "Preparar câmera", exact: true }).click();
+  await page.getByText("Voz ligada", { exact: false }).first().click();
+  await expect(page.getByText(/Voz local em português indisponível/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Iniciar em 5 segundos" })).toBeEnabled();
+  await page.getByRole("button", { name: "Cancelar", exact: true }).click();
+});

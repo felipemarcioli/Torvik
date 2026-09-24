@@ -1,3 +1,5 @@
+import { VoiceControls } from "./VoiceControls";
+import type { WorkoutVoiceControls } from "@/hooks/use-workout-voice";
 import { useWorkout } from "@/hooks/use-workout";
 import type { ExerciseId } from "@/lib/biomech";
 import { formatTime, type SessionReport } from "@/lib/session";
@@ -27,14 +29,16 @@ const styles = {
 };
 export function WorkoutScreen({
   exercise,
+  voice,
   onFinish,
   onCancel,
 }: {
   exercise: ExerciseId;
+  voice: WorkoutVoiceControls;
   onFinish: (report: SessionReport) => void;
   onCancel: () => void;
 }) {
-  const w = useWorkout(exercise);
+  const w = useWorkout(exercise, voice.controller);
   const details = EXERCISES.find((e) => e.id === exercise)!;
   return (
     <main className="workout-layout bg-background" aria-label={`Treino de ${details.name}`}>
@@ -242,6 +246,7 @@ export function WorkoutScreen({
             Cancelar
           </button>
         </div>
+        <VoiceControls voice={voice} />
       </section>
     </main>
   );

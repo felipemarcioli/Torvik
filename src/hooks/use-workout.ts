@@ -1,3 +1,4 @@
+import type { WorkoutVoiceSink } from "@/lib/voice/workout-voice";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RULES, createAnalyzer, type AnalysisResult, type ExerciseId } from "@/lib/biomech";
 import { CameraController, cameraErrorMessage, type PipelineStage } from "@/lib/camera";
@@ -16,7 +17,9 @@ const initialResult: AnalysisResult = {
   event: null,
   side: null,
 };
-export function useWorkout(exercise: ExerciseId) {
+export function useWorkout(exercise: ExerciseId, voice?: WorkoutVoiceSink) {
+  const voiceRef = useRef(voice);
+  voiceRef.current = voice;
   const videoRef = useRef<HTMLVideoElement>(null),
     canvasRef = useRef<HTMLCanvasElement>(null);
   const runtime = useRef<{
@@ -29,6 +32,7 @@ export function useWorkout(exercise: ExerciseId) {
   const phaseRef = useRef<WorkoutPhase>("loading");
   const [phase, setPhaseState] = useState<WorkoutPhase>("loading");
   const setPhase = useCallback((next: WorkoutPhase) => {
+    if (phaseRef.current !== next) voiceRef.current?.publish({ type: "phase", phase: next });
     phaseRef.current = next;
     setPhaseState(next);
   }, []);
@@ -38,7 +42,13 @@ export function useWorkout(exercise: ExerciseId) {
   const resultRef = useRef(initialResult);
   const held = useRef<{ until: number; result: AnalysisResult } | null>(null);
   const [seconds, setSeconds] = useState(0),
-    [countdown, setCountdown] = useState(5);
+    [countdown, setCountdownState] = useState(5);
+  const countdownRef = useRef(5);
+  const setCountdown = useCallback((value: number) => {
+    if (value !== countdownRef.current) voiceRef.current?.publish({ type: "countdown", value });
+    countdownRef.current = value;
+    setCountdownState(value);
+  }, []);
   const [attempt, setAttempt] = useState(0),
     [deviceId, setDeviceId] = useState("");
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]),
@@ -47,6 +57,7 @@ export function useWorkout(exercise: ExerciseId) {
   const dimensions = useRef<string | null>(null);
   const preparation = useRef(new PreparationStart());
   const interrupt = useCallback(() => {
+    voiceRef.current?.publish({ type: "interrupt" });
     const { analyzer, ledger } = runtime.current!;
     const now = performance.now();
     ledger.clock.setRunning(false, now);
@@ -109,15 +120,25 @@ export function useWorkout(exercise: ExerciseId) {
         const { analyzer, ledger } = runtime.current!;
         const next = analyzer.analyze(frame, phaseRef.current === "running");
         resultRef.current = next;
+        voiceRef.current?.observe(next, performance.now());
         const now = performance.now();
         if (phaseRef.current === "running") {
           ledger.consume(next.event);
+          if (next.event?.type === "repetition")
+            voiceRef.current?.publish({
+              type: "repetition",
+              event: next.event,
+              total: next.totalReps,
+            });
+          else if (next.event?.type === "interrupted")
+            voiceRef.current?.publish({ type: "tracking-lost" });
           ledger.tracking(next.tracking);
           ledger.clock.setRunning(next.tracking && next.ready, now);
         }
         if (phaseRef.current === "preparing" || phaseRef.current === "countdown") {
           preparation.current.observe(next.tracking, now);
-          setCountdown(preparation.current.remaining(now));
+          const remaining = preparation.current.remaining(now);
+          setCountdown(remaining);
           setPhase(preparation.current.phase);
         }
         if (next.event?.type === "repetition") held.current = { until: now + 1500, result: next };
@@ -144,11 +165,12 @@ export function useWorkout(exercise: ExerciseId) {
     void camera.start(deviceId || undefined);
     return () => {
       disposed = true;
+      voiceRef.current?.publish({ type: "interrupt" });
       camera.stop();
       preparationStart.reset();
       runtime.current!.ledger.clock.setRunning(false, performance.now());
     };
-  }, [exercise, deviceId, attempt, interrupt, refreshDevices, setPhase]);
+  }, [exercise, deviceId, attempt, interrupt, refreshDevices, setPhase, setCountdown]);
   useEffect(() => {
     const timer = window.setInterval(() => {
       const now = performance.now();
@@ -174,7 +196,8 @@ export function useWorkout(exercise: ExerciseId) {
       setSeconds(runtime.current!.ledger.clock.seconds(now));
       if (phaseRef.current === "preparing" || phaseRef.current === "countdown") {
         const next = preparation.current.tick(now);
-        setCountdown(preparation.current.remaining(now));
+        const remaining = preparation.current.remaining(now);
+        setCountdown(remaining);
         if (next !== phaseRef.current) {
           setPhase(next);
           if (next === "running")
@@ -186,7 +209,7 @@ export function useWorkout(exercise: ExerciseId) {
       }
     }, 200);
     return () => window.clearInterval(timer);
-  }, [interrupt, setPhase]);
+  }, [interrupt, setPhase, setCountdown]);
   const pause = useCallback(() => {
     interrupt();
     controller.current?.setPaused(true);
