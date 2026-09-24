@@ -160,13 +160,18 @@ test("preparação, treino, pausa, relatório, histórico e reinício", async ({
   await expect(page.getByRole("button", { name: "Salvo neste dispositivo" })).toBeVisible();
   await page.getByRole("button", { name: "Voltar ao início" }).click();
   await page.getByRole("button", { name: "Meu histórico" }).click();
-  await expect(page.getByRole("heading", { name: "Seu histórico" })).toBeVisible();
-  await expect(page.getByText("avaliadas", { exact: true })).toBeVisible();
-  await expect(page.getByText("nos critérios", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Meu progresso" })).toBeVisible();
+  await expect(page.getByText("Avaliadas", { exact: true })).toBeVisible();
+  await expect(
+    page.locator(".progress-card-stats").getByText("Nos critérios", { exact: true }),
+  ).toBeVisible();
   await page.reload();
   await page.getByRole("button", { name: "Meu histórico" }).click();
-  await expect(page.getByRole("button", { name: "Exportar", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Excluir", exact: true }).click();
+  await page.getByRole("button", { name: "Ver detalhes" }).click();
+  await expect(page.getByRole("button", { name: "Exportar JSON", exact: true })).toBeVisible();
+  await page.getByText("Repetições registradas (1)", { exact: true }).click();
+  await expect(page.getByText(/Repetição 1 ·/)).toBeVisible();
+  await page.getByRole("button", { name: "Excluir sessão", exact: true }).click();
   await page.getByRole("button", { name: "Confirmar exclusão" }).click();
   await expect(page.getByText(/Nenhuma sessão salva/)).toBeVisible();
   await page.getByRole("button", { name: "Voltar ao início" }).click();

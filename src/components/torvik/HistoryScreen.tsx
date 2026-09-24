@@ -1,169 +1,387 @@
-import { useEffect, useState } from "react";
-import { comparableReports, createHistoryStore, exportReport } from "@/lib/history";
-import { formatTime, type SessionReport } from "@/lib/session";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Activity,
+  CheckCheck,
+  Clock3,
+  Layers,
+  GitCompareArrows,
+} from "lucide-react";
+import { createHistoryStore, type HistorySession } from "@/lib/history";
+import { durationLabel, filterHistory, historyTotals, type HistorySort } from "@/lib/progress";
+import type { ExerciseId } from "@/lib/biomech";
 import { EXERCISES } from "./data";
+import { EvolutionChart } from "./history/EvolutionChart";
+import { ActivityCalendar } from "./history/ActivityCalendar";
+import { SessionDetail, SessionRatio } from "./history/SessionDetail";
+import { SessionComparison } from "./history/SessionComparison";
 export function HistoryScreen({ onHome }: { onHome: () => void }) {
-  const [sessions, setSessions] = useState<SessionReport[]>([]),
-    [error, setError] = useState(""),
+  const [sessions, setSessions] = useState<HistorySession[]>([]),
     [loading, setLoading] = useState(true),
-    [deleting, setDeleting] = useState<string | null>(null),
-    [pending, setPending] = useState<string | null>(null);
+    [error, setError] = useState(""),
+    [attempt, setAttempt] = useState(0);
+  const [exercise, setExercise] = useState<ExerciseId | "all">("all"),
+    [sort, setSort] = useState<HistorySort>("recent"),
+    [day, setDay] = useState(""),
+    [limit, setLimit] = useState(20);
+  const [detail, setDetail] = useState<string | null>(null),
+    [selecting, setSelecting] = useState(false),
+    [selected, setSelected] = useState<string[]>([]),
+    [comparing, setComparing] = useState(false);
+  const heading = useRef<HTMLHeadingElement>(null),
+    returnFocus = useRef("");
   useEffect(() => {
-    let cancelled = false;
+    let disposed = false;
+    setLoading(true);
+    setError("");
     void createHistoryStore()
       .list()
-      .then((list) => {
-        if (!cancelled) setSessions(list);
+      .then((rows) => {
+        if (!disposed) setSessions(rows);
       })
       .catch(() => {
-        if (!cancelled)
+        if (!disposed)
           setError(
             "Histórico indisponível neste navegador. Você ainda pode treinar e exportar relatórios.",
           );
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!disposed) setLoading(false);
       });
     return () => {
-      cancelled = true;
+      disposed = true;
     };
-  }, []);
-  async function remove(id: string) {
-    setPending(id);
-    setError("");
-    try {
-      await createHistoryStore().remove(id);
-      setSessions((list) => list.filter((r) => r.id !== id));
-      setDeleting(null);
-    } catch {
-      setError("Não foi possível excluir a sessão. Tente novamente.");
-    } finally {
-      setPending(null);
+  }, [attempt]);
+  useEffect(() => {
+    if (!loading && !detail && !comparing) {
+      const target = returnFocus.current
+        ? (document.getElementById(returnFocus.current) ?? heading.current)
+        : heading.current;
+      target?.focus({ preventScroll: true });
+      returnFocus.current = "";
     }
+  }, [detail, comparing, loading]);
+  const totals = useMemo(() => historyTotals(sessions), [sessions]);
+  const filtered = useMemo(
+    () => filterHistory(sessions, exercise, sort, day),
+    [sessions, exercise, sort, day],
+  );
+  const current = sessions.find((r) => r.id === detail);
+  const picked = selected
+    .map((id) => sessions.find((r) => r.id === id))
+    .filter((r): r is HistorySession => !!r)
+    .sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt));
+  async function remove(id: string) {
+    await createHistoryStore().remove(id);
+    setSessions((rows) => rows.filter((r) => r.id !== id));
+    setSelected((ids) => ids.filter((value) => value !== id));
+    setDetail(null);
   }
+  function choose(id: string) {
+    setSelected((ids) => {
+      if (ids.includes(id)) return ids.filter((value) => value !== id);
+      const next = sessions.find((r) => r.id === id);
+      const first = sessions.find((r) => r.id === ids[0]);
+      if (!next || ids.length >= 2 || (first && first.exercise !== next.exercise)) return ids;
+      return [...ids, id];
+    });
+  }
+  const filter = (id: ExerciseId | "all") => {
+    setExercise(id);
+    setLimit(20);
+  };
   return (
-    <main className="history-screen hero-glow min-h-screen">
-      <div className="history-content mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-12">
-        <button type="button" className="torvik-secondary text-sm" onClick={onHome}>
-          Voltar ao início
-        </button>
-        <p className="torvik-kicker mt-7">Neste dispositivo</p>
-        <h1 className="mt-1 text-3xl font-bold sm:text-4xl">Seu histórico</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-          Somente as sessões que você escolheu salvar neste navegador. Compare resultados sob os
-          mesmos critérios; diferenças não comprovam melhora biomecânica.
-        </p>
-        {loading && (
-          <p role="status" className="torvik-panel mt-6 p-5">
-            Carregando histórico…
-          </p>
-        )}
-        {error && (
-          <p role="alert" className="torvik-panel mt-4 border-caution/50 p-5 text-caution">
-            {error}
-          </p>
-        )}
-        {!loading && !error && !sessions.length && (
-          <section className="history-empty torvik-panel mt-6 flex items-center gap-5 p-6 sm:p-8">
-            <img
-              src="/torvik-image-2d.webp"
-              width="160"
-              height="240"
-              alt=""
-              className="h-20 w-auto shrink-0 opacity-90"
-            />
-            <div>
-              <h2 className="text-xl font-bold">Nenhuma sessão salva</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Ao terminar um treino, escolha “Salvar sessão”. Seus resultados aparecerão aqui.
+    <main className="progress-screen hero-glow min-h-screen">
+      <div className="progress-content">
+        {current ? (
+          <SessionDetail
+            key={current.id}
+            report={current}
+            onBack={() => setDetail(null)}
+            onDelete={remove}
+          />
+        ) : comparing && picked.length === 2 ? (
+          <SessionComparison a={picked[0]!} b={picked[1]!} onBack={() => setComparing(false)} />
+        ) : (
+          <>
+            <button type="button" className="progress-back" onClick={onHome}>
+              <ArrowLeft size={18} />
+              Voltar ao início
+            </button>
+            <header className="progress-header">
+              <p className="torvik-kicker">Torvik · Neste dispositivo</p>
+              <h1 ref={heading} tabIndex={-1}>
+                Meu progresso
+              </h1>
+              <p>Seus treinos registrados, uma sessão de cada vez.</p>
+            </header>
+            {loading ? (
+              <p role="status" className="progress-panel">
+                Carregando seu progresso…
               </p>
-            </div>
-          </section>
-        )}
-        <ul className="history-list mt-6 space-y-4">
-          {sessions.map((r, index) => {
-            const previous = sessions.slice(index + 1).find((other) => comparableReports(r, other));
-            return (
-              <li key={r.id} className="history-card torvik-panel p-5 sm:p-6">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="torvik-kicker">Sessão salva</p>
-                    <h2 className="mt-1 text-xl font-bold">
-                      {EXERCISES.find((e) => e.id === r.exercise)?.name}
-                    </h2>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {new Date(r.createdAt).toLocaleString("pt-BR")}
-                  </p>
-                </div>
-                <div className="history-stats mt-4 grid grid-cols-3 gap-2 border-y border-border py-4 text-center sm:gap-4">
-                  <div>
-                    <p className="font-display text-2xl font-bold tabular-nums">{r.totalReps}</p>
-                    <p className="text-xs text-muted-foreground">avaliadas</p>
-                  </div>
-                  <div>
-                    <p className="font-display text-2xl font-bold text-success tabular-nums">
-                      {r.correctReps}
-                    </p>
-                    <p className="text-xs text-muted-foreground">nos critérios</p>
-                  </div>
-                  <div>
-                    <p className="font-display text-2xl font-bold tabular-nums">
-                      {formatTime(r.seconds)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">tempo ativo</p>
-                  </div>
-                </div>
-                <p className="sr-only">
-                  {r.totalReps} repetições avaliadas • {r.correctReps} dentro dos critérios
+            ) : error ? (
+              <section className="progress-panel">
+                <p role="alert" className="progress-error">
+                  {error}
                 </p>
-                {previous && (
-                  <p className="mt-3 rounded-lg bg-background px-3 py-2 text-sm text-muted-foreground">
-                    Sessão anterior comparável: {previous.totalReps} avaliadas,{" "}
-                    {previous.correctReps} dentro dos critérios.
-                  </p>
-                )}
-                <div className="history-actions mt-4 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    className="torvik-secondary"
-                    onClick={() => exportReport(r)}
-                  >
-                    Exportar
+                <div className="progress-export-actions">
+                  <button type="button" onClick={() => setAttempt((n) => n + 1)}>
+                    Tentar novamente
                   </button>
-                  <button type="button" className="torvik-danger" onClick={() => setDeleting(r.id)}>
-                    Excluir
+                  <button type="button" onClick={onHome}>
+                    Iniciar um treino
                   </button>
                 </div>
-                {deleting === r.id && (
-                  <div className="mt-3 rounded-xl border border-caution/50 bg-background p-4">
-                    <p id={`delete-${r.id}`} className="text-sm">
-                      Excluir esta sessão do dispositivo? Exporte antes se quiser uma cópia.
+              </section>
+            ) : (
+              <>
+                <dl className="progress-totals" aria-label="Resumo de todas as sessões">
+                  {[
+                    [Layers, "Sessões registradas", totals.sessions],
+                    [Activity, "Repetições avaliadas", totals.totalReps],
+                    [CheckCheck, "Nos critérios", totals.correctReps],
+                    [Clock3, "Tempo ativo total", durationLabel(totals.seconds)],
+                  ].map(([Icon, label, value]) => {
+                    const Symbol = Icon as typeof Layers;
+                    return (
+                      <div key={String(label)}>
+                        <dt>
+                          <Symbol size={18} aria-hidden="true" />
+                          {String(label)}
+                        </dt>
+                        <dd>
+                          {typeof value === "number"
+                            ? value.toLocaleString("pt-BR")
+                            : String(value)}
+                        </dd>
+                      </div>
+                    );
+                  })}
+                </dl>
+                {!sessions.length ? (
+                  <section className="progress-panel progress-empty">
+                    <img src="/torvik-image-2d.webp" width="160" height="240" alt="" />
+                    <h2>Seu próximo treino começa esta história</h2>
+                    <p>
+                      Nenhuma sessão salva. Ao terminar um treino, escolha “Salvar sessão” para
+                      acompanhar seus registros aqui.
                     </p>
-                    <div className="mt-2 flex gap-2">
-                      <button
-                        type="button"
-                        className="torvik-secondary"
-                        onClick={() => setDeleting(null)}
+                    <button type="button" className="torvik-primary" onClick={onHome}>
+                      Iniciar um treino
+                      <ArrowRight size={18} />
+                    </button>
+                  </section>
+                ) : (
+                  <>
+                    <EvolutionChart sessions={sessions} />
+                    <ActivityCalendar
+                      sessions={sessions}
+                      selected={day}
+                      onSelect={(value) => {
+                        setDay(value);
+                        setExercise("all");
+                        setLimit(20);
+                      }}
+                    />
+                    <section className="progress-sessions" aria-labelledby="sessions-title">
+                      <div className="progress-section-heading">
+                        <div>
+                          <p className="torvik-kicker">Explore seus registros</p>
+                          <h2 id="sessions-title">Sessões salvas</h2>
+                        </div>
+                        <button
+                          type="button"
+                          className="progress-text-button"
+                          aria-pressed={selecting}
+                          onClick={() => {
+                            setSelecting((v) => !v);
+                            setSelected([]);
+                          }}
+                        >
+                          <GitCompareArrows size={17} />
+                          {selecting ? "Cancelar comparação" : "Comparar"}
+                        </button>
+                      </div>
+                      <div
+                        className="progress-exercise-filters"
+                        role="group"
+                        aria-label="Filtrar sessões por exercício"
                       >
-                        Manter sessão
-                      </button>
-                      <button
-                        type="button"
-                        disabled={pending === r.id}
-                        aria-describedby={`delete-${r.id}`}
-                        className="torvik-danger"
-                        onClick={() => void remove(r.id)}
-                      >
-                        {pending === r.id ? "Excluindo…" : "Confirmar exclusão"}
-                      </button>
-                    </div>
-                  </div>
+                        <button
+                          type="button"
+                          aria-pressed={exercise === "all"}
+                          onClick={() => filter("all")}
+                        >
+                          Todos
+                        </button>
+                        {EXERCISES.map((e) => (
+                          <button
+                            type="button"
+                            key={e.id}
+                            aria-pressed={exercise === e.id}
+                            onClick={() => filter(e.id)}
+                          >
+                            {e.name}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="progress-list-options">
+                        <p role="status">
+                          {filtered.length}{" "}
+                          {filtered.length === 1 ? "sessão encontrada" : "sessões encontradas"}
+                          {day && (
+                            <> em {new Date(`${day}T12:00:00`).toLocaleDateString("pt-BR")}</>
+                          )}
+                        </p>
+                        <label>
+                          Ordenar
+                          <select
+                            value={sort}
+                            onChange={(e) => {
+                              setSort(e.target.value as HistorySort);
+                              setLimit(20);
+                            }}
+                          >
+                            <option value="recent">Mais recentes</option>
+                            <option value="oldest">Mais antigas</option>
+                            <option value="reps">Mais repetições</option>
+                            <option value="time">Maior tempo ativo</option>
+                          </select>
+                        </label>
+                      </div>
+                      {day && (
+                        <button
+                          type="button"
+                          className="progress-text-button"
+                          onClick={() => setDay("")}
+                        >
+                          Limpar filtro de data
+                        </button>
+                      )}
+                      {selecting && (
+                        <div className="progress-compare-bar">
+                          <p>
+                            Selecione duas sessões do mesmo exercício ({selected.length}/2).{" "}
+                            {picked[0] &&
+                              `Exercício: ${EXERCISES.find((e) => e.id === picked[0]!.exercise)?.name}.`}
+                          </p>
+                          <button
+                            id="compare-selected"
+                            type="button"
+                            className="torvik-secondary"
+                            disabled={picked.length !== 2}
+                            onClick={() => {
+                              returnFocus.current = "compare-selected";
+                              setComparing(true);
+                            }}
+                          >
+                            Comparar selecionadas
+                          </button>
+                        </div>
+                      )}
+                      {!filtered.length ? (
+                        <div className="progress-panel progress-empty-inline">
+                          <h3>Nenhuma sessão com estes filtros</h3>
+                          <p>Escolha outro exercício ou limpe a data selecionada.</p>
+                          <button
+                            type="button"
+                            className="progress-text-button"
+                            onClick={() => {
+                              filter("all");
+                              setDay("");
+                            }}
+                          >
+                            Ver todas as sessões
+                          </button>
+                        </div>
+                      ) : (
+                        <ul className="progress-session-list">
+                          {filtered.slice(0, limit).map((r) => {
+                            const locked =
+                              !selected.includes(r.id) &&
+                              (selected.length >= 2 ||
+                                (!!picked[0] && picked[0].exercise !== r.exercise));
+                            return (
+                              <li key={r.id} className="progress-session-card">
+                                <div className="progress-card-heading">
+                                  <div>
+                                    <h3>
+                                      {EXERCISES.find((e) => e.id === r.exercise)?.name ??
+                                        r.exercise}
+                                    </h3>
+                                    <time dateTime={r.createdAt}>
+                                      {new Date(r.createdAt).toLocaleString("pt-BR")}
+                                    </time>
+                                  </div>
+                                  <span aria-hidden="true" className="progress-exercise-icon">
+                                    {EXERCISES.find((e) => e.id === r.exercise)?.emoji}
+                                  </span>
+                                </div>
+                                <dl className="progress-card-stats">
+                                  <div>
+                                    <dt>Avaliadas</dt>
+                                    <dd>{r.totalReps}</dd>
+                                  </div>
+                                  <div>
+                                    <dt>Nos critérios</dt>
+                                    <dd>{r.correctReps}</dd>
+                                  </div>
+                                  <div>
+                                    <dt>Tempo ativo</dt>
+                                    <dd>{durationLabel(r.seconds)}</dd>
+                                  </div>
+                                </dl>
+                                <SessionRatio report={r} />
+                                <div className="progress-card-actions">
+                                  {selecting && (
+                                    <label>
+                                      <input
+                                        type="checkbox"
+                                        disabled={locked}
+                                        checked={selected.includes(r.id)}
+                                        onChange={() => choose(r.id)}
+                                      />
+                                      Comparar esta sessão
+                                    </label>
+                                  )}
+                                  <button
+                                    id={`session-${r.id}`}
+                                    type="button"
+                                    onClick={() => {
+                                      returnFocus.current = `session-${r.id}`;
+                                      setDetail(r.id);
+                                    }}
+                                  >
+                                    Ver detalhes
+                                    <ArrowRight size={16} />
+                                  </button>
+                                </div>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                      {filtered.length > limit && (
+                        <button
+                          type="button"
+                          className="torvik-secondary progress-load-more"
+                          onClick={() => setLimit((n) => n + 20)}
+                        >
+                          Mostrar mais sessões ({filtered.length - limit} restantes)
+                        </button>
+                      )}
+                    </section>
+                  </>
                 )}
-              </li>
-            );
-          })}
-        </ul>
+              </>
+            )}
+            <footer className="progress-footer">
+              Somente sessões salvas neste navegador e dispositivo. Nenhum vídeo é armazenado. O
+              navegador pode remover dados locais; exporte uma cópia para preservá-los.
+            </footer>
+          </>
+        )}
       </div>
     </main>
   );

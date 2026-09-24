@@ -13,6 +13,11 @@ export type SessionReport = {
   trackingLosses: number;
   rulesVersion: string;
   engineVersion: string;
+  /** Absent on older sessions; timestamps use active time, never camera frames. */
+  repetitionLog?: {
+    version: 1;
+    events: { id: number; activeSeconds: number; correct: boolean; issues: string[] }[];
+  };
 };
 export function formatTime(seconds: number) {
   const whole = Math.max(0, Math.floor(Number.isFinite(seconds) ? seconds : 0));
@@ -53,6 +58,7 @@ export class SessionLedger {
       trackingLosses: 0,
       rulesVersion: RULES_VERSION,
       engineVersion,
+      repetitionLog: { version: 1, events: [] },
     };
   }
   consume(event: AnalysisEvent | null) {
@@ -64,6 +70,12 @@ export class SessionLedger {
     }
     this.report.totalReps++;
     if (event.correct) this.report.correctReps++;
+    this.report.repetitionLog!.events.push({
+      id: event.id,
+      activeSeconds: this.clock.seconds(event.timestamp),
+      correct: event.correct,
+      issues: [...new Set(event.issues)],
+    });
     for (const issue of new Set(event.issues))
       this.report.feedbackCounts[issue] = (this.report.feedbackCounts[issue] ?? 0) + 1;
   }
@@ -79,6 +91,13 @@ export class SessionLedger {
       ...this.report,
       seconds: this.clock.seconds(now),
       feedbackCounts: { ...this.report.feedbackCounts },
+      repetitionLog: {
+        version: 1,
+        events: this.report.repetitionLog!.events.map((event) => ({
+          ...event,
+          issues: [...event.issues],
+        })),
+      },
     };
   }
 }

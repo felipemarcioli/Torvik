@@ -1,0 +1,229 @@
+import { useMemo, useState } from "react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+} from "recharts";
+import {
+  cohort,
+  evolution,
+  METRICS,
+  metricLabel,
+  type ProgressMetric,
+  type ProgressPeriod,
+  type ProgressPoint,
+} from "@/lib/progress";
+import type { HistorySession as SessionReport } from "@/lib/history";
+import type { ExerciseId } from "@/lib/biomech";
+import { EXERCISES } from "../data";
+export function EvolutionChart({ sessions }: { sessions: SessionReport[] }) {
+  const [exercise, setExercise] = useState<ExerciseId>(sessions[0]?.exercise ?? EXERCISES[0]!.id);
+  const [period, setPeriod] = useState<ProgressPeriod>("30"),
+    [metric, setMetric] = useState<ProgressMetric>("totalReps"),
+    [version, setVersion] = useState(""),
+    [selected, setSelected] = useState("");
+  const versions = useMemo(
+    () => [
+      ...new Map(
+        sessions.filter((r) => r.exercise === exercise).map((r) => [cohort(r), r]),
+      ).entries(),
+    ],
+    [sessions, exercise],
+  );
+  const activeVersion = versions.some(([key]) => key === version)
+    ? version
+    : (versions[0]?.[0] ?? "");
+  const { points, grouping } = useMemo(
+    () => evolution(sessions, exercise, period, activeVersion),
+    [sessions, exercise, period, activeVersion],
+  );
+  const point = points.find((p) => p.id === selected) ?? points.at(-1);
+  const hasValues = points.some((p) => p[metric] !== null);
+  const dot = ({ cx, cy, payload }: { cx?: number; cy?: number; payload?: ProgressPoint }) => {
+    if (cx === undefined || cy === undefined || !payload || payload[metric] === null) return <g />;
+    return (
+      <g
+        key={payload.id}
+        role="button"
+        tabIndex={0}
+        aria-label={`${payload.label}: ${metricLabel(payload[metric], metric)}`}
+        onClick={() => setSelected(payload.id)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setSelected(payload.id);
+          }
+        }}
+        style={{ cursor: "pointer" }}
+      >
+        <circle cx={cx} cy={cy} r={22} fill="transparent" />
+        <circle
+          cx={cx}
+          cy={cy}
+          r={point?.id === payload.id ? 5 : 3}
+          fill="var(--accent)"
+          stroke="var(--background)"
+          strokeWidth={2}
+        />
+      </g>
+    );
+  };
+  return (
+    <section className="progress-panel" aria-labelledby="evolution-title">
+      <div className="progress-section-heading">
+        <div>
+          <p className="torvik-kicker">Dados registrados</p>
+          <h2 id="evolution-title">Sua evolução</h2>
+        </div>
+        <span className="progress-tag">
+          {grouping === "session" ? "Por sessão" : grouping === "day" ? "Por dia" : "Por mês"}
+        </span>
+      </div>
+      <div className="progress-chart-filters">
+        <label>
+          Exercício do gráfico
+          <select
+            value={exercise}
+            onChange={(e) => {
+              setExercise(e.target.value as ExerciseId);
+              setVersion("");
+              setSelected("");
+            }}
+          >
+            {EXERCISES.map((e) => (
+              <option key={e.id} value={e.id}>
+                {e.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Período
+          <select value={period} onChange={(e) => setPeriod(e.target.value as ProgressPeriod)}>
+            <option value="7">Últimos 7 dias</option>
+            <option value="30">Últimos 30 dias</option>
+            <option value="90">Últimos 90 dias</option>
+            <option value="all">Todo o histórico</option>
+          </select>
+        </label>
+        <label className="progress-metric-filter">
+          Métrica
+          <select value={metric} onChange={(e) => setMetric(e.target.value as ProgressMetric)}>
+            {Object.entries(METRICS).map(([key, label]) => (
+              <option key={key} value={key}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
+        {versions.length > 1 && (
+          <label className="progress-metric-filter">
+            Versão da análise
+            <select value={activeVersion} onChange={(e) => setVersion(e.target.value)}>
+              {versions.map(([key, r]) => (
+                <option value={key} key={key}>
+                  Regras {r.rulesVersion} · {r.engineVersion}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+      </div>
+      {hasValues ? (
+        <>
+          <div className="progress-chart" role="group" aria-label={`Gráfico de ${METRICS[metric]}`}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+              <LineChart
+                data={points}
+                margin={{ top: 20, right: 16, bottom: 8, left: 0 }}
+                accessibilityLayer
+              >
+                <CartesianGrid stroke="var(--border)" vertical={false} />
+                <XAxis
+                  dataKey="label"
+                  tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                  tickFormatter={(value) => String(value).split(",")[0]!}
+                  minTickGap={45}
+                />
+                <YAxis
+                  width={48}
+                  domain={metric === "proportion" ? [0, 100] : [0, "auto"]}
+                  allowDecimals={metric === "proportion"}
+                  tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                  tickFormatter={(value) =>
+                    metric === "seconds"
+                      ? Number(value) < 60
+                        ? `${value}s`
+                        : `${(Number(value) / 60).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}m`
+                      : String(value)
+                  }
+                />
+                <Tooltip
+                  formatter={(value) => [metricLabel(Number(value), metric), METRICS[metric]]}
+                  contentStyle={{
+                    background: "var(--card)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 12,
+                    color: "var(--foreground)",
+                  }}
+                />
+                <Line
+                  type="linear"
+                  dataKey={metric}
+                  stroke="var(--accent)"
+                  strokeWidth={2}
+                  dot={dot}
+                  activeDot={dot}
+                  connectNulls={false}
+                  isAnimationActive={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <label className="progress-point-select">
+            Consultar ponto
+            <select value={point?.id ?? ""} onChange={(e) => setSelected(e.target.value)}>
+              {points.map((p) => (
+                <option value={p.id} key={p.id}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          {point && (
+            <output className="progress-chart-reading" aria-live="polite">
+              <span>
+                {point.label} · {point.sessions} {point.sessions === 1 ? "sessão" : "sessões"}
+              </span>
+              <strong>{metricLabel(point[metric], metric)}</strong>
+            </output>
+          )}
+          {points.length === 1 && (
+            <p className="progress-caption">
+              Um registro disponível. São necessários mais registros para observar variações ao
+              longo do tempo.
+            </p>
+          )}
+        </>
+      ) : (
+        <div className="progress-empty-inline">
+          <p>
+            {points.length
+              ? "Não há repetições avaliadas para calcular esta proporção."
+              : "Nenhum registro neste período e nesta versão."}
+          </p>
+          <span>Experimente outro exercício ou período.</span>
+        </div>
+      )}
+      <p className="progress-caption">
+        {versions.length > 1 ? "O gráfico separa versões de regras e estimadores. " : ""}A proporção
+        usa o total de repetições do período, não a média dos percentuais. Variações não comprovam
+        melhora biomecânica. Dias sem registros não são tratados como zero.
+      </p>
+    </section>
+  );
+}

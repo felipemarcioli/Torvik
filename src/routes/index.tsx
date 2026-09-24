@@ -1,10 +1,12 @@
 import { useWorkoutVoice } from "@/hooks/use-workout-voice";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { HomeScreen } from "@/components/torvik/HomeScreen";
 import { WorkoutScreen } from "@/components/torvik/WorkoutScreen";
 import { ReportScreen } from "@/components/torvik/ReportScreen";
-import { HistoryScreen } from "@/components/torvik/HistoryScreen";
+const HistoryScreen = lazy(() =>
+  import("@/components/torvik/HistoryScreen").then((m) => ({ default: m.HistoryScreen })),
+);
 import type { SessionReport } from "@/lib/session";
 import { useEffect, useRef } from "react";
 import type { ExerciseId } from "@/lib/biomech";
@@ -46,7 +48,18 @@ function Index() {
     heading?.focus({ preventScroll: true });
   }, [screen, sessionKey]);
 
-  if (screen === "history") return <HistoryScreen onHome={goHome} />;
+  if (screen === "history")
+    return (
+      <Suspense
+        fallback={
+          <p role="status" className="p-6">
+            Carregando progresso…
+          </p>
+        }
+      >
+        <HistoryScreen onHome={goHome} />
+      </Suspense>
+    );
 
   if (screen === "workout") {
     return (

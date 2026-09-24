@@ -1,6 +1,33 @@
 import type { SessionReport } from "./session";
+export type HistorySession = Omit<
+  SessionReport,
+  "feedbackCounts" | "interruptedCycles" | "trackingLosses"
+> &
+  Partial<Pick<SessionReport, "feedbackCounts" | "interruptedCycles" | "trackingLosses">>;
 const DATABASE = "torvik-history";
 const STORE = "sessions";
+function validRepetitionLog(value: unknown) {
+  if (value === undefined) return true;
+  if (!value || typeof value !== "object") return false;
+  const log = value as Record<string, unknown>;
+  return (
+    log["version"] === 1 &&
+    Array.isArray(log["events"]) &&
+    log["events"].every((entry: unknown) => {
+      if (!entry || typeof entry !== "object") return false;
+      const e = entry as Record<string, unknown>;
+      return (
+        Number.isSafeInteger(e["id"]) &&
+        Number(e["id"]) >= 0 &&
+        Number.isSafeInteger(e["activeSeconds"]) &&
+        Number(e["activeSeconds"]) >= 0 &&
+        typeof e["correct"] === "boolean" &&
+        Array.isArray(e["issues"]) &&
+        e["issues"].every((issue: unknown) => typeof issue === "string")
+      );
+    })
+  );
+}
 export function isSessionReport(value: unknown): value is SessionReport {
   if (!value || typeof value !== "object") return false;
   const v = value as Record<string, unknown>;
@@ -23,8 +50,20 @@ export function isSessionReport(value: unknown): value is SessionReport {
     !!v["feedbackCounts"] &&
     typeof v["feedbackCounts"] === "object" &&
     !Array.isArray(v["feedbackCounts"]) &&
-    Object.values(v["feedbackCounts"]).every(nonnegative)
+    Object.values(v["feedbackCounts"]).every(nonnegative) &&
+    validRepetitionLog(v["repetitionLog"])
   );
+}
+/** Read-only compatibility: absent optional metrics remain absent in the returned record. */
+export function isHistorySession(value: unknown): value is HistorySession {
+  if (!value || typeof value !== "object") return false;
+  const v = value as Record<string, unknown>;
+  return isSessionReport({
+    ...v,
+    feedbackCounts: v["feedbackCounts"] === undefined ? {} : v["feedbackCounts"],
+    interruptedCycles: v["interruptedCycles"] === undefined ? 0 : v["interruptedCycles"],
+    trackingLosses: v["trackingLosses"] === undefined ? 0 : v["trackingLosses"],
+  });
 }
 export function createHistoryStore(factory: IDBFactory | undefined = globalThis.indexedDB) {
   async function open(): Promise<IDBDatabase> {
@@ -91,9 +130,11 @@ export function createHistoryStore(factory: IDBFactory | undefined = globalThis.
     });
   }
   return {
-    async list(): Promise<SessionReport[]> {
+    async list(): Promise<HistorySession[]> {
       const values: unknown[] = await run("readonly", (s) => s.getAll());
-      return values.filter(isSessionReport).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      return values
+        .filter(isHistorySession)
+        .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
     },
     async save(report: SessionReport) {
       if (!isSessionReport(report)) throw new Error("Relatório inválido.");
@@ -104,7 +145,7 @@ export function createHistoryStore(factory: IDBFactory | undefined = globalThis.
     },
   };
 }
-export function exportReport(report: SessionReport) {
+export function exportReport(report: HistorySession) {
   const url = URL.createObjectURL(
     new Blob([JSON.stringify(report, null, 2)], { type: "application/json" }),
   );
@@ -114,7 +155,7 @@ export function exportReport(report: SessionReport) {
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
-export function comparableReports(a: SessionReport, b: SessionReport) {
+export function comparableReports(a: HistorySession, b: HistorySession) {
   return (
     a.exercise === b.exercise &&
     a.rulesVersion === b.rulesVersion &&
