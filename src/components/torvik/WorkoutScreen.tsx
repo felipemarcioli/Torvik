@@ -10,17 +10,7 @@ const stages = {
   video: "Preparando vídeo…",
   inference: "Preparando a primeira análise…",
 };
-const states: Record<string, string> = {
-  positioning: "Posicionando",
-  standing: "Em pé",
-  high: "Prancha alta",
-  descending: "Descendo",
-  squat: "Agachado",
-  low: "Embaixo",
-  closed: "Fechado",
-  opening: "Abrindo",
-  open: "Aberto",
-};
+import { MOVEMENT_LABELS as states } from "@/lib/exercises/catalog";
 const styles = {
   good: "border-success/50 text-success",
   range: "border-caution/50 text-caution",
@@ -105,9 +95,7 @@ export function WorkoutScreen({
           <div className="torvik-panel relative mx-4 max-w-sm bg-card/95 p-6 text-center shadow-xl">
             <p className="torvik-kicker">Sessão em espera</p>
             <h2 className="mt-1 text-xl font-bold">Treino pausado</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Seu tempo e suas repetições estão preservados.
-            </p>
+            <p className="mt-2 text-sm text-muted-foreground">Seu progresso está preservado.</p>
           </div>
         )}
         {w.phase === "error" && (
@@ -129,15 +117,31 @@ export function WorkoutScreen({
           <div className="workout-metrics mx-auto mb-3 flex max-w-3xl items-center justify-between gap-5 border-b border-border pb-3">
             <div className="flex items-baseline gap-3">
               <p className="font-display text-[clamp(3.5rem,12vw,4.5rem)] font-extrabold leading-none text-primary tabular-nums">
-                {w.result.totalReps}
+                {details.type === "HOLD_BASED"
+                  ? formatTime(
+                      w.result.measurement?.type === "HOLD_BASED"
+                        ? w.result.measurement.validMs / 1000
+                        : 0,
+                    )
+                  : w.result.totalReps}
               </p>
-              <p className="text-sm font-semibold text-muted-foreground">repetições</p>
+              <p className="text-sm font-semibold text-muted-foreground">
+                {details.type === "HOLD_BASED" ? "em postura válida" : "repetições"}
+              </p>
             </div>
             <div className="shrink-0 text-right">
-              <p className="font-display text-2xl font-bold text-success tabular-nums">
-                {w.result.correctReps}
+              <p
+                className={`font-display ${details.type === "HOLD_BASED" ? "text-sm" : "text-2xl"} font-bold text-success tabular-nums`}
+              >
+                {details.type === "HOLD_BASED"
+                  ? w.result.measurement?.type === "HOLD_BASED" && w.result.measurement.valid
+                    ? "Contando"
+                    : "Ajuste a postura"
+                  : w.result.correctReps}
               </p>
-              <p className="max-w-28 text-xs leading-tight text-muted-foreground">nos critérios</p>
+              <p className="max-w-28 text-xs leading-tight text-muted-foreground">
+                {details.type === "HOLD_BASED" ? "segundo os critérios do app" : "nos critérios"}
+              </p>
             </div>
           </div>
         )}
@@ -148,12 +152,7 @@ export function WorkoutScreen({
               Posicione-se na câmera para iniciar automaticamente
             </h2>
             <p className="mt-1 text-sm leading-snug text-muted-foreground">
-              {details.instructions[0]}.{" "}
-              {exercise === "jumpingjack"
-                ? "Comece com braços baixos e pés juntos."
-                : exercise === "squat"
-                  ? "Comece em pé."
-                  : "Comece na posição alta da flexão."}
+              {details.instructions[0]}. {details.initialPosition}
             </p>
           </div>
         )}

@@ -134,7 +134,9 @@ export function PoseLab() {
               </select>
             </label>
             <label className="flex flex-col gap-2 text-sm font-semibold">
-              Repetições anotadas nos primeiros 60s
+              {exercise === "plank"
+                ? "Segundos de postura válida anotados nos primeiros 60s"
+                : "Repetições anotadas nos primeiros 60s"}
               <input
                 type="number"
                 min="0"
@@ -183,7 +185,7 @@ export function PoseLab() {
               <thead>
                 <tr className="border-b border-border text-muted-foreground">
                   <th>Motor</th>
-                  <th>Contagem</th>
+                  <th>{exercise === "plank" ? "Tempo válido" : "Contagem"}</th>
                   <th>Erro absoluto</th>
                   <th>Frames rastreados</th>
                   <th>Latência p95</th>
@@ -193,8 +195,14 @@ export function PoseLab() {
                 {results.map((r) => (
                   <tr key={r.engine} className="border-b border-border last:border-0">
                     <td className="py-3 pr-3">{r.engine}</td>
-                    <td>{r.totalReps}</td>
-                    <td>{r.absoluteCountError}</td>
+                    <td>
+                      {r.type === "HOLD_BASED" ? `${r.validSeconds?.toFixed(1)} s` : r.totalReps}
+                    </td>
+                    <td>
+                      {r.type === "HOLD_BASED"
+                        ? `${r.absoluteTimeError?.toFixed(1)} s`
+                        : r.absoluteCountError}
+                    </td>
                     <td>{Math.round(r.trackingCoverage * 100)}%</td>
                     <td>{r.p95Ms.toFixed(1)} ms</td>
                   </tr>

@@ -1,28 +1,53 @@
-import { RULES_VERSION, type AnalysisEvent, type ExerciseId } from "./biomech";
+import { type AnalysisEvent, type AnalysisResult, type ExerciseId } from "./biomech";
+import { EXERCISE_BY_ID } from "./exercises/catalog";
 import { LEGACY_ENGINE_ID } from "./mediapipe";
-export type SessionReport = {
-  schemaVersion: 1;
+type SessionBase = {
   id: string;
   createdAt: string;
   exercise: ExerciseId;
   seconds: number;
-  totalReps: number;
-  correctReps: number;
   feedbackCounts: Record<string, number>;
   interruptedCycles: number;
   trackingLosses: number;
   rulesVersion: string;
   engineVersion: string;
-  /** Absent on older sessions; timestamps use active time, never camera frames. */
-  repetitionLog?: {
-    version: 1;
-    events: { id: number; activeSeconds: number; correct: boolean; issues: string[] }[];
-  };
 };
+export type RepetitionLog = {
+  version: 1;
+  events: { id: number; activeSeconds: number; correct: boolean; issues: string[] }[];
+};
+export type SessionReport = SessionBase &
+  (
+    | {
+        schemaVersion: 1;
+        type?: "REP_BASED";
+        totalReps: number;
+        correctReps: number;
+        repetitionLog?: RepetitionLog;
+        validSeconds?: never;
+      }
+    | {
+        schemaVersion: 2;
+        type: "REP_BASED";
+        totalReps: number;
+        correctReps: number;
+        repetitionLog?: RepetitionLog;
+        validSeconds?: never;
+      }
+    | {
+        schemaVersion: 2;
+        type: "HOLD_BASED";
+        validSeconds: number;
+        totalReps?: never;
+        correctReps?: never;
+        repetitionLog?: never;
+      }
+  );
 export function formatTime(seconds: number) {
   const whole = Math.max(0, Math.floor(Number.isFinite(seconds) ? seconds : 0));
   return `${String(Math.floor(whole / 60)).padStart(2, "0")}:${String(whole % 60).padStart(2, "0")}`;
 }
+export const isHold = (report: { type?: string }) => report.type === "HOLD_BASED";
 export class ActiveClock {
   private accumulated = 0;
   private since: number | null = null;
@@ -43,61 +68,77 @@ export class SessionLedger {
   readonly clock = new ActiveClock();
   private seen = new Set<number>();
   private previousTracking: boolean | null = null;
-  private report: SessionReport;
-  constructor(exercise: ExerciseId, engineVersion = LEGACY_ENGINE_ID) {
-    this.report = {
-      schemaVersion: 1,
+  private readonly base: SessionBase;
+  private totalReps = 0;
+  private correctReps = 0;
+  private validMs = 0;
+  private log: RepetitionLog = { version: 1, events: [] };
+  constructor(
+    private exercise: ExerciseId,
+    engineVersion = LEGACY_ENGINE_ID,
+  ) {
+    this.base = {
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
       exercise,
       seconds: 0,
-      totalReps: 0,
-      correctReps: 0,
       feedbackCounts: {},
       interruptedCycles: 0,
       trackingLosses: 0,
-      rulesVersion: RULES_VERSION,
+      rulesVersion: EXERCISE_BY_ID[exercise].rulesVersion,
       engineVersion,
-      repetitionLog: { version: 1, events: [] },
     };
   }
   consume(event: AnalysisEvent | null) {
     if (!event || this.seen.has(event.id)) return;
     this.seen.add(event.id);
     if (event.type === "interrupted") {
-      this.report.interruptedCycles++;
+      this.base.interruptedCycles++;
       return;
     }
-    this.report.totalReps++;
-    if (event.correct) this.report.correctReps++;
-    this.report.repetitionLog!.events.push({
+    if (event.type === "hold-issue") {
+      this.base.feedbackCounts[event.issue] = (this.base.feedbackCounts[event.issue] ?? 0) + 1;
+      return;
+    }
+    this.totalReps++;
+    if (event.correct) this.correctReps++;
+    this.log.events.push({
       id: event.id,
       activeSeconds: this.clock.seconds(event.timestamp),
       correct: event.correct,
       issues: [...new Set(event.issues)],
     });
     for (const issue of new Set(event.issues))
-      this.report.feedbackCounts[issue] = (this.report.feedbackCounts[issue] ?? 0) + 1;
+      this.base.feedbackCounts[issue] = (this.base.feedbackCounts[issue] ?? 0) + 1;
+  }
+  observe(result: AnalysisResult) {
+    if (result.measurement?.type === "HOLD_BASED") this.validMs = result.measurement.validMs;
   }
   tracking(visible: boolean) {
-    if (this.previousTracking === true && !visible) this.report.trackingLosses++;
+    if (this.previousTracking === true && !visible) this.base.trackingLosses++;
     this.previousTracking = visible;
   }
   resetTracking() {
     this.previousTracking = null;
   }
   snapshot(now: number): SessionReport {
-    return {
-      ...this.report,
+    const base = {
+      ...this.base,
       seconds: this.clock.seconds(now),
-      feedbackCounts: { ...this.report.feedbackCounts },
-      repetitionLog: {
-        version: 1,
-        events: this.report.repetitionLog!.events.map((event) => ({
-          ...event,
-          issues: [...event.issues],
-        })),
-      },
+      feedbackCounts: { ...this.base.feedbackCounts },
+      schemaVersion: 2 as const,
     };
+    return EXERCISE_BY_ID[this.exercise].type === "HOLD_BASED"
+      ? { ...base, type: "HOLD_BASED", validSeconds: this.validMs / 1000 }
+      : {
+          ...base,
+          type: "REP_BASED",
+          totalReps: this.totalReps,
+          correctReps: this.correctReps,
+          repetitionLog: {
+            version: 1,
+            events: this.log.events.map((e) => ({ ...e, issues: [...e.issues] })),
+          },
+        };
   }
 }

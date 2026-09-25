@@ -94,6 +94,7 @@ export function HistoryScreen({
     });
   }
   const filter = (id: ExerciseId | "all") => {
+    setSort("recent");
     setExercise(id);
     setLimit(20);
   };
@@ -155,8 +156,15 @@ export function HistoryScreen({
                 <dl className="progress-totals" aria-label="Resumo de todas as sessões">
                   {[
                     [Layers, "Sessões registradas", totals.sessions],
-                    [Activity, "Repetições avaliadas", totals.totalReps],
-                    [CheckCheck, "Nos critérios", totals.correctReps],
+                    ...(sessions.some((r) => r.type !== "HOLD_BASED") || !sessions.length
+                      ? [
+                          [Activity, "Repetições avaliadas", totals.totalReps],
+                          [CheckCheck, "Nos critérios", totals.correctReps],
+                        ]
+                      : []),
+                    ...(sessions.some((r) => r.type === "HOLD_BASED")
+                      ? [[Clock3, "Tempo em postura válida", durationLabel(totals.validSeconds)]]
+                      : []),
                     [Clock3, "Tempo ativo total", durationLabel(totals.seconds)],
                   ].map(([Icon, label, value]) => {
                     const Symbol = Icon as typeof Layers;
@@ -261,7 +269,10 @@ export function HistoryScreen({
                           >
                             <option value="recent">Mais recentes</option>
                             <option value="oldest">Mais antigas</option>
-                            <option value="reps">Mais repetições</option>
+                            {exercise !== "plank" && <option value="reps">Mais repetições</option>}
+                            {(exercise === "all" || exercise === "plank") && (
+                              <option value="hold">Maior tempo em postura válida</option>
+                            )}
                             <option value="time">Maior tempo ativo</option>
                           </select>
                         </label>
@@ -335,18 +346,33 @@ export function HistoryScreen({
                                   </span>
                                 </div>
                                 <dl className="progress-card-stats">
-                                  <div>
-                                    <dt>Avaliadas</dt>
-                                    <dd>{r.totalReps}</dd>
-                                  </div>
-                                  <div>
-                                    <dt>Nos critérios</dt>
-                                    <dd>{r.correctReps}</dd>
-                                  </div>
-                                  <div>
-                                    <dt>Tempo ativo</dt>
-                                    <dd>{durationLabel(r.seconds)}</dd>
-                                  </div>
+                                  {r.type === "HOLD_BASED" ? (
+                                    <>
+                                      <div>
+                                        <dt>Postura válida</dt>
+                                        <dd>{durationLabel(r.validSeconds)}</dd>
+                                      </div>
+                                      <div>
+                                        <dt>Tempo acompanhado</dt>
+                                        <dd>{durationLabel(r.seconds)}</dd>
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <div>
+                                        <dt>Avaliadas</dt>
+                                        <dd>{r.totalReps}</dd>
+                                      </div>
+                                      <div>
+                                        <dt>Nos critérios</dt>
+                                        <dd>{r.correctReps}</dd>
+                                      </div>
+                                      <div>
+                                        <dt>Tempo ativo</dt>
+                                        <dd>{durationLabel(r.seconds)}</dd>
+                                      </div>
+                                    </>
+                                  )}
                                 </dl>
                                 <SessionRatio report={r} />
                                 <div className="progress-card-actions">

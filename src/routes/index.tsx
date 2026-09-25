@@ -13,7 +13,7 @@ import type { ExerciseId } from "@/lib/biomech";
 
 const title = "Torvik — Acompanhe seu movimento pela câmera";
 const description =
-  "Acompanhe agachamentos, flexões e polichinelos com análise local de movimento. Sem cadastro.";
+  "Acompanhe oito exercícios, por repetições ou tempo, com análise local de movimento. Sem cadastro.";
 
 export const Route = createFileRoute("/")({
   head: () => ({

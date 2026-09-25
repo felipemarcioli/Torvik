@@ -77,7 +77,9 @@ export function HomeScreen({ selected, onSelect, onStart, onHistory }: Props) {
             <h2 id="exercise-heading" className="text-2xl font-bold leading-tight sm:text-3xl">
               Escolha o exercício
             </h2>
-            <span className="hidden text-sm text-muted-foreground sm:inline">3 opções</span>
+            <span className="hidden text-sm text-muted-foreground sm:inline">
+              {EXERCISES.length} opções
+            </span>
           </div>
           <fieldset
             disabled={!interactive}
@@ -247,9 +249,22 @@ function ExerciseCard({
           <div className="mobile-exercise-preview-content">
             <div className="exercise-sprite-window" role="img" aria-label={exercise.previewAlt}>
               <picture>
-                <source media="(prefers-reduced-motion: reduce)" srcSet={exercise.previewStill} />
+                <source
+                  media="(prefers-reduced-motion: reduce)"
+                  srcSet={
+                    exercise.previewAvailable === false
+                      ? "/torvik-image-3d-180.webp"
+                      : exercise.previewStill
+                  }
+                />
                 <img
-                  src={previewOpen ? exercise.previewAnimation : exercise.previewStill}
+                  src={
+                    exercise.previewAvailable === false
+                      ? "/torvik-image-3d-180.webp"
+                      : previewOpen
+                        ? exercise.previewAnimation
+                        : exercise.previewStill
+                  }
                   width="256"
                   height="256"
                   alt=""
@@ -258,7 +273,14 @@ function ExerciseCard({
                 />
               </picture>
             </div>
-            <p>{exercise.previewInstruction}</p>
+            <p>
+              {exercise.previewInstruction}
+              {exercise.previewAvailable === false && (
+                <small className="block mt-2 text-muted-foreground">
+                  Demonstração animada indisponível.
+                </small>
+              )}
+            </p>
           </div>
         </div>
       </div>

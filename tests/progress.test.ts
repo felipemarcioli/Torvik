@@ -18,7 +18,8 @@ import {
 } from "../src/lib/progress";
 import { printableReport, reportCsv } from "../src/lib/history-export";
 const now = new Date(2026, 8, 24, 14);
-function session(patch: Partial<HistorySession> = {}): HistorySession {
+type RepHistory = Exclude<HistorySession, { type: "HOLD_BASED" }>;
+function session(patch: Partial<RepHistory> = {}): RepHistory {
   return {
     schemaVersion: 1,
     id: "a",
@@ -43,7 +44,7 @@ function withoutFeedback(report = session()) {
 test("totais, duração e proporções usam contagens reais, inclusive sessões vazias", () => {
   expect(
     historyTotals([session(), session({ id: "b", totalReps: 0, correctReps: 0, seconds: 0 })]),
-  ).toEqual({ sessions: 2, totalReps: 10, correctReps: 8, seconds: 90 });
+  ).toEqual({ sessions: 2, totalReps: 10, correctReps: 8, seconds: 90, validSeconds: 0 });
   expect(proportion(session())).toBe(80);
   expect(proportion(session({ totalReps: 0, correctReps: 0 }))).toBeNull();
   expect(durationLabel(3661)).toBe("1h 1min 1s");

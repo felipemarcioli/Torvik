@@ -22,22 +22,38 @@ export function SessionComparison({
       v === null
         ? "Não comparável"
         : `${v > 0 ? "+" : ""}${v.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}${suffix}`;
-  const rows = [
-    ["Repetições avaliadas", a.totalReps, b.totalReps, signed(values.totalReps)],
-    ["Nos critérios", a.correctReps, b.correctReps, signed(values.correctReps)],
-    [
-      "Proporção",
-      metricLabel(proportion(a), "proportion"),
-      metricLabel(proportion(b), "proportion"),
-      signed(values.proportion, " p.p."),
-    ],
-    [
-      "Tempo ativo",
-      durationLabel(a.seconds),
-      durationLabel(b.seconds),
-      signed(values.seconds, " s"),
-    ],
-  ];
+  const hold = a.type === "HOLD_BASED" && b.type === "HOLD_BASED";
+  const rows = hold
+    ? [
+        [
+          "Tempo em postura válida",
+          durationLabel(a.validSeconds!),
+          durationLabel(b.validSeconds!),
+          signed(values.validSeconds, " s"),
+        ],
+        [
+          "Tempo acompanhado",
+          durationLabel(a.seconds),
+          durationLabel(b.seconds),
+          signed(values.seconds, " s"),
+        ],
+      ]
+    : [
+        ["Repetições avaliadas", a.totalReps, b.totalReps, signed(values.totalReps)],
+        ["Nos critérios", a.correctReps, b.correctReps, signed(values.correctReps)],
+        [
+          "Proporção",
+          metricLabel(proportion(a), "proportion"),
+          metricLabel(proportion(b), "proportion"),
+          signed(values.proportion, " p.p."),
+        ],
+        [
+          "Tempo ativo",
+          durationLabel(a.seconds),
+          durationLabel(b.seconds),
+          signed(values.seconds, " s"),
+        ],
+      ];
   return (
     <div>
       <button type="button" className="progress-back" onClick={onBack}>
@@ -84,7 +100,9 @@ export function SessionComparison({
           </div>
         ))}
         <p className="progress-caption">
-          p.p. = pontos percentuais. Proporções sem repetições avaliadas não são comparáveis.
+          {hold
+            ? "Tempo válido é a soma dos intervalos observados dentro dos critérios."
+            : "p.p. = pontos percentuais. Proporções sem repetições avaliadas não são comparáveis."}
         </p>
       </section>
       <section className="progress-panel">
@@ -112,8 +130,9 @@ export function SessionComparison({
           ))
         )}
         <p className="progress-caption">
-          Cada número representa repetições com aquela ocorrência; uma repetição pode aparecer em
-          mais de um critério.
+          {hold
+            ? "Cada número representa episódios persistentes daquela ocorrência."
+            : "Cada número representa repetições com aquela ocorrência; uma repetição pode aparecer em mais de um critério."}
         </p>
       </section>
       <details className="progress-panel">

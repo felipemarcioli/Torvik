@@ -1,17 +1,20 @@
+import { isHold } from "./session";
 import type { ExerciseId } from "./biomech";
 import { comparableReports } from "./history";
 import type { HistorySession as SessionReport } from "./history";
-export type HistorySort = "recent" | "oldest" | "reps" | "time";
-export type ProgressMetric = "totalReps" | "correctReps" | "proportion" | "seconds";
+export type HistorySort = "recent" | "oldest" | "reps" | "time" | "hold";
+export type ProgressMetric =
+  "totalReps" | "correctReps" | "proportion" | "seconds" | "validSeconds";
 export type ProgressPeriod = "7" | "30" | "90" | "all";
 export const METRICS: Record<ProgressMetric, string> = {
+  validSeconds: "Tempo em postura válida",
   totalReps: "Repetições avaliadas",
   correctReps: "Repetições nos critérios",
   proportion: "Proporção nos critérios",
   seconds: "Tempo ativo",
 };
 export function proportion(report: Pick<SessionReport, "correctReps" | "totalReps">) {
-  return report.totalReps ? (report.correctReps / report.totalReps) * 100 : null;
+  return report.totalReps ? ((report.correctReps ?? 0) / report.totalReps) * 100 : null;
 }
 export function localDay(value: string | Date) {
   const date = typeof value === "string" ? new Date(value) : value;
@@ -28,11 +31,12 @@ export function historyTotals(sessions: SessionReport[]) {
   return sessions.reduce(
     (a, r) => ({
       sessions: a.sessions + 1,
-      totalReps: a.totalReps + r.totalReps,
-      correctReps: a.correctReps + r.correctReps,
+      totalReps: a.totalReps + (r.totalReps ?? 0),
+      correctReps: a.correctReps + (r.correctReps ?? 0),
       seconds: a.seconds + r.seconds,
+      validSeconds: a.validSeconds + (r.validSeconds ?? 0),
     }),
-    { sessions: 0, totalReps: 0, correctReps: 0, seconds: 0 },
+    { sessions: 0, totalReps: 0, correctReps: 0, seconds: 0, validSeconds: 0 },
   );
 }
 export function filterHistory(
@@ -52,10 +56,12 @@ export function filterHistory(
         (sort === "oldest"
           ? -time
           : sort === "reps"
-            ? b.totalReps - a.totalReps || time
-            : sort === "time"
-              ? b.seconds - a.seconds || time
-              : time) || a.id.localeCompare(b.id)
+            ? (b.totalReps ?? -1) - (a.totalReps ?? -1) || time
+            : sort === "hold"
+              ? (b.validSeconds ?? -1) - (a.validSeconds ?? -1) || time
+              : sort === "time"
+                ? b.seconds - a.seconds || time
+                : time) || a.id.localeCompare(b.id)
       );
     });
 }
@@ -71,6 +77,7 @@ export type ProgressPoint = {
   correctReps: number;
   seconds: number;
   proportion: number | null;
+  validSeconds: number;
 };
 export function evolution(
   sessions: SessionReport[],
@@ -112,10 +119,12 @@ export function evolution(
       correctReps: 0,
       seconds: 0,
       proportion: null,
+      validSeconds: 0,
     };
     point.sessions++;
-    point.totalReps += r.totalReps;
-    point.correctReps += r.correctReps;
+    point.totalReps += r.totalReps ?? 0;
+    point.correctReps += r.correctReps ?? 0;
+    point.validSeconds += r.validSeconds ?? 0;
     point.seconds += r.seconds;
     point.proportion = proportion(point);
     map.set(key, point);
@@ -150,6 +159,10 @@ export function occurrences(report: SessionReport) {
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
 }
 export function factualSummary(report: SessionReport) {
+  if (isHold(report))
+    return report.validSeconds
+      ? `Você acumulou ${durationLabel(report.validSeconds)} em postura válida durante ${durationLabel(report.seconds)} de tempo acompanhado.`
+      : "Nenhum intervalo de postura válida registrado nesta sessão.";
   if (!report.totalReps)
     return "Nenhuma repetição completa foi avaliada nesta sessão. Não há proporção de atendimento aos critérios para calcular.";
   const top = occurrences(report)[0];
@@ -162,9 +175,10 @@ export function comparison(a: SessionReport, b: SessionReport) {
     pb = proportion(b);
   return {
     compatible,
-    totalReps: b.totalReps - a.totalReps,
+    totalReps: (b.totalReps ?? 0) - (a.totalReps ?? 0),
+    validSeconds: compatible ? (b.validSeconds ?? 0) - (a.validSeconds ?? 0) : null,
     seconds: b.seconds - a.seconds,
-    correctReps: compatible ? b.correctReps - a.correctReps : null,
+    correctReps: compatible ? (b.correctReps ?? 0) - (a.correctReps ?? 0) : null,
     proportion: compatible && pa !== null && pb !== null ? pb - pa : null,
     issues:
       compatible && a.feedbackCounts && b.feedbackCounts
@@ -196,7 +210,21 @@ export function metricLabel(value: number | null, metric: ProgressMetric) {
     ? "Sem repetições avaliadas"
     : metric === "proportion"
       ? `${value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`
-      : metric === "seconds"
+      : metric === "seconds" || metric === "validSeconds"
         ? durationLabel(value)
         : value.toLocaleString("pt-BR");
+}
+
+export function sessionStats(report: SessionReport): [string, string | number][] {
+  return report.type === "HOLD_BASED"
+    ? [
+        ["Tempo em postura válida", durationLabel(report.validSeconds)],
+        ["Tempo acompanhado", durationLabel(report.seconds)],
+      ]
+    : [
+        ["Repetições avaliadas", report.totalReps],
+        ["Dentro dos critérios", report.correctReps],
+        ["Fora dos critérios", report.totalReps - report.correctReps],
+        ["Tempo ativo", durationLabel(report.seconds)],
+      ];
 }

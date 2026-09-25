@@ -23,9 +23,18 @@ import { EXERCISES } from "../data";
 export function EvolutionChart({ sessions }: { sessions: SessionReport[] }) {
   const [exercise, setExercise] = useState<ExerciseId>(sessions[0]?.exercise ?? EXERCISES[0]!.id);
   const [period, setPeriod] = useState<ProgressPeriod>("30"),
-    [metric, setMetric] = useState<ProgressMetric>("totalReps"),
+    [chosenMetric, setMetric] = useState<ProgressMetric>("totalReps"),
     [version, setVersion] = useState(""),
     [selected, setSelected] = useState("");
+  const hold = EXERCISES.find((e) => e.id === exercise)?.type === "HOLD_BASED";
+  const metrics = Object.entries(METRICS).filter(([key]) =>
+    hold ? key === "validSeconds" || key === "seconds" : key !== "validSeconds",
+  );
+  const metric: ProgressMetric = metrics.some(([key]) => key === chosenMetric)
+    ? chosenMetric
+    : hold
+      ? "validSeconds"
+      : "totalReps";
   const versions = useMemo(
     () => [
       ...new Map(
@@ -113,7 +122,7 @@ export function EvolutionChart({ sessions }: { sessions: SessionReport[] }) {
         <label className="progress-metric-filter">
           Métrica
           <select value={metric} onChange={(e) => setMetric(e.target.value as ProgressMetric)}>
-            {Object.entries(METRICS).map(([key, label]) => (
+            {metrics.map(([key, label]) => (
               <option key={key} value={key}>
                 {label}
               </option>
@@ -155,7 +164,7 @@ export function EvolutionChart({ sessions }: { sessions: SessionReport[] }) {
                   allowDecimals={metric === "proportion"}
                   tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
                   tickFormatter={(value) =>
-                    metric === "seconds"
+                    metric === "seconds" || metric === "validSeconds"
                       ? Number(value) < 60
                         ? `${value}s`
                         : `${(Number(value) / 60).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}m`
@@ -220,9 +229,11 @@ export function EvolutionChart({ sessions }: { sessions: SessionReport[] }) {
         </div>
       )}
       <p className="progress-caption">
-        {versions.length > 1 ? "O gráfico separa versões de regras e estimadores. " : ""}A proporção
-        usa o total de repetições do período, não a média dos percentuais. Variações não comprovam
-        melhora biomecânica. Dias sem registros não são tratados como zero.
+        {versions.length > 1 ? "O gráfico separa versões de regras e estimadores. " : ""}
+        {hold
+          ? "O gráfico soma os tempos registrados."
+          : "A proporção usa o total de repetições do período, não a média dos percentuais."}{" "}
+        Variações não comprovam melhora biomecânica. Dias sem registros não são tratados como zero.
       </p>
     </section>
   );

@@ -327,3 +327,50 @@ test("oito segundos entre orientações distintas, básico cancela orientação 
   f.rep(8, ["Problema desconhecido"]);
   expect(f.port.calls.some((c) => c.text.includes("desconhecido"))).toBe(false);
 });
+test("prancha anuncia marcos de tempo uma vez, sem retrospectiva e respeita pausa", () => {
+  const f = fixture();
+  f.run();
+  const held = (seconds: number) => ({
+    measurement: { type: "HOLD_BASED" as const, valid: true, validMs: seconds * 1000 },
+    message: "Boa postura. Continue assim.",
+  });
+  f.frame(held(15));
+  f.voice.tick();
+  f.port.end();
+  f.frame(held(15.5));
+  f.voice.tick();
+  expect(f.port.calls.filter((c) => c.text === "15 segundos em postura válida!")).toHaveLength(1);
+  f.voice.configure({ ...DEFAULT_VOICE, enabled: false });
+  f.frame(held(30));
+  f.voice.tick();
+  f.voice.configure(DEFAULT_VOICE);
+  f.frame(held(31));
+  f.voice.tick();
+  expect(f.port.calls.some((c) => c.text.startsWith("30 segundos"))).toBe(false);
+  f.queue.activate();
+  f.port.end();
+  f.frame(held(45));
+  f.voice.tick();
+  f.port.end();
+  expect(f.port.calls.filter((c) => c.text.startsWith("45 segundos"))).toHaveLength(1);
+  f.voice.publish({ type: "phase", phase: "paused" });
+  f.voice.tick();
+  f.voice.publish({ type: "phase", phase: "running" });
+  f.frame(held(45));
+  f.voice.tick();
+  f.port.end();
+  expect(f.port.calls.filter((c) => c.text.startsWith("45 segundos"))).toHaveLength(1);
+});
+test("novas correções usam a evidência temporal existente e ficam silenciosas no básico", () => {
+  const f = fixture();
+  f.run();
+  const issue = { message: "Mantenha o braço próximo ao tronco", level: "posture" as const };
+  f.advance(1000, issue);
+  expect(f.port.calls.some((c) => c.text === issue.message + ".")).toBe(false);
+  f.advance(600, issue);
+  expect(f.port.calls.some((c) => c.text === issue.message + ".")).toBe(true);
+  f.port.end();
+  f.voice.configure({ ...DEFAULT_VOICE, mode: "basic" });
+  f.advance(30000, { message: "Eleve um pouco o quadril", level: "posture" });
+  expect(f.port.calls.some((c) => c.text === "Eleve um pouco o quadril.")).toBe(false);
+});

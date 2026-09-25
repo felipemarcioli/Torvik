@@ -1,4 +1,5 @@
-import { createAnalyzer, RULES_VERSION, type ExerciseId } from "../biomech";
+import { createAnalyzer, type ExerciseId } from "../biomech";
+import { EXERCISE_BY_ID } from "../exercises/catalog";
 import type { PoseEngine } from "./types";
 export type EvaluationResult = {
   engine: string;
@@ -6,14 +7,30 @@ export type EvaluationResult = {
   frames: number;
   trackedFrames: number;
   trackingCoverage: number;
-  totalReps: number;
-  criteriaReps: number;
   meanMs: number;
   p95Ms: number;
   sampleSeconds: number;
-  expectedReps: number;
-  absoluteCountError: number;
-};
+} & (
+  | {
+      type: "REP_BASED";
+      totalReps: number;
+      criteriaReps: number;
+      expectedReps: number;
+      absoluteCountError: number;
+      validSeconds?: never;
+      absoluteTimeError?: never;
+    }
+  | {
+      type: "HOLD_BASED";
+      validSeconds: number;
+      expectedSeconds: number;
+      absoluteTimeError: number;
+      totalReps?: never;
+      criteriaReps?: never;
+      expectedReps?: never;
+      absoluteCountError?: never;
+    }
+);
 export function latencySummary(samples: number[]) {
   const sorted = [...samples].sort((a, b) => a - b);
   return {
@@ -96,7 +113,8 @@ export async function evaluateVideo(
   const analyzer = createAnalyzer(exercise),
     latencies: number[] = [];
   let pending: Promise<unknown> | null = null;
-  let tracked = 0;
+  let tracked = 0,
+    validSeconds = 0;
   try {
     signal.throwIfAborted();
     const duration = Math.min(video.duration, 60);
@@ -118,21 +136,35 @@ export async function evaluateVideo(
         timestamp: (i * 1000) / 15,
       });
       if (result.tracking) tracked++;
+      if (result.measurement?.type === "HOLD_BASED")
+        validSeconds = result.measurement.validMs / 1000;
       progress((i + 1) / Math.floor(duration * 15));
     }
-    return {
+    const common = {
       engine: engine.id,
-      rules: RULES_VERSION,
+      rules: EXERCISE_BY_ID[exercise].rulesVersion,
       frames: latencies.length,
       trackedFrames: tracked,
       trackingCoverage: latencies.length ? tracked / latencies.length : 0,
-      totalReps: analyzer.totalReps,
-      criteriaReps: analyzer.correctReps,
       ...latencySummary(latencies),
       sampleSeconds: duration,
-      expectedReps,
-      absoluteCountError: Math.abs(analyzer.totalReps - expectedReps),
     };
+    return EXERCISE_BY_ID[exercise].type === "HOLD_BASED"
+      ? {
+          ...common,
+          type: "HOLD_BASED",
+          validSeconds,
+          expectedSeconds: expectedReps,
+          absoluteTimeError: Math.abs(validSeconds - expectedReps),
+        }
+      : {
+          ...common,
+          type: "REP_BASED",
+          totalReps: analyzer.totalReps,
+          criteriaReps: analyzer.correctReps,
+          expectedReps,
+          absoluteCountError: Math.abs(analyzer.totalReps - expectedReps),
+        };
   } finally {
     const close = () => engine.close().catch(() => {});
     // Never close the legacy WASM during an in-flight send, even after cancellation.

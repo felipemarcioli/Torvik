@@ -2,7 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Download, FileText, Trash2 } from "lucide-react";
 import { exportReport, type HistorySession } from "@/lib/history";
 import { downloadCsv, printReport } from "@/lib/history-export";
-import { durationLabel, factualSummary, occurrences, proportion } from "@/lib/progress";
+import {
+  durationLabel,
+  factualSummary,
+  occurrences,
+  proportion,
+  sessionStats,
+} from "@/lib/progress";
 import { EXERCISES } from "../data";
 export function SessionDetail({
   report,
@@ -50,12 +56,7 @@ export function SessionDetail({
       <section className="progress-panel">
         <h2>Resultado da sessão</h2>
         <dl className="progress-detail-stats">
-          {[
-            ["Avaliadas", report.totalReps],
-            ["Nos critérios", report.correctReps],
-            ["Fora dos critérios", report.totalReps - report.correctReps],
-            ["Tempo ativo", durationLabel(report.seconds)],
-          ].map(([label, value]) => (
+          {sessionStats(report).map(([label, value]) => (
             <div key={label}>
               <dt>{label}</dt>
               <dd>{value}</dd>
@@ -72,15 +73,17 @@ export function SessionDetail({
         <h2>O que ficou registrado</h2>
         <p className="progress-summary">{factualSummary(report)}</p>
         <p className="progress-caption">
-          {ratio === null ? "Não há proporção para avaliar. " : ""}Esses resultados descrevem
-          critérios do aplicativo; não comprovam melhora biomecânica ou segurança da execução.
+          {ratio === null && report.type !== "HOLD_BASED" ? "Não há proporção para avaliar. " : ""}
+          Esses resultados descrevem critérios do aplicativo; não comprovam melhora biomecânica ou
+          segurança da execução.
         </p>
       </section>
       <section className="progress-panel">
         <h2>Análise da execução</h2>
         <p className="progress-caption">
-          {report.correctReps} repetições atenderam ao conjunto de critérios. O atendimento de cada
-          critério individual não foi registrado separadamente.
+          {report.type === "HOLD_BASED"
+            ? "O tempo válido acumula apenas intervalos observados com postura dentro dos critérios."
+            : `${report.correctReps} repetições atenderam ao conjunto de critérios. O atendimento de cada critério individual não foi registrado separadamente.`}
         </p>
         <h3 className="progress-subtitle">Critérios não atendidos e orientações registradas</h3>
         {!report.feedbackCounts ? (
@@ -89,9 +92,11 @@ export function SessionDetail({
           </p>
         ) : !rows.length ? (
           <p className="progress-caption">
-            {report.totalReps
-              ? "Nenhuma ocorrência registrada nas repetições avaliadas."
-              : "Nenhuma repetição completa para detalhar."}
+            {report.type === "HOLD_BASED"
+              ? "Nenhuma ocorrência persistente registrada."
+              : report.totalReps
+                ? "Nenhuma ocorrência registrada nas repetições avaliadas."
+                : "Nenhuma repetição completa para detalhar."}
           </p>
         ) : (
           <ul className="progress-issues">
@@ -104,12 +109,13 @@ export function SessionDetail({
           </ul>
         )}
         <p className="progress-caption">
-          Uma repetição pode apresentar mais de uma ocorrência. Orientações momentâneas entre
-          repetições não são armazenadas.
+          {report.type === "HOLD_BASED"
+            ? "As ocorrências representam episódios de postura persistentes. Postura inválida, pausas e perdas de rastreamento não acumulam tempo válido."
+            : "Uma repetição pode apresentar mais de uma ocorrência. Orientações momentâneas entre repetições não são armazenadas."}
         </p>
         <dl className="progress-interruptions">
           <div>
-            <dt>Ciclos interrompidos</dt>
+            <dt>{report.type === "HOLD_BASED" ? "Interrupções" : "Ciclos interrompidos"}</dt>
             <dd>{report.interruptedCycles ?? "Não registrado"}</dd>
           </div>
           <div>
@@ -121,7 +127,7 @@ export function SessionDetail({
           Regras {report.rulesVersion} · Estimador {report.engineVersion}
         </p>
       </section>
-      {report.repetitionLog ? (
+      {report.type === "HOLD_BASED" ? null : report.repetitionLog ? (
         <details className="progress-panel">
           <summary>Repetições registradas ({report.repetitionLog.events.length})</summary>
           <p className="progress-caption">Instante aproximado no tempo ativo da sessão.</p>
@@ -218,6 +224,7 @@ export function SessionDetail({
 }
 export function SessionRatio({ report }: { report: HistorySession }) {
   const ratio = proportion(report);
+  if (report.type === "HOLD_BASED") return null;
   return (
     <div className="progress-ratio">
       {ratio === null ? (

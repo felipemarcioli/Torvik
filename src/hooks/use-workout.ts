@@ -66,6 +66,9 @@ export function useWorkout(exercise: ExerciseId, voice?: WorkoutVoiceSink) {
     held.current = null;
     resultRef.current = {
       ...initialResult,
+      ...(resultRef.current.measurement?.type === "HOLD_BASED"
+        ? { measurement: { ...resultRef.current.measurement, valid: false } }
+        : {}),
       totalReps: analyzer.totalReps,
       correctReps: analyzer.correctReps,
     };
@@ -124,6 +127,7 @@ export function useWorkout(exercise: ExerciseId, voice?: WorkoutVoiceSink) {
         const now = performance.now();
         if (phaseRef.current === "running") {
           ledger.consume(next.event);
+          ledger.observe(next);
           if (next.event?.type === "repetition")
             voiceRef.current?.publish({
               type: "repetition",
@@ -155,7 +159,13 @@ export function useWorkout(exercise: ExerciseId, voice?: WorkoutVoiceSink) {
           previous.correctReps === display.correctReps &&
           previous.ready === display.ready &&
           previous.tracking === display.tracking &&
-          previous.side === display.side
+          previous.side === display.side &&
+          previous.measurement?.type === display.measurement?.type &&
+          (previous.measurement?.type !== "HOLD_BASED" ||
+            display.measurement?.type !== "HOLD_BASED" ||
+            (previous.measurement.valid === display.measurement.valid &&
+              Math.floor(previous.measurement.validMs / 1000) ===
+                Math.floor(display.measurement.validMs / 1000)))
             ? previous
             : display,
         );

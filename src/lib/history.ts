@@ -1,9 +1,10 @@
+import { EXERCISE_BY_ID, isExerciseId } from "./exercises/catalog";
 import type { SessionReport } from "./session";
-export type HistorySession = Omit<
-  SessionReport,
-  "feedbackCounts" | "interruptedCycles" | "trackingLosses"
-> &
-  Partial<Pick<SessionReport, "feedbackCounts" | "interruptedCycles" | "trackingLosses">>;
+type Historical<T> = T extends SessionReport
+  ? Omit<T, "feedbackCounts" | "interruptedCycles" | "trackingLosses"> &
+      Partial<Pick<T, "feedbackCounts" | "interruptedCycles" | "trackingLosses">>
+  : never;
+export type HistorySession = Historical<SessionReport>;
 const DATABASE = "torvik-history";
 const STORE = "sessions";
 function validRepetitionLog(value: unknown) {
@@ -34,15 +35,31 @@ export function isSessionReport(value: unknown): value is SessionReport {
   const nonnegative = (n: unknown) =>
     typeof n === "number" && Number.isFinite(n) && Number.isInteger(n) && n >= 0;
   return (
-    v["schemaVersion"] === 1 &&
+    (v["schemaVersion"] === 1 || v["schemaVersion"] === 2) &&
     typeof v["id"] === "string" &&
     typeof v["createdAt"] === "string" &&
     Number.isFinite(Date.parse(v["createdAt"])) &&
-    ["squat", "pushup", "jumpingjack"].includes(String(v["exercise"])) &&
+    isExerciseId(v["exercise"]) &&
+    (v["schemaVersion"] !== 1 || ["squat", "pushup", "jumpingjack"].includes(v["exercise"])) &&
     nonnegative(v["seconds"]) &&
-    nonnegative(v["totalReps"]) &&
-    nonnegative(v["correctReps"]) &&
-    Number(v["correctReps"]) <= Number(v["totalReps"]) &&
+    (v["type"] === "HOLD_BASED"
+      ? v["schemaVersion"] === 2 &&
+        EXERCISE_BY_ID[v["exercise"]].type === "HOLD_BASED" &&
+        typeof v["validSeconds"] === "number" &&
+        Number.isFinite(v["validSeconds"]) &&
+        v["validSeconds"] >= 0 &&
+        v["validSeconds"] < Number(v["seconds"]) + 1 &&
+        v["totalReps"] === undefined &&
+        v["correctReps"] === undefined &&
+        v["repetitionLog"] === undefined
+      : EXERCISE_BY_ID[v["exercise"]].type === "REP_BASED" &&
+        (v["schemaVersion"] === 1
+          ? v["type"] === undefined || v["type"] === "REP_BASED"
+          : v["type"] === "REP_BASED") &&
+        v["validSeconds"] === undefined &&
+        nonnegative(v["totalReps"]) &&
+        nonnegative(v["correctReps"]) &&
+        Number(v["correctReps"]) <= Number(v["totalReps"])) &&
     nonnegative(v["interruptedCycles"]) &&
     nonnegative(v["trackingLosses"]) &&
     typeof v["rulesVersion"] === "string" &&
@@ -158,6 +175,7 @@ export function exportReport(report: HistorySession) {
 export function comparableReports(a: HistorySession, b: HistorySession) {
   return (
     a.exercise === b.exercise &&
+    (a.type ?? "REP_BASED") === (b.type ?? "REP_BASED") &&
     a.rulesVersion === b.rulesVersion &&
     a.engineVersion === b.engineVersion
   );

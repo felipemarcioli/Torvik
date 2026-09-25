@@ -1,3 +1,4 @@
+import { FEEDBACK } from "../exercises/feedback";
 import { RULES, type AnalysisResult, type RepetitionEvent } from "../biomech";
 import { SpeechQueue, type VoiceSettings } from "./speech";
 export type VoicePhase = "loading" | "preparing" | "countdown" | "running" | "paused" | "error";
@@ -10,16 +11,12 @@ export interface WorkoutVoiceSink {
   publish(event: VoiceEvent): void;
   observe(result: AnalysisResult, at: number): void;
 }
-const corrections: Record<string, string> = {
-  "Revise a inclinação do tronco": "Revise a inclinação do tronco.",
-  "Revise o alinhamento do corpo": "Mantenha o corpo alinhado.",
-  "Amplie a descida do agachamento": "Tente aumentar a amplitude do agachamento.",
-  "Amplie a descida da flexão": "Tente aumentar a amplitude da flexão.",
-  "Eleve os braços acima da cabeça": "Eleve os braços acima da cabeça.",
-  "Abra mais as pernas": "Abra mais as pernas.",
-  "Abra braços e pernas ao mesmo tempo": "Abra braços e pernas ao mesmo tempo.",
-};
-const posture = new Set(["Revise a inclinação do tronco", "Revise o alinhamento do corpo"]);
+const corrections = Object.fromEntries(Object.entries(FEEDBACK).map(([k, v]) => [k, v.voice]));
+const posture = new Set(
+  Object.entries(FEEDBACK)
+    .filter(([, v]) => v.posture)
+    .map(([k]) => k),
+);
 /** Receives cheap data writes; only tick (outside camera inference) schedules speech. */
 export class WorkoutVoice implements WorkoutVoiceSink {
   private active = false;
@@ -41,6 +38,7 @@ export class WorkoutVoice implements WorkoutVoiceSink {
   private postureSince = 0;
   private missingSince: number | null = null;
   private terminal = false;
+  private lastHoldMilestone = 0;
   constructor(
     readonly speech: SpeechQueue,
     private now = () => performance.now(),
@@ -55,6 +53,7 @@ export class WorkoutVoice implements WorkoutVoiceSink {
     this.cancelledAt = -Infinity;
     this.seen.clear();
     this.milestones.clear();
+    this.lastHoldMilestone = 0;
     this.spokenSeconds.clear();
     this.speech.activate();
   }
@@ -228,6 +227,23 @@ export class WorkoutVoice implements WorkoutVoiceSink {
               () => this.tracked() && this.raw?.result.message === key,
             );
         }
+      }
+    }
+    if (
+      this.active &&
+      this.phase === "running" &&
+      this.raw?.result.measurement?.type === "HOLD_BASED"
+    ) {
+      const milestone = Math.floor(this.raw.result.measurement.validMs / 15000) * 15;
+      if (milestone > this.lastHoldMilestone) {
+        this.lastHoldMilestone = milestone;
+        this.speech.offer({
+          key: `hold:${milestone}`,
+          text: `${milestone} segundos em postura válida!`,
+          priority: 60,
+          expires: this.now() + 8000,
+          valid: () => this.active && this.phase === "running" && this.tracked(),
+        });
       }
     }
     this.speech.tick();

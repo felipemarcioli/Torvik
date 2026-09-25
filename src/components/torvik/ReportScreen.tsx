@@ -13,23 +13,8 @@ import { EXERCISES } from "./data";
 import { formatTime, type SessionReport } from "@/lib/session";
 import { createHistoryStore, exportReport, type HistorySession } from "@/lib/history";
 
-const issueDetails: Record<string, string> = {
-  "Amplie a descida do agachamento":
-    "A descida não alcançou o limite de amplitude configurado para esta repetição.",
-  "Amplie a descida da flexão":
-    "A descida não alcançou o limite de amplitude configurado para esta repetição.",
-  "Revise a inclinação do tronco":
-    "A inclinação estimada do tronco ultrapassou o limite configurado durante o ciclo.",
-  "Revise o alinhamento do corpo":
-    "O alinhamento estimado entre ombro, quadril e joelho ultrapassou o limite configurado durante o ciclo.",
-  "Eleve os braços acima da cabeça":
-    "Os pulsos não ficaram acima da cabeça durante a abertura observada.",
-  "Abra mais as pernas":
-    "A distância entre os pés não atingiu a abertura configurada durante o ciclo.",
-  "Abra braços e pernas ao mesmo tempo":
-    "Braços e pernas não ficaram abertos juntos pelo intervalo exigido.",
-};
-
+import { FEEDBACK } from "@/lib/exercises/feedback";
+const issueDetails = Object.fromEntries(Object.entries(FEEDBACK).map(([k, v]) => [k, v.detail]));
 export function ReportScreen({
   report,
   onRestart,
@@ -47,8 +32,10 @@ export function ReportScreen({
   const [history, setHistory] = useState<HistorySession[] | null>(null);
   const [historyError, setHistoryError] = useState(false);
   const exercise = EXERCISES.find((e) => e.id === report.exercise)!;
-  const hasReps = report.totalReps > 0;
-  const percent = hasReps ? Math.round((report.correctReps / report.totalReps) * 100) : null;
+  const hold = report.type === "HOLD_BASED";
+  const hasReps = hold ? report.validSeconds > 0 : report.totalReps > 0;
+  const percent =
+    !hold && hasReps ? Math.round((report.correctReps / report.totalReps) * 100) : null;
   const issues = Object.entries(report.feedbackCounts)
     .filter(([, count]) => count > 0)
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
@@ -105,7 +92,30 @@ export function ReportScreen({
           className={`report-summary${hasReps ? "" : " report-summary-empty"}`}
           aria-labelledby="report-summary-heading"
         >
-          {hasReps ? (
+          {hold ? (
+            <>
+              <h2 id="report-summary-heading" className="report-section-title">
+                {hasReps ? "Resultado da prancha" : "Nenhum tempo válido registrado"}
+              </h2>
+              <dl className="report-metrics">
+                <div className="report-metric-main">
+                  <dt>Tempo em postura válida</dt>
+                  <dd>{formatTime(report.validSeconds)}</dd>
+                </div>
+                <div className="report-metric-secondary">
+                  <div>
+                    <dt>Tempo acompanhado</dt>
+                    <dd>{formatTime(report.seconds)}</dd>
+                  </div>
+                </div>
+              </dl>
+              <p className="report-history-note">
+                {hasReps
+                  ? "Tempo acumulado enquanto a postura atendeu aos critérios do app."
+                  : "Mantenha a postura por um instante para começar a acumular tempo."}
+              </p>
+            </>
+          ) : hasReps ? (
             <>
               <h2 id="report-summary-heading" className="report-section-title">
                 Resultado do treino
@@ -163,7 +173,7 @@ export function ReportScreen({
           )}
         </section>
 
-        {hasReps && (
+        {(hasReps || (hold && issues.length > 0)) && (
           <section className="report-review" aria-labelledby="report-review-heading">
             <div className="report-section-heading">
               <h2 id="report-review-heading">Pontos de atenção</h2>
@@ -198,8 +208,10 @@ export function ReportScreen({
               </ul>
             ) : (
               <p className="report-review-empty">
-                <Check size={18} aria-hidden="true" /> Nenhum ponto de atenção registrado nas
-                repetições avaliadas.
+                <Check size={18} aria-hidden="true" />{" "}
+                {hold
+                  ? "Nenhum ponto de atenção registrado."
+                  : "Nenhum ponto de atenção registrado nas repetições avaliadas."}
               </p>
             )}
             {(report.interruptedCycles > 0 || report.trackingLosses > 0) && (
@@ -262,8 +274,10 @@ export function ReportScreen({
                       </time>
                     </span>
                     <span className="report-history-item-meta">
-                      {item.totalReps} {item.totalReps === 1 ? "repetição" : "repetições"} ·{" "}
-                      {formatTime(item.seconds)}
+                      {item.type === "HOLD_BASED"
+                        ? `${formatTime(item.validSeconds)} em postura válida`
+                        : `${item.totalReps} ${item.totalReps === 1 ? "repetição" : "repetições"}`}{" "}
+                      · {formatTime(item.seconds)}
                       <ArrowRight size={16} aria-hidden="true" />
                     </span>
                   </button>
@@ -318,12 +332,12 @@ export function ReportScreen({
           </summary>
           <div>
             <p>
-              Repetições avaliadas são movimentos completos identificados pelo app; ciclos
-              interrompidos são registrados separadamente. Um ciclo pode ter mais de um ponto de
-              atenção.
+              {hold
+                ? "Tempo válido é a soma de intervalos observados com postura dentro dos critérios. As ocorrências contam episódios persistentes, não repetições. Postura inválida e interrupções não somam tempo válido."
+                : "Repetições avaliadas são movimentos completos identificados pelo app; ciclos interrompidos são registrados separadamente. Um ciclo pode ter mais de um ponto de atenção."}
             </p>
             <p>
-              A proporção descreve regras automáticas de movimento. Não mede precisão científica nem
+              A avaliação descreve regras automáticas de movimento. Não mede precisão científica nem
               substitui avaliação profissional. Pausas, preparação e períodos sem rastreamento não
               entram no tempo ativo.
             </p>
