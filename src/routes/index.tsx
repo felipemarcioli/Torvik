@@ -31,12 +31,14 @@ function Index() {
   const voice = useWorkoutVoice();
   const goHome = () => {
     voice.controller.stop();
+    setHistoryTarget(null);
     setScreen("home");
   };
   const [screen, setScreen] = useState<"home" | "workout" | "report" | "history">("home");
   const [exercise, setExercise] = useState<ExerciseId>("squat");
   const [report, setReport] = useState<SessionReport | null>(null);
   const [sessionKey, setSessionKey] = useState(0);
+  const [historyTarget, setHistoryTarget] = useState<string | null>(null);
 
   const previousScreen = useRef(screen);
   useEffect(() => {
@@ -57,7 +59,11 @@ function Index() {
           </p>
         }
       >
-        <HistoryScreen onHome={goHome} />
+        <HistoryScreen
+          key={historyTarget ?? "all"}
+          onHome={goHome}
+          initialDetailId={historyTarget}
+        />
       </Suspense>
     );
 
@@ -87,13 +93,21 @@ function Index() {
           setScreen("workout");
         }}
         onHome={goHome}
+        onViewHistory={(id) => {
+          voice.controller.stop();
+          setHistoryTarget(id ?? null);
+          setScreen("history");
+        }}
       />
     );
   }
 
   return (
     <HomeScreen
-      onHistory={() => setScreen("history")}
+      onHistory={() => {
+        setHistoryTarget(null);
+        setScreen("history");
+      }}
       selected={exercise}
       onSelect={setExercise}
       onStart={() => {

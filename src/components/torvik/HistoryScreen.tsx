@@ -16,7 +16,13 @@ import { EvolutionChart } from "./history/EvolutionChart";
 import { ActivityCalendar } from "./history/ActivityCalendar";
 import { SessionDetail, SessionRatio } from "./history/SessionDetail";
 import { SessionComparison } from "./history/SessionComparison";
-export function HistoryScreen({ onHome }: { onHome: () => void }) {
+export function HistoryScreen({
+  onHome,
+  initialDetailId = null,
+}: {
+  onHome: () => void;
+  initialDetailId?: string | null;
+}) {
   const [sessions, setSessions] = useState<HistorySession[]>([]),
     [loading, setLoading] = useState(true),
     [error, setError] = useState(""),
@@ -25,7 +31,7 @@ export function HistoryScreen({ onHome }: { onHome: () => void }) {
     [sort, setSort] = useState<HistorySort>("recent"),
     [day, setDay] = useState(""),
     [limit, setLimit] = useState(20);
-  const [detail, setDetail] = useState<string | null>(null),
+  const [detail, setDetail] = useState<string | null>(initialDetailId),
     [selecting, setSelecting] = useState(false),
     [selected, setSelected] = useState<string[]>([]),
     [comparing, setComparing] = useState(false);
@@ -91,6 +97,16 @@ export function HistoryScreen({ onHome }: { onHome: () => void }) {
     setExercise(id);
     setLimit(20);
   };
+  if (detail && loading)
+    return (
+      <main className="progress-screen hero-glow min-h-screen">
+        <div className="progress-content">
+          <p role="status" className="progress-panel">
+            Carregando sessão…
+          </p>
+        </div>
+      </main>
+    );
   return (
     <main className="progress-screen hero-glow min-h-screen">
       <div className="progress-content">
