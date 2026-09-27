@@ -19,8 +19,8 @@ const frame = (id: ExerciseId, a: number, t: number): AnalysisFrame => ({
   height: 1000,
   timestamp: t,
 });
-test("catálogo tem oito identificadores únicos e modalidade explícita", () => {
-  expect(new Set(EXERCISES.map((e) => e.id)).size).toBe(8);
+test("catálogo tem dezesseis identificadores únicos e modalidade explícita", () => {
+  expect(new Set(EXERCISES.map((e) => e.id)).size).toBe(16);
   expect(EXERCISES.filter((e) => e.type === "HOLD_BASED").map((e) => e.id)).toEqual(["plank"]);
 });
 for (const [id, base, enter, target, partial] of specs) {

@@ -1,10 +1,25 @@
 export type ExerciseId =
-  "squat" | "pushup" | "jumpingjack" | "lunge" | "bicepscurl" | "lateralraise" | "situp" | "plank";
+  | "squat"
+  | "pushup"
+  | "jumpingjack"
+  | "lunge"
+  | "bicepscurl"
+  | "lateralraise"
+  | "situp"
+  | "plank"
+  | "glutebridge"
+  | "calfraise"
+  | "reverselunge"
+  | "shoulderpress"
+  | "frontraise"
+  | "bentoverrow"
+  | "tricepskickback"
+  | "mountainclimber";
 export type ExerciseType = "REP_BASED" | "HOLD_BASED";
 export type Exercise = {
   id: ExerciseId;
   name: string;
-  category: "legs" | "chest" | "arms" | "shoulders" | "core" | "cardio";
+  category: "legs" | "chest" | "arms" | "shoulders" | "core" | "cardio" | "back";
   type: ExerciseType;
   badge: string;
   emoji: string;
@@ -112,11 +127,14 @@ function extra(
     landmarks,
     previewAnimation: `/exercise-previews/torvik-${id}.webp`,
     previewStill: `/exercise-previews/torvik-${id}-still.webp`,
-    previewAlt: `Torvik demonstrando ${name.toLowerCase()}`,
-    previewAvailable: true,
+    previewAlt:
+      id === "mountainclimber"
+        ? "Torvik, seu assistente de treino"
+        : `Torvik demonstrando ${name.toLowerCase()}`,
+    previewAvailable: id !== "mountainclimber",
   };
 }
-export const EXERCISES: readonly Exercise[] = [
+const DEFINITIONS: readonly Exercise[] = [
   ...existing.map((e) => ({
     ...e,
     ...metadata[e.id as keyof typeof metadata],
@@ -198,7 +216,139 @@ export const EXERCISES: readonly Exercise[] = [
     "Mantenha o corpo alinhado, apoiado nos antebraços.",
     [11, 13, 15, 23, 25, 27],
   ),
+  extra(
+    "glutebridge",
+    "Ponte de glúteos",
+    "legs",
+    "Pernas & Glúteos",
+    "🦵",
+    "Comece deitado de costas, com joelhos dobrados e quadril baixo.",
+    [
+      "Posicione a câmera de lado, próxima ao chão",
+      "Deixe ombro, quadril, joelho e tornozelo visíveis",
+      "Eleve o quadril e retorne à posição inicial, mantendo os pés apoiados",
+    ],
+    "Eleve o quadril com os pés apoiados e retorne.",
+    [11, 23, 25, 27],
+  ),
+  extra(
+    "calfraise",
+    "Panturrilha em pé",
+    "legs",
+    "Pernas & Glúteos",
+    "🦵",
+    "Comece em pé, com os calcanhares apoiados.",
+    [
+      "Posicione a câmera de lado, mostrando o corpo inteiro e os pés",
+      "Calcanhar e ponta do pé precisam estar nítidos; ajuste a distância se necessário",
+      "Eleve os calcanhares e volte ao apoio; o app acompanha um lado por vez",
+    ],
+    "Eleve os calcanhares e retorne ao apoio.",
+    [11, 23, 25, 27, 29, 31],
+  ),
+  extra(
+    "reverselunge",
+    "Afundo reverso",
+    "legs",
+    "Pernas & Glúteos",
+    "🦵",
+    "Comece em pé, com os pés próximos.",
+    [
+      "Fique de lado ou levemente na diagonal, com os dois pés visíveis",
+      "Leve um pé para trás, flexione os joelhos e retorne com os pés próximos",
+      "Mantenha ombros, quadris, joelhos, tornozelos e pontas dos pés visíveis",
+    ],
+    "Dê um passo para trás, desça e volte à posição inicial.",
+    [11, 12, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32],
+  ),
+  extra(
+    "shoulderpress",
+    "Desenvolvimento de ombros",
+    "shoulders",
+    "Ombros",
+    "🏋️",
+    "Comece com os cotovelos flexionados e as mãos junto aos ombros.",
+    [
+      "Fique de frente, com os dois braços inteiros visíveis",
+      "Estenda os dois braços acima da cabeça e retorne",
+      "O app acompanha o corpo; não identifica nem mede a carga",
+    ],
+    "Estenda os braços acima da cabeça e retorne.",
+    [11, 12, 13, 14, 15, 16, 23, 24],
+  ),
+  extra(
+    "frontraise",
+    "Elevação frontal",
+    "shoulders",
+    "Ombros",
+    "🏋️",
+    "Comece com o braço ao lado do corpo.",
+    [
+      "Fique de lado para mostrar a elevação à frente do corpo",
+      "Mantenha ombro, cotovelo, punho, quadril e rosto visíveis",
+      "Eleve o braço até a altura do ombro e retorne; o app acompanha um lado e não mede carga",
+    ],
+    "Eleve o braço à frente até a altura do ombro.",
+    [0, 11, 13, 15, 23],
+  ),
+  extra(
+    "bentoverrow",
+    "Remada curvada",
+    "back",
+    "Costas",
+    "💪",
+    "Incline o tronco pelo quadril e deixe o braço estendido.",
+    [
+      "Posicione a câmera de lado, mostrando ombro, braço, quadril e joelho",
+      "Puxe o cotovelo para trás e aproxime a mão do tronco; depois estenda o braço",
+      "Mantenha o tronco estável; o app acompanha um lado e não mede carga",
+    ],
+    "Puxe o cotovelo para trás mantendo o tronco estável.",
+    [11, 13, 15, 23, 25],
+  ),
+  extra(
+    "tricepskickback",
+    "Tríceps kickback",
+    "arms",
+    "Tríceps",
+    "💪",
+    "Incline o tronco e mantenha o cotovelo flexionado junto ao corpo.",
+    [
+      "Fique de lado, com ombro, cotovelo, punho, quadril e joelho visíveis",
+      "Mantenha o braço superior próximo ao tronco; estenda o cotovelo e retorne",
+      "O app acompanha um braço por vez e não mede carga",
+    ],
+    "Estenda o cotovelo mantendo o braço superior estável.",
+    [11, 13, 15, 23, 25],
+  ),
+  extra(
+    "mountainclimber",
+    "Mountain Climber",
+    "cardio",
+    "Cardio / Core",
+    "⚡",
+    "Comece em prancha alta, com braços e pernas estendidos.",
+    [
+      "Posicione a câmera de lado, levemente na diagonal para mostrar os dois joelhos",
+      "Aproxime um joelho do tronco e estenda a perna antes de alternar",
+      "Cada aproximação e retorno conta uma repetição; mantenha mãos e pés visíveis",
+    ],
+    "Aproxime um joelho, retorne e alterne o lado.",
+    [11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28],
+  ),
 ];
+const CATEGORY_ORDER: Exercise["category"][] = [
+  "legs",
+  "chest",
+  "arms",
+  "shoulders",
+  "back",
+  "core",
+  "cardio",
+];
+export const EXERCISES: readonly Exercise[] = [...DEFINITIONS].sort(
+  (a, b) => CATEGORY_ORDER.indexOf(a.category) - CATEGORY_ORDER.indexOf(b.category),
+);
 export const EXERCISE_BY_ID = Object.fromEntries(EXERCISES.map((e) => [e.id, e])) as Record<
   ExerciseId,
   Exercise

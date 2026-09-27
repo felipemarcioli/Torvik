@@ -11,7 +11,7 @@ from PIL import Image
 
 parser=argparse.ArgumentParser()
 parser.add_argument('source',type=Path)
-parser.add_argument('exercise',choices=['lunge','bicepscurl','lateralraise','situp','plank'])
+parser.add_argument('exercise',choices=['lunge','bicepscurl','lateralraise','situp','plank','glutebridge','calfraise','reverselunge','shoulderpress','frontraise','bentoverrow','tricepskickback','mountainclimber'])
 parser.add_argument('--rows',type=int,default=2)
 parser.add_argument('--frames',type=int,default=8)
 parser.add_argument('--output',type=Path,default=Path('public/exercise-previews'))

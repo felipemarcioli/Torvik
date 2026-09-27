@@ -374,3 +374,29 @@ test("novas correções usam a evidência temporal existente e ficam silenciosas
   f.advance(30000, { message: "Eleve um pouco o quadril", level: "posture" });
   expect(f.port.calls.some((c) => c.text === "Eleve um pouco o quadril.")).toBe(false);
 });
+
+test("new exercise corrections reuse existing confirmation, mode and milestone policy", () => {
+  const messages = [
+    "Eleve mais o quadril na ponte",
+    "Suba mais o calcanhar",
+    "Amplie a descida do afundo reverso",
+    "Estenda mais os dois braços",
+    "Eleve o braço à frente até a altura do ombro",
+    "Puxe mais o cotovelo para trás",
+    "Estenda mais o cotovelo no kickback",
+    "Aproxime mais o joelho do tronco",
+  ];
+  for (const message of messages) {
+    const f = fixture();
+    f.run();
+    f.advance(9000);
+    f.rep(1, [message]);
+    expect(f.port.calls.some((c) => c.text.includes(message))).toBe(false);
+    f.rep(2, [message]);
+    expect(f.port.calls.some((c) => c.text.includes(message))).toBe(true);
+    f.advance(9000);
+    f.rep(5, [], 5);
+    expect(f.port.calls.some((c) => /5|Cinco|cinco/.test(c.text))).toBe(true);
+    f.queue.dispose();
+  }
+});

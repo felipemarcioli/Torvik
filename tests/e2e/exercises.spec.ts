@@ -32,7 +32,7 @@ for (const [id, name, baseline, target] of items) {
     page,
   }) => {
     await setup(page, id, baseline);
-    await page.getByRole("radio", { name: new RegExp(name) }).check();
+    await page.locator(`input[value="${id}"]:visible`).check();
     await page.getByRole("button", { name: "Preparar câmera", exact: true }).click();
     await expect(page.getByRole("button", { name: "Pausar", exact: true })).toBeVisible({
       timeout: 12000,
@@ -77,17 +77,21 @@ for (const [id, name, baseline, target] of items) {
     await page.getByRole("button", { name: "Meu histórico" }).click();
     await expect(page.locator(".progress-session-card")).toContainText(name);
     if (id === "plank") {
-      await expect(page.getByLabel("Métrica", { exact: true })).toHaveValue("validSeconds");
-      await expect(page.getByLabel("Métrica", { exact: true }).locator("option")).toHaveCount(2);
+      await expect(page.getByRole("combobox", { name: /^Métrica/ })).toHaveValue("validSeconds");
+      await expect(page.getByRole("combobox", { name: /^Métrica/ }).locator("option")).toHaveCount(
+        2,
+      );
     }
   });
 }
-test("oito cards, troca rápida, previews e movimento reduzido sem overflow", async ({ page }) => {
+test("dezesseis cards, troca rápida, previews e movimento reduzido sem overflow", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 360, height: 800 });
   await setup(page, "lunge", 170);
-  await expect(page.locator(".exercise-card")).toHaveCount(8);
+  await expect(page.locator(".exercise-card")).toHaveCount(16);
   for (const [id, name] of items) {
-    await page.getByRole("radio", { name: new RegExp(name) }).check();
+    await page.locator(`input[value="${id}"]:visible`).check();
     await expect(page.locator('.exercise-card[data-preview-open="true"]')).toHaveCount(1);
     await expect(page.locator(`#exercise-preview-${id}`)).toHaveAttribute("aria-hidden", "false");
   }

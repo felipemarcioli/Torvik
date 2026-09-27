@@ -1,0 +1,29 @@
+{
+  "tool": "built-in image_gen",
+  "reference": "public/exercise-previews/torvik-lunge-still.webp",
+  "commonPrompt": "8 poses, 4x2, same Torvik 3D identity from torvik-lunge-still.webp; transparent alpha, no text/shadows, full tail/ears/hands/feet and generous margins; constant camera, scale and lighting.",
+  "prompts": {
+    "glutebridge": "Side view. Supine with shoulders on ground, knees bent, feet planted. Hips low → start rising → halfway → full bridge → high → halfway down → almost low → low.",
+    "calfraise": "STANDING CALF RAISE, SIDE view. Upright standing all frames, knees straight, hands at chest. Toes stay on identical ground level. Frames 1 feet flat; 2 heels lift a little; 3 heels higher; 4 heels fully raised standing on toes; 5 high; 6 heels halfway down; 7 almost flat; 8 flat. Heel elevation clearly visible. No squatting or knee bending.",
+    "reverselunge": "REVERSE LUNGE, SIDE view facing right. Frames 1 standing feet together; 2 left foot steps BACK leftward, right foot stays fixed; 3 bend both knees descending in split stance; 4 deep lunge back knee near ground; 5 same bottom pose; 6 rise extending knees; 7 back foot moves forward; 8 standing feet together. Entire tail and both feet visible.",
+    "shoulderpress": "DUMBBELL SHOULDER PRESS, FRONT view. Holds two black dumbbells. Frames 1 elbows bent 90 degrees beside shoulders, weights at ear level; 2 press up slightly; 3 halfway up; 4 both arms extended overhead; 5 overhead; 6 halfway down; 7 almost down; 8 original shoulder position. Feet and body fixed. Show both arms and all weights fully.",
+    "frontraise": "DUMBBELL FRONT RAISE, SIDE view facing right. Near arm straight holding black dumbbell. Frames 1 arm hanging by side; 2 raise forward 25 degrees; 3 raise forward 50 degrees; 4 arm horizontal forward 90 degrees at shoulder level; 5 horizontal; 6 lower 50 degrees; 7 lower 25 degrees; 8 hanging. Upright body and feet unchanged. Far arm remains hanging. Do NOT curl elbow or raise sideways.",
+    "bentoverrow": "BENT OVER DUMBBELL ROW, SIDE view facing right. Torso tilted forward 45 degrees with slightly bent knees and stable feet throughout. Near arm holds black dumbbell. Frames 1 arm extended downward; 2 elbow starts pulling back; 3 elbow flexed halfway hand approaching waist; 4 elbow behind torso dumbbell at waist; 5 contracted; 6 lower halfway; 7 almost extended; 8 arm down extended. Torso remains perfectly still, only elbow and arm move. No biceps curl while standing.",
+    "tricepskickback": "DUMBBELL TRICEPS KICKBACK, SIDE view facing right. Torso tilted forward 45 degrees with slightly bent knees and fixed feet. Upper near arm stays aligned along torso pointing back throughout. Frames 1 elbow bent 90 degrees forearm downward holding black dumbbell; 2 start extending elbow; 3 elbow halfway extended; 4 elbow fully straight arm extended behind torso leftward; 5 fully straight; 6 halfway bending; 7 almost bent; 8 original 90-degree elbow. Upper arm does not swing, entire weight and arm fully visible.",
+    "mountainclimber": "MOUNTAIN CLIMBER, SIDE view slightly oblique to see both legs, facing right. High plank arms straight hands fixed on ground, body horizontal. Frames 1 both legs straight plank; 2 near left knee moves forward; 3 near left knee close to chest and right leg remains straight; 4 both legs straight plank; 5 far right knee begins forward; 6 far right knee near chest and left leg straight; 7 far leg returns; 8 both legs straight plank. Alternate knees, no pushup. Both hands and full tail/ears/feet visible."
+  },
+  "revisions": {
+    "frontraise": "Correct pose 3: same near arm as poses 2 and 4, straight elbow, raises forward; far arm stays down.",
+    "mountainclimber": "Rejected after three attempts: knee alternation not consistently depicted; final attempt also had opaque background. Do not ship these sheets."
+  },
+  "encoding": {
+    "frames": 8,
+    "width": 256,
+    "height": 256,
+    "frameMs": 200,
+    "loop": 0,
+    "quality": 88,
+    "method": 6
+  },
+  "pending": ["mountainclimber"]
+}
