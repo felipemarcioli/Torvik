@@ -50,22 +50,24 @@ Foram gerados sprites com a ferramenta integrada de imagens, usando o mascote at
 referência, e montados pelo conversor Pillow existente. Prompts e critérios de montagem
 estão em `exercise-preview-prompts.json`.
 
-Sete conjuntos foram aprovados: ponte, panturrilha, afundo reverso, desenvolvimento,
-elevação frontal, remada e kickback. Cada conjunto em `public/exercise-previews/` contém:
+Oito conjuntos foram aprovados: ponte, panturrilha, afundo reverso, desenvolvimento,
+elevação frontal, remada, kickback e Mountain Climber. Cada conjunto em `public/exercise-previews/` contém:
 
 - `torvik-{id}.webp`: oito quadros 256 × 256, loop de 1.600 ms com alpha real.
 - `torvik-{id}-still.webp`: primeiro quadro para movimento reduzido.
 - `torvik-{id}-sprite.webp`: faixa normalizada lossless para reprodução do processo.
 
-Os arquivos animados ficam abaixo de 120 KB. Usam poses discretas, sem interpolação ou
+Os arquivos animados ficam abaixo de 122 KB. Usam poses discretas, sem interpolação ou
 mistura de transparência. A escala é única por sequência; não há redimensionamento individual
 para preencher cada quadro. A revisão usa fundos claro e escuro e verifica margens, cauda,
 orelhas, mãos, pés e halteres. Os assets antigos não foram alterados.
 
-**Pendente: animação do Mountain Climber.** Três tentativas não demonstraram consistentemente
-a alternância; uma também trouxe fundo opaco. Elas não foram incluídas nos assets públicos.
-O card usa o fallback já existente, com mascote estático, instrução textual e aviso de
-demonstração indisponível. O detector e os demais fluxos desse exercício estão implementados.
+O Mountain Climber usa uma vista frontal elevada para mostrar a alternância dos joelhos:
+prancha alta, aproximação e retorno de um joelho, depois do outro. O conjunto foi gerado
+com `torvik-lunge-still.webp` como referência de identidade; a extração do fundo foi feita
+pela ferramenta integrada antes da montagem. São oito quadros, 1.600 ms por ciclo e
+121.444 bytes no arquivo animado. A configuração agora habilita o preview real; o fallback
+genérico permanece intacto. Nenhuma regra do exercício ou componente visual foi alterado.
 
 Para reencodar um conjunto aprovado, com Python e Pillow 12.x:
 
@@ -90,7 +92,7 @@ aparência entre quadros; não são uma referência biomecânica validada.
 - `tests/fixtures/expansion.ts`, `tests/expansion.test.ts`, `tests/e2e/expansion.spec.ts` (novos).
 - `tests/exercises.test.ts`, `tests/voice.test.ts`, `tests/e2e/exercises.spec.ts`: catálogo,
   feedback e seleção inequívoca entre Afundo e Afundo reverso.
-- 21 arquivos WebP, este documento e o registro de prompts.
+- 24 arquivos WebP, este documento e o registro de prompts.
 
 ## Limitações e validação física
 
@@ -136,3 +138,16 @@ Os seletores E2E de Afundo passaram a usar o identificador para não confundir o
 Afundo reverso; o seletor de Métrica usa o papel de combobox, mantendo sua verificação.
 Não foram feitas alterações em componentes de interface, hooks de câmera, MediaPipe,
 armazenamento ou algoritmos dos exercícios anteriores. Sem commit, push ou deploy.
+
+### Complemento: preview do Mountain Climber
+
+- `npm run typecheck` e `npm run build`: aprovados.
+- `npm run lint`: zero erros, os mesmos seis avisos de Fast Refresh preexistentes.
+- Quatro testes E2E direcionados a cards/previews aprovados em Chromium mobile e desktop,
+  incluindo 360 × 800, 390 × 844 e movimento reduzido.
+- Reprodução no card confirmada por três capturas consecutivas com quadros diferentes;
+  caminho correto, sem aviso de indisponibilidade e sem overflow horizontal.
+- Oito quadros decodificados, alpha real e margens transparentes verificados em fundos
+  claro e escuro. Os arquivos dos demais previews permanecem idênticos (SHA-256).
+- Nesta entrega foram acrescentados somente os três WebP do Mountain Climber, habilitado
+  seu mapeamento e atualizados testes/documentação. Não houve commit, push ou deploy.

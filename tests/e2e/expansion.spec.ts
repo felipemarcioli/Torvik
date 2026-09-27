@@ -81,6 +81,10 @@ test("new previews fit mobile, retain instructions on desktop and honor reduced 
             : `torvik-${id}-still.webp`,
         );
       await page.emulateMedia({ reducedMotion: "no-preference" });
+      await expect
+        .poll(() => preview.locator("img").evaluate((i: HTMLImageElement) => i.currentSrc))
+        .toContain(`torvik-${id}.webp`);
+      await expect(preview).not.toContainText("Demonstração animada indisponível.");
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true,
       );
@@ -93,7 +97,7 @@ test("new previews fit mobile, retain instructions on desktop and honor reduced 
         .locator("#exercise-preview-mountainclimber img")
         .evaluate((i: HTMLImageElement) => i.currentSrc),
     )
-    .toContain("torvik-image-3d-180.webp");
+    .toContain("torvik-mountainclimber-still.webp");
   await page.screenshot({ path: "/tmp/torvik-sixteen-mobile.png", fullPage: true });
   await page.setViewportSize({ width: 1280, height: 800 });
   const card = page

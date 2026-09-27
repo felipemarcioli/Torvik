@@ -127,11 +127,8 @@ function extra(
     landmarks,
     previewAnimation: `/exercise-previews/torvik-${id}.webp`,
     previewStill: `/exercise-previews/torvik-${id}-still.webp`,
-    previewAlt:
-      id === "mountainclimber"
-        ? "Torvik, seu assistente de treino"
-        : `Torvik demonstrando ${name.toLowerCase()}`,
-    previewAvailable: id !== "mountainclimber",
+    previewAlt: `Torvik demonstrando ${name.toLowerCase()}`,
+    previewAvailable: true,
   };
 }
 const DEFINITIONS: readonly Exercise[] = [
