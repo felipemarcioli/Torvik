@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { EXERCISES, CAMERA_TIPS, type Exercise } from "./data";
+import { EXERCISES, EXERCISE_SECTIONS, CAMERA_TIPS, type Exercise } from "./data";
 import type { ExerciseId } from "@/lib/biomech";
 type Props = {
   selected: ExerciseId;
@@ -81,20 +81,35 @@ export function HomeScreen({ selected, onSelect, onStart, onHistory }: Props) {
               {EXERCISES.length} opções
             </span>
           </div>
-          <fieldset
-            disabled={!interactive}
-            className="mt-3 grid gap-2 sm:mt-5 sm:gap-4 md:grid-cols-3"
-          >
+          <fieldset disabled={!interactive} className="mt-3 space-y-6 sm:mt-5 sm:space-y-8">
             <legend className="sr-only">Exercício para o próximo treino</legend>
-            {EXERCISES.map((ex) => (
-              <ExerciseCard
-                key={ex.id}
-                exercise={ex}
-                active={selected === ex.id}
-                onSelect={() => onSelect(ex.id)}
-                previewOpen={openPreview === ex.id}
-                onPreviewToggle={() => togglePreview(ex.id)}
-              />
+            {EXERCISE_SECTIONS.map((section) => (
+              <section key={section.id} aria-labelledby={`exercise-category-${section.id}`}>
+                <div className="flex items-center justify-between gap-3">
+                  <h3
+                    id={`exercise-category-${section.id}`}
+                    className="text-sm font-semibold text-accent sm:text-base"
+                  >
+                    {section.title}
+                  </h3>
+                  <span className="text-xs text-muted-foreground">
+                    {section.exercises.length}{" "}
+                    {section.exercises.length === 1 ? "exercício" : "exercícios"}
+                  </span>
+                </div>
+                <div className="mt-3 grid gap-2 sm:gap-4 md:grid-cols-3">
+                  {section.exercises.map((ex) => (
+                    <ExerciseCard
+                      key={ex.id}
+                      exercise={ex}
+                      active={selected === ex.id}
+                      onSelect={() => onSelect(ex.id)}
+                      previewOpen={openPreview === ex.id}
+                      onPreviewToggle={() => togglePreview(ex.id)}
+                    />
+                  ))}
+                </div>
+              </section>
             ))}
           </fieldset>
         </section>

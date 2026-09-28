@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { pose } from "../fixtures/exercises";
 import type { ExerciseId } from "../../src/lib/biomech";
+import { EXERCISES } from "../../src/lib/exercises/catalog";
 async function setup(page: Page, id: ExerciseId, angle: number) {
   await page.route("https://fonts.googleapis.com/**", (r) => r.abort());
   await page.route("https://cdn.jsdelivr.net/npm/@mediapipe/pose@*/pose.js", (r) =>
@@ -84,6 +85,42 @@ for (const [id, name, baseline, target] of items) {
     }
   });
 }
+test("categorias exibem todo o catálogo na ordem esperada e preservam a seleção", async ({
+  page,
+}) => {
+  await setup(page, "lunge", 170);
+  const categories: [string, string[]][] = [
+    ["Pernas & Glúteos", ["squat", "lunge", "reverselunge", "glutebridge", "calfraise"]],
+    ["Peito & Tríceps", ["pushup"]],
+    ["Bíceps", ["bicepscurl"]],
+    ["Tríceps", ["tricepskickback"]],
+    ["Ombros", ["lateralraise", "shoulderpress", "frontraise"]],
+    ["Costas", ["bentoverrow"]],
+    ["Abdômen / Core", ["situp", "plank"]],
+    ["Cardio", ["jumpingjack", "mountainclimber"]],
+  ];
+  await expect(page.locator(".home-exercises h3")).toHaveText(categories.map(([title]) => title));
+  const visibleIds = await page
+    .locator(".exercise-card input:visible")
+    .evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).value));
+  expect([...visibleIds].sort()).toEqual(EXERCISES.map((exercise) => exercise.id).sort());
+  for (const [title, ids] of categories) {
+    const section = page.getByRole("region", { name: title, exact: true });
+    await expect(section.getByRole("heading", { name: title, exact: true })).toBeVisible();
+    expect(
+      await section
+        .locator("input:visible")
+        .evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).value)),
+    ).toEqual(ids);
+    for (const id of ids) {
+      const radio = section.locator(`input[value="${id}"]:visible`);
+      await radio.check();
+      await expect(radio).toBeChecked();
+      await expect(page.locator('.exercise-card[data-selected="true"]')).toHaveCount(1);
+    }
+  }
+});
+
 test("dezesseis cards, troca rápida, previews e movimento reduzido sem overflow", async ({
   page,
 }) => {
