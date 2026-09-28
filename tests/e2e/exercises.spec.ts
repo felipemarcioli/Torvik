@@ -108,7 +108,7 @@ test("categorias exibem todo o catálogo na ordem esperada e preservam a seleç�
     ["Core", ["situp", "plank"]],
     ["Cardio", ["jumpingjack", "mountainclimber"]],
   ];
-  await expect(page.locator('.workout-group-toggle[aria-expanded="false"]')).toHaveCount(4);
+  await expect(page.locator('.workout-group-tile[aria-expanded="false"]')).toHaveCount(4);
   await expect(page.locator(".exercise-card:visible")).toHaveCount(0);
   await expect(page.locator(".workout-group-label > .font-bold")).toHaveText(
     categories.map(([title]) => title),
@@ -119,8 +119,8 @@ test("categorias exibem todo o catálogo na ordem esperada e preservam a seleç�
   expect([...visibleIds].sort()).toEqual(EXERCISES.map((exercise) => exercise.id).sort());
   for (const [title, ids] of categories) {
     await openExerciseGroup(page, ids[0]!);
-    await expect(page.locator('.workout-group-toggle[aria-expanded="true"]')).toHaveCount(1);
-    const section = page.getByRole("region", { name: new RegExp(title) });
+    await expect(page.locator('.workout-group-tile[aria-expanded="true"]')).toHaveCount(1);
+    const section = page.getByRole("dialog", { name: title, exact: true });
     await expect(section.getByRole("heading", { name: new RegExp(title) })).toBeVisible();
     expect(
       await section
@@ -182,10 +182,12 @@ test("grupos preservam seleção e detalhes, teclado e espaço acima da ação m
   const squat = page.locator('input[value="squat"]:visible');
   await squat.press("Space");
   await expect(squat).toHaveAttribute("aria-expanded", "true");
-  await legs.click();
+  await page.getByRole("button", { name: "Voltar às categorias" }).click();
+  await expect(page.locator("#workout-group-legs")).not.toBeVisible();
   await expect(legs).toHaveAttribute("aria-expanded", "false");
   await expect(page.locator('input[value="squat"]').first()).toBeChecked();
   await expect(page.locator("#workout-group-legs")).toHaveAttribute("inert", "");
+  await expect(legs).toBeFocused();
   await legs.press("Space");
   await expect(squat).toHaveAttribute("aria-expanded", "true");
   await expect(page.locator("#exercise-preview-squat")).toHaveAttribute("aria-hidden", "false");
@@ -219,4 +221,41 @@ test("grupos preservam seleção e detalhes, teclado e espaço acima da ação m
       .locator("#workout-group-cardio")
       .evaluate((e) => getComputedStyle(e).transitionDuration),
   ).toBe("0s");
+});
+
+test("grade 2x2 navega para uma categoria modal e retorna com Escape", async ({ page }) => {
+  await setup(page, "lunge", 170);
+  for (const width of [360, 390, 550]) {
+    await page.setViewportSize({ width, height: 844 });
+    const cards = page.locator(".workout-group-tile");
+    await expect(cards).toHaveCount(4);
+    const boxes = await cards.evaluateAll((elements) =>
+      elements.map((e) => {
+        const r = e.getBoundingClientRect();
+        return { x: r.x, y: r.y, width: r.width };
+      }),
+    );
+    expect(boxes[0]!.y).toBe(boxes[1]!.y);
+    expect(boxes[2]!.y).toBe(boxes[3]!.y);
+    expect(boxes[1]!.x).toBeGreaterThan(boxes[0]!.x + boxes[0]!.width);
+    expect(boxes[2]!.y).toBeGreaterThan(boxes[0]!.y);
+    const upper = page.locator("#exercise-category-upper");
+    await upper.click();
+    const dialog = page.getByRole("dialog", { name: "Treino Superior", exact: true });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "Voltar às categorias" })).toBeFocused();
+    await expect(dialog.locator(".exercise-card")).toHaveCount(7);
+    await expect(
+      dialog.getByRole("button", { name: "Preparar câmera", exact: true }),
+    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Preparar câmera", exact: true })).toHaveCount(1);
+    await expect.poll(async () => (await dialog.boundingBox())!.height).toBeGreaterThan(800);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+    await page.keyboard.press("Escape");
+    await expect(dialog).not.toBeVisible();
+    await expect(upper).toBeFocused();
+    expect(await page.evaluate(() => document.documentElement.style.overflow)).not.toBe("hidden");
+  }
 });

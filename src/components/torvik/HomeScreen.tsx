@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { WorkoutGroupCard } from "./WorkoutGroupCard";
 import { EXERCISES, EXERCISE_SECTIONS, CAMERA_TIPS, type Exercise } from "./data";
 import type { ExerciseId } from "@/lib/biomech";
 type Props = {
@@ -12,6 +13,14 @@ export function HomeScreen({ selected, onSelect, onStart, onHistory }: Props) {
   const [openGroup, setOpenGroup] = useState<string | null>(null);
   const [openPreview, setOpenPreview] = useState<ExerciseId | null>(null);
   useEffect(() => setInteractive(true), []);
+  useEffect(() => {
+    if (!openGroup) return;
+    const previous = document.documentElement.style.overflow;
+    document.documentElement.style.overflow = "hidden";
+    return () => {
+      document.documentElement.style.overflow = previous;
+    };
+  }, [openGroup]);
   const togglePreview = (id: ExerciseId) => {
     onSelect(id);
     setOpenPreview((current) => (current === id ? null : id));
@@ -84,71 +93,37 @@ export function HomeScreen({ selected, onSelect, onStart, onHistory }: Props) {
           </div>
           <fieldset disabled={!interactive} className="workout-groups mt-3 sm:mt-5">
             <legend className="sr-only">Exercício para o próximo treino</legend>
-            {EXERCISE_SECTIONS.map((section) => {
-              const expanded = openGroup === section.id;
-              return (
-                <section
-                  key={section.id}
-                  className="workout-group torvik-panel"
-                  data-open={expanded}
-                  aria-labelledby={`exercise-category-${section.id}`}
-                >
-                  <h3>
-                    <button
-                      type="button"
-                      id={`exercise-category-${section.id}`}
-                      className="workout-group-toggle"
-                      aria-expanded={expanded}
-                      aria-controls={`workout-group-${section.id}`}
-                      onClick={() => setOpenGroup(expanded ? null : section.id)}
-                    >
-                      <span className="workout-group-icon" aria-hidden="true">
-                        {section.icon}
-                      </span>
-                      <span className="workout-group-label">
-                        <span className="font-bold">{section.title}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {section.exercises.length} exercícios
-                        </span>
-                      </span>
-                      <svg
-                        className="workout-group-chevron"
-                        aria-hidden="true"
-                        viewBox="0 0 20 20"
-                        fill="none"
-                      >
-                        <path d="m6 8 4 4 4-4" stroke="currentColor" strokeWidth="1.8" />
-                      </svg>
-                    </button>
-                  </h3>
-                  <div
-                    id={`workout-group-${section.id}`}
-                    className="workout-group-panel"
-                    aria-hidden={!expanded}
-                    inert={!expanded}
-                  >
-                    <div className="workout-group-clip">
-                      <div className="workout-group-exercises">
-                        {section.exercises.map((ex) => (
-                          <ExerciseCard
-                            key={ex.id}
-                            exercise={ex}
-                            active={selected === ex.id}
-                            onSelect={() => onSelect(ex.id)}
-                            previewOpen={openPreview === ex.id}
-                            previewVisible={expanded}
-                            onPreviewToggle={() => togglePreview(ex.id)}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </section>
-              );
-            })}
+            {EXERCISE_SECTIONS.map((section) => (
+              <WorkoutGroupCard
+                key={section.id}
+                id={section.id}
+                title={section.title}
+                count={section.exercises.length}
+                expanded={openGroup === section.id}
+                onOpen={() => setOpenGroup(section.id)}
+                onClose={() => setOpenGroup(null)}
+                onStart={onStart}
+              >
+                {section.exercises.map((ex) => (
+                  <ExerciseCard
+                    key={ex.id}
+                    exercise={ex}
+                    active={selected === ex.id}
+                    onSelect={() => onSelect(ex.id)}
+                    previewOpen={openPreview === ex.id}
+                    previewVisible={openGroup === section.id}
+                    onPreviewToggle={() => togglePreview(ex.id)}
+                  />
+                ))}
+              </WorkoutGroupCard>
+            ))}
           </fieldset>
         </section>
-        <div className="home-action fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-18px_40px_-24px_#000] backdrop-blur-lg sm:static sm:mt-6 sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none">
+        <div
+          aria-hidden={!!openGroup}
+          inert={!!openGroup}
+          className="home-action fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-18px_40px_-24px_#000] backdrop-blur-lg sm:static sm:mt-6 sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none"
+        >
           <div className="mx-auto max-w-6xl">
             <button
               type="button"
