@@ -1,3 +1,4 @@
+import { openExerciseGroup } from "./home-helpers";
 import { expect, test, type Page } from "@playwright/test";
 async function setup(page: Page, visible = true) {
   await page.route("https://fonts.googleapis.com/**", (route) => route.abort());
@@ -29,6 +30,7 @@ async function setup(page: Page, visible = true) {
 }
 test("controles de exercício funcionam por teclado", async ({ page }) => {
   await setup(page);
+  await openExerciseGroup(page, "pushup");
   await page.getByRole("radio", { name: /Flexão de Braço/ }).check();
   if ((page.viewportSize()?.width ?? 0) < 600) {
     const flex = page.getByRole("radio", { name: /Flexão de Braço/ });
@@ -39,11 +41,12 @@ test("controles de exercício funcionam por teclado", async ({ page }) => {
     await expect(flex).toHaveAttribute("aria-expanded", "false");
     return;
   }
+  await openExerciseGroup(page, "squat");
   const button = page.locator('button[aria-controls="instructions-squat"]');
   await button.focus();
   await button.press("Enter");
   await expect(button).toHaveAttribute("aria-expanded", "true");
-  await expect(page.getByRole("radio", { name: /Flexão de Braço/ })).toBeChecked();
+  await expect(page.locator('input[value="pushup"]').first()).toBeChecked();
 });
 
 test("accordion mobile abre somente o exercício selecionado", async ({ page }) => {
@@ -53,7 +56,11 @@ test("accordion mobile abre somente o exercício selecionado", async ({ page }) 
   const squat = page.locator(".exercise-card").filter({ hasText: "Agachamento" });
   const pushup = page.locator(".exercise-card").filter({ hasText: "Flexão de Braço" });
   const jumpingJack = page.locator(".exercise-card").filter({ hasText: "Polichinelo" });
-  const pushupBefore = await pushup.boundingBox();
+  await openExerciseGroup(page, "squat");
+  const nextCard = page
+    .locator(".exercise-card")
+    .filter({ has: page.locator('input[value="lunge"]') });
+  const pushupBefore = await nextCard.boundingBox();
 
   await expect(page.getByRole("radio", { name: /Agachamento/ })).toBeChecked();
   await expect(page.locator("#exercise-preview-squat")).toHaveAttribute("aria-hidden", "true");
@@ -63,19 +70,21 @@ test("accordion mobile abre somente o exercício selecionado", async ({ page }) 
   await expect(page.getByText("Mantenha os pés alinhados e desça com controle.")).toBeVisible();
   await expect(page.locator('.exercise-card[data-preview-open="true"]')).toHaveCount(1);
   await expect
-    .poll(async () => (await pushup.boundingBox())?.y ?? 0)
+    .poll(async () => (await nextCard.boundingBox())?.y ?? 0)
     .toBeGreaterThan(pushupBefore!.y + 60);
 
   await squat.locator(".mobile-exercise-select").click();
   await expect(page.locator("#exercise-preview-squat")).toHaveAttribute("aria-hidden", "true");
   await expect(page.getByRole("radio", { name: /Agachamento/ })).toBeChecked();
 
+  await openExerciseGroup(page, "pushup");
   await pushup.locator(".mobile-exercise-select").click();
-  await expect(page.getByRole("radio", { name: /Flexão de Braço/ })).toBeChecked();
+  await expect(page.locator('input[value="pushup"]').first()).toBeChecked();
   await expect(page.locator("#exercise-preview-pushup")).toHaveAttribute("aria-hidden", "false");
   await expect(page.locator("#exercise-preview-squat")).toHaveAttribute("aria-hidden", "true");
   await expect(page.locator('.exercise-card[data-preview-open="true"]')).toHaveCount(1);
 
+  await openExerciseGroup(page, "jumpingjack");
   const jumpingJackRadio = page.getByRole("radio", { name: /Polichinelo/ });
   await jumpingJackRadio.focus();
   await jumpingJackRadio.press("Space");

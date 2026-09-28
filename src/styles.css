@@ -1897,3 +1897,119 @@
     animation: none;
   }
 }
+
+/* Workout navigation; nested exercise details retain their own state. */
+.workout-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+.home-exercises .workout-groups {
+  gap: 0.75rem;
+}
+.workout-group {
+  min-width: 0;
+  overflow: hidden;
+  transition:
+    border-color 220ms ease,
+    box-shadow 220ms ease;
+}
+.workout-group[data-open="true"] {
+  border-color: color-mix(in oklab, var(--primary) 55%, var(--border));
+  box-shadow: 0 8px 24px -20px var(--primary);
+}
+.workout-group-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 76px;
+  padding: 0.875rem 1rem;
+  text-align: left;
+  cursor: pointer;
+  border-radius: inherit;
+}
+.workout-group-toggle:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -4px;
+}
+.workout-group-icon {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: none;
+  border-radius: 0.75rem;
+  background: color-mix(in oklab, var(--primary) 10%, transparent);
+  font-size: 1.35rem;
+}
+.workout-group-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  flex: 1;
+}
+.workout-group-chevron {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: none;
+  color: var(--muted-foreground);
+  transition: transform 220ms ease;
+}
+.workout-group[data-open="true"] .workout-group-chevron {
+  transform: rotate(180deg);
+  color: var(--primary);
+}
+.workout-group-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    grid-template-rows 240ms ease,
+    opacity 180ms ease,
+    visibility 0s linear 240ms;
+}
+.workout-group[data-open="true"] .workout-group-panel {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+}
+.workout-group-clip {
+  min-height: 0;
+  overflow: hidden;
+}
+.workout-group-exercises {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0 0.75rem 0.75rem;
+}
+.workout-group .exercise-card {
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.75rem;
+  background: color-mix(in oklab, var(--background) 45%, var(--card));
+  box-shadow: none;
+  transform: none;
+}
+.workout-group .exercise-card[data-selected="true"] {
+  border-color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 8%, var(--card));
+}
+.workout-group .exercise-card .exercise-summary {
+  display: none;
+}
+@media (min-width: 768px) {
+  .workout-group-exercises {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .workout-group,
+  .workout-group-panel,
+  .workout-group-chevron {
+    transition: none;
+  }
+}

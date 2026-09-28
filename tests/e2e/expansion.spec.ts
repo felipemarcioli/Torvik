@@ -1,3 +1,4 @@
+import { openExerciseGroup } from "./home-helpers";
 import { expect, test, type Page } from "@playwright/test";
 import { expansionPose, NEW_IDS, type Stage } from "../fixtures/expansion";
 import { EXERCISE_BY_ID } from "../../src/lib/exercises/catalog";
@@ -11,6 +12,7 @@ async function setup(page: Page, id: NewExerciseId) {
     }),
   );
   await page.goto("/");
+  await openExerciseGroup(page, id);
   await page.locator(`input[value="${id}"]:visible`).check();
   await page.getByRole("button", { name: "Preparar câmera", exact: true }).click();
 }
@@ -61,6 +63,7 @@ test("new previews fit mobile, retain instructions on desktop and honor reduced 
   ]) {
     await page.setViewportSize({ width: width!, height: height! });
     for (const id of NEW_IDS) {
+      await openExerciseGroup(page, id);
       await page.locator(`input[value="${id}"]:visible`).check();
       const preview = page.locator(`#exercise-preview-${id}`);
       await expect(preview).toHaveAttribute("aria-hidden", "false");
@@ -100,6 +103,7 @@ test("new previews fit mobile, retain instructions on desktop and honor reduced 
     .toContain("torvik-mountainclimber-still.webp");
   await page.screenshot({ path: "/tmp/torvik-sixteen-mobile.png", fullPage: true });
   await page.setViewportSize({ width: 1280, height: 800 });
+  await openExerciseGroup(page, "glutebridge");
   const card = page
     .locator(".exercise-card")
     .filter({ has: page.locator('input[value="glutebridge"]') });

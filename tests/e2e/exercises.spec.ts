@@ -1,3 +1,4 @@
+import { openExerciseGroup } from "./home-helpers";
 import { expect, test, type Page } from "@playwright/test";
 import { pose } from "../fixtures/exercises";
 import type { ExerciseId } from "../../src/lib/biomech";
@@ -33,6 +34,7 @@ for (const [id, name, baseline, target] of items) {
     page,
   }) => {
     await setup(page, id, baseline);
+    await openExerciseGroup(page, id);
     await page.locator(`input[value="${id}"]:visible`).check();
     await page.getByRole("button", { name: "Preparar câmera", exact: true }).click();
     await expect(page.getByRole("button", { name: "Pausar", exact: true })).toBeVisible({
@@ -90,23 +92,36 @@ test("categorias exibem todo o catálogo na ordem esperada e preservam a seleç�
 }) => {
   await setup(page, "lunge", 170);
   const categories: [string, string[]][] = [
-    ["Pernas & Glúteos", ["squat", "lunge", "reverselunge", "glutebridge", "calfraise"]],
-    ["Peito & Tríceps", ["pushup"]],
-    ["Bíceps", ["bicepscurl"]],
-    ["Tríceps", ["tricepskickback"]],
-    ["Ombros", ["lateralraise", "shoulderpress", "frontraise"]],
-    ["Costas", ["bentoverrow"]],
-    ["Abdômen / Core", ["situp", "plank"]],
+    [
+      "Treino Superior",
+      [
+        "pushup",
+        "bicepscurl",
+        "tricepskickback",
+        "lateralraise",
+        "shoulderpress",
+        "frontraise",
+        "bentoverrow",
+      ],
+    ],
+    ["Treino de Pernas", ["squat", "lunge", "reverselunge", "glutebridge", "calfraise"]],
+    ["Core", ["situp", "plank"]],
     ["Cardio", ["jumpingjack", "mountainclimber"]],
   ];
-  await expect(page.locator(".home-exercises h3")).toHaveText(categories.map(([title]) => title));
+  await expect(page.locator('.workout-group-toggle[aria-expanded="false"]')).toHaveCount(4);
+  await expect(page.locator(".exercise-card:visible")).toHaveCount(0);
+  await expect(page.locator(".workout-group-label > .font-bold")).toHaveText(
+    categories.map(([title]) => title),
+  );
   const visibleIds = await page
-    .locator(".exercise-card input:visible")
+    .locator(".desktop-exercise-select input")
     .evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).value));
   expect([...visibleIds].sort()).toEqual(EXERCISES.map((exercise) => exercise.id).sort());
   for (const [title, ids] of categories) {
-    const section = page.getByRole("region", { name: title, exact: true });
-    await expect(section.getByRole("heading", { name: title, exact: true })).toBeVisible();
+    await openExerciseGroup(page, ids[0]!);
+    await expect(page.locator('.workout-group-toggle[aria-expanded="true"]')).toHaveCount(1);
+    const section = page.getByRole("region", { name: new RegExp(title) });
+    await expect(section.getByRole("heading", { name: new RegExp(title) })).toBeVisible();
     expect(
       await section
         .locator("input:visible")
@@ -128,6 +143,7 @@ test("dezesseis cards, troca rápida, previews e movimento reduzido sem overflow
   await setup(page, "lunge", 170);
   await expect(page.locator(".exercise-card")).toHaveCount(16);
   for (const [id, name] of items) {
+    await openExerciseGroup(page, id);
     await page.locator(`input[value="${id}"]:visible`).check();
     await expect(page.locator('.exercise-card[data-preview-open="true"]')).toHaveCount(1);
     await expect(page.locator(`#exercise-preview-${id}`)).toHaveAttribute("aria-hidden", "false");
@@ -145,10 +161,62 @@ test("dezesseis cards, troca rápida, previews e movimento reduzido sem overflow
     );
   }
   await page.setViewportSize({ width: 390, height: 844 });
+  await openExerciseGroup(page, "plank");
   await page.emulateMedia({ reducedMotion: "reduce" });
   const img = page.locator("#exercise-preview-plank img");
   await expect
     .poll(() => img.evaluate((i: HTMLImageElement) => i.currentSrc))
     .toContain("still.webp");
   await page.screenshot({ path: "/tmp/torvik-eight-exercises.png", fullPage: true });
+});
+
+test("grupos preservam seleção e detalhes, teclado e espaço acima da ação mobile", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await setup(page, "lunge", 170);
+  const legs = page.locator("#exercise-category-legs");
+  await expect(legs).toBeEnabled();
+  await legs.focus();
+  await legs.press("Enter");
+  const squat = page.locator('input[value="squat"]:visible');
+  await squat.press("Space");
+  await expect(squat).toHaveAttribute("aria-expanded", "true");
+  await legs.click();
+  await expect(legs).toHaveAttribute("aria-expanded", "false");
+  await expect(page.locator('input[value="squat"]').first()).toBeChecked();
+  await expect(page.locator("#workout-group-legs")).toHaveAttribute("inert", "");
+  await legs.press("Space");
+  await expect(squat).toHaveAttribute("aria-expanded", "true");
+  await expect(page.locator("#exercise-preview-squat")).toHaveAttribute("aria-hidden", "false");
+  await openExerciseGroup(page, "mountainclimber");
+  await page.locator('input[value="mountainclimber"]:visible').check();
+  await expect(legs).toHaveAttribute("aria-expanded", "false");
+  const preview = page.locator("#exercise-preview-mountainclimber");
+  await expect(preview.locator("img")).toHaveAttribute(
+    "src",
+    "/exercise-previews/torvik-mountainclimber.webp",
+  );
+  for (const size of [
+    { width: 360, height: 800 },
+    { width: 390, height: 844 },
+  ]) {
+    await page.setViewportSize(size);
+    await page.waitForTimeout(300);
+    await preview.evaluate((e) => e.scrollIntoView({ block: "center" }));
+    const box = await preview.boundingBox();
+    const action = await page
+      .getByRole("button", { name: "Preparar câmera", exact: true })
+      .boundingBox();
+    expect(box!.y + box!.height).toBeLessThanOrEqual(action!.y);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+  }
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  expect(
+    await page
+      .locator("#workout-group-cardio")
+      .evaluate((e) => getComputedStyle(e).transitionDuration),
+  ).toBe("0s");
 });

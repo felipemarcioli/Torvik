@@ -9,6 +9,7 @@ type Props = {
 };
 export function HomeScreen({ selected, onSelect, onStart, onHistory }: Props) {
   const [interactive, setInteractive] = useState(false);
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
   const [openPreview, setOpenPreview] = useState<ExerciseId | null>(null);
   useEffect(() => setInteractive(true), []);
   const togglePreview = (id: ExerciseId) => {
@@ -81,36 +82,70 @@ export function HomeScreen({ selected, onSelect, onStart, onHistory }: Props) {
               {EXERCISES.length} opções
             </span>
           </div>
-          <fieldset disabled={!interactive} className="mt-3 space-y-6 sm:mt-5 sm:space-y-8">
+          <fieldset disabled={!interactive} className="workout-groups mt-3 sm:mt-5">
             <legend className="sr-only">Exercício para o próximo treino</legend>
-            {EXERCISE_SECTIONS.map((section) => (
-              <section key={section.id} aria-labelledby={`exercise-category-${section.id}`}>
-                <div className="flex items-center justify-between gap-3">
-                  <h3
-                    id={`exercise-category-${section.id}`}
-                    className="text-sm font-semibold text-accent sm:text-base"
-                  >
-                    {section.title}
+            {EXERCISE_SECTIONS.map((section) => {
+              const expanded = openGroup === section.id;
+              return (
+                <section
+                  key={section.id}
+                  className="workout-group torvik-panel"
+                  data-open={expanded}
+                  aria-labelledby={`exercise-category-${section.id}`}
+                >
+                  <h3>
+                    <button
+                      type="button"
+                      id={`exercise-category-${section.id}`}
+                      className="workout-group-toggle"
+                      aria-expanded={expanded}
+                      aria-controls={`workout-group-${section.id}`}
+                      onClick={() => setOpenGroup(expanded ? null : section.id)}
+                    >
+                      <span className="workout-group-icon" aria-hidden="true">
+                        {section.icon}
+                      </span>
+                      <span className="workout-group-label">
+                        <span className="font-bold">{section.title}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {section.exercises.length} exercícios
+                        </span>
+                      </span>
+                      <svg
+                        className="workout-group-chevron"
+                        aria-hidden="true"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                      >
+                        <path d="m6 8 4 4 4-4" stroke="currentColor" strokeWidth="1.8" />
+                      </svg>
+                    </button>
                   </h3>
-                  <span className="text-xs text-muted-foreground">
-                    {section.exercises.length}{" "}
-                    {section.exercises.length === 1 ? "exercício" : "exercícios"}
-                  </span>
-                </div>
-                <div className="mt-3 grid gap-2 sm:gap-4 md:grid-cols-3">
-                  {section.exercises.map((ex) => (
-                    <ExerciseCard
-                      key={ex.id}
-                      exercise={ex}
-                      active={selected === ex.id}
-                      onSelect={() => onSelect(ex.id)}
-                      previewOpen={openPreview === ex.id}
-                      onPreviewToggle={() => togglePreview(ex.id)}
-                    />
-                  ))}
-                </div>
-              </section>
-            ))}
+                  <div
+                    id={`workout-group-${section.id}`}
+                    className="workout-group-panel"
+                    aria-hidden={!expanded}
+                    inert={!expanded}
+                  >
+                    <div className="workout-group-clip">
+                      <div className="workout-group-exercises">
+                        {section.exercises.map((ex) => (
+                          <ExerciseCard
+                            key={ex.id}
+                            exercise={ex}
+                            active={selected === ex.id}
+                            onSelect={() => onSelect(ex.id)}
+                            previewOpen={openPreview === ex.id}
+                            previewVisible={expanded}
+                            onPreviewToggle={() => togglePreview(ex.id)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              );
+            })}
           </fieldset>
         </section>
         <div className="home-action fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-18px_40px_-24px_#000] backdrop-blur-lg sm:static sm:mt-6 sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none">
@@ -161,11 +196,13 @@ function ExerciseCard({
   onSelect,
   previewOpen,
   onPreviewToggle,
+  previewVisible,
 }: {
   exercise: Exercise;
   active: boolean;
   onSelect: () => void;
   previewOpen: boolean;
+  previewVisible: boolean;
   onPreviewToggle: () => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -276,7 +313,7 @@ function ExerciseCard({
                   src={
                     exercise.previewAvailable === false
                       ? "/torvik-image-3d-180.webp"
-                      : previewOpen
+                      : previewOpen && previewVisible
                         ? exercise.previewAnimation
                         : exercise.previewStill
                   }
