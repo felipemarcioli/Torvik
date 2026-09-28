@@ -497,9 +497,6 @@
     border-radius: 1rem;
     box-shadow: 0 8px 24px -15px var(--primary);
   }
-  .home-tips {
-    display: none;
-  }
   .home-screen footer {
     display: none;
   }
@@ -2071,5 +2068,44 @@
 @media (prefers-reduced-motion: reduce) {
   .workout-group-tile {
     transition: none;
+  }
+}
+
+.home-preparation {
+  margin-top: 1.5rem;
+}
+.home-preparation-grid {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+.current-exercise,
+.preparation-guidance {
+  min-width: 0;
+  padding: 1rem;
+}
+.current-exercise-content {
+  display: grid;
+  grid-template-columns: minmax(0, 112px) minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+.current-exercise-preview {
+  width: 100%;
+  aspect-ratio: 1;
+}
+.current-exercise-preview img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+@media (min-width: 768px) {
+  .home-preparation-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .current-exercise-content {
+    grid-template-columns: minmax(0, 144px) minmax(0, 1fr);
   }
 }

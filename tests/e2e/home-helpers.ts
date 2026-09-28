@@ -13,4 +13,12 @@ export async function openExerciseGroup(page: Page, id: string) {
   }
   await group.locator(".workout-group-tile").click();
   await expect(dialog).toBeVisible();
+  await expect
+    .poll(() =>
+      dialog.evaluate(
+        (element) =>
+          element.getAnimations().filter((animation) => animation.playState === "running").length,
+      ),
+    )
+    .toBe(0);
 }

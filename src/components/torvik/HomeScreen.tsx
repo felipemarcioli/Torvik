@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { ExercisePreview } from "./ExercisePreview";
+import { EXERCISE_BY_ID } from "@/lib/exercises/catalog";
 import { WorkoutGroupCard } from "./WorkoutGroupCard";
 import { EXERCISES, EXERCISE_SECTIONS, CAMERA_TIPS, type Exercise } from "./data";
 import type { ExerciseId } from "@/lib/biomech";
@@ -9,6 +11,7 @@ type Props = {
   onHistory: () => void;
 };
 export function HomeScreen({ selected, onSelect, onStart, onHistory }: Props) {
+  const currentExercise = EXERCISE_BY_ID[selected];
   const [interactive, setInteractive] = useState(false);
   const [openGroup, setOpenGroup] = useState<string | null>(null);
   const [openPreview, setOpenPreview] = useState<ExerciseId | null>(null);
@@ -135,19 +138,65 @@ export function HomeScreen({ selected, onSelect, onStart, onHistory }: Props) {
             </button>
           </div>
         </div>
-        <section className="home-tips torvik-panel mt-8 p-5 sm:mt-10 sm:p-6">
-          <p className="torvik-kicker">Preparação</p>
-          <h2 className="mt-1 text-xl font-bold">Antes de começar</h2>
-          <ul className="mt-4 grid gap-3 text-sm text-muted-foreground sm:grid-cols-2">
-            {CAMERA_TIPS.map((tip) => (
-              <li key={tip} className="flex gap-2">
-                <span aria-hidden="true" className="font-bold text-accent">
-                  •
-                </span>
-                {tip}
-              </li>
-            ))}
-          </ul>
+        <section className="home-preparation" aria-labelledby="preparation-heading">
+          <h2 id="preparation-heading" className="torvik-kicker">
+            Preparação
+          </h2>
+          <div className="home-preparation-grid">
+            <section
+              className="current-exercise torvik-panel"
+              aria-labelledby="current-exercise-heading"
+            >
+              <h3 id="current-exercise-heading" className="text-base font-bold">
+                Exercício atual
+              </h3>
+              {currentExercise ? (
+                <div className="current-exercise-content">
+                  <div
+                    className="current-exercise-preview"
+                    role="img"
+                    aria-label={currentExercise.previewAlt}
+                  >
+                    <ExercisePreview exercise={currentExercise} animated={!openGroup} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold">
+                      <span aria-hidden="true">{currentExercise.emoji} </span>
+                      {currentExercise.name}
+                    </p>
+                    <p className="mt-1 text-sm text-accent">{currentExercise.badge}</p>
+                    {currentExercise.previewAvailable === false && (
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        Demonstração animada indisponível.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Selecione um exercício para ver a demonstração.
+                </p>
+              )}
+            </section>
+            <section
+              className="preparation-guidance torvik-panel"
+              aria-labelledby="camera-tips-heading"
+            >
+              <h3 id="camera-tips-heading" className="text-base font-bold">
+                Antes de começar
+              </h3>
+              <ul className="mt-3 space-y-3 text-sm text-muted-foreground">
+                {CAMERA_TIPS.map((tip) => (
+                  <li key={tip} className="flex gap-2">
+                    <span aria-hidden="true" className="font-bold text-accent">
+                      •
+                    </span>
+                    {tip}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          </div>
         </section>
         <footer className="mt-6 max-w-3xl border-t border-border/70 pt-5 text-xs leading-relaxed text-muted-foreground">
           <p>
@@ -275,30 +324,7 @@ function ExerciseCard({
         <div className="mobile-exercise-preview-clip">
           <div className="mobile-exercise-preview-content">
             <div className="exercise-sprite-window" role="img" aria-label={exercise.previewAlt}>
-              <picture>
-                <source
-                  media="(prefers-reduced-motion: reduce)"
-                  srcSet={
-                    exercise.previewAvailable === false
-                      ? "/torvik-image-3d-180.webp"
-                      : exercise.previewStill
-                  }
-                />
-                <img
-                  src={
-                    exercise.previewAvailable === false
-                      ? "/torvik-image-3d-180.webp"
-                      : previewOpen && previewVisible
-                        ? exercise.previewAnimation
-                        : exercise.previewStill
-                  }
-                  width="256"
-                  height="256"
-                  alt=""
-                  aria-hidden="true"
-                  className="exercise-preview-animation"
-                />
-              </picture>
+              <ExercisePreview exercise={exercise} animated={previewOpen && previewVisible} />
             </div>
             <p>
               {exercise.previewInstruction}

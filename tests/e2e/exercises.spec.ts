@@ -259,3 +259,48 @@ test("grade 2x2 navega para uma categoria modal e retorna com Escape", async ({ 
     expect(await page.evaluate(() => document.documentElement.style.overflow)).not.toBe("hidden");
   }
 });
+
+test("preparação acompanha a seleção e reutiliza os previews e orientações", async ({ page }) => {
+  await setup(page, "lunge", 170);
+  const preparation = page.locator(".home-preparation");
+  const current = preparation.locator(".current-exercise");
+  await expect(current).toContainText("Agachamento");
+  await expect(preparation.getByRole("heading", { name: "Antes de começar" })).toBeVisible();
+  await expect(preparation.locator("li")).toHaveCount(4);
+  for (const id of ["pushup", "mountainclimber", "squat"] as const) {
+    await openExerciseGroup(page, id);
+    await page.locator(`input[value="${id}"]:visible`).check();
+    await page.getByRole("button", { name: "Voltar às categorias" }).click();
+    await expect(page.locator("dialog[open]")).toHaveCount(0);
+    const exercise = EXERCISES.find((e) => e.id === id)!;
+    await expect(current).toContainText(exercise.name);
+    await expect(current).toContainText(exercise.badge);
+    await expect(current.locator("img")).toHaveAttribute("src", exercise.previewAnimation);
+    await expect
+      .poll(() =>
+        current
+          .locator("img")
+          .evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth === 256),
+      )
+      .toBe(true);
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await expect
+      .poll(() => current.locator("img").evaluate((i: HTMLImageElement) => i.currentSrc))
+      .toContain(exercise.previewStill);
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+  }
+  for (const width of [360, 390, 550, 1280]) {
+    await page.setViewportSize({ width, height: 844 });
+    await preparation.locator("li").last().scrollIntoViewIfNeeded();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+    if (width < 600) {
+      const tip = await preparation.locator("li").last().boundingBox();
+      const action = await page
+        .getByRole("button", { name: "Preparar câmera", exact: true })
+        .boundingBox();
+      expect(tip!.y + tip!.height).toBeLessThanOrEqual(action!.y);
+    }
+  }
+});
