@@ -8,7 +8,7 @@ async function setup(page: Page, id: AdditionId) {
   await page.route("https://cdn.jsdelivr.net/npm/@mediapipe/pose@*/pose.js", (r) =>
     r.fulfill({
       contentType: "text/javascript",
-      body: `window.__catalogPose=${JSON.stringify(catalogPose(id, "base"))};window.Pose=class{setOptions(){}onResults(cb){this.cb=cb}async close(){}async send({image}){this.cb({poseLandmarks:window.__catalogPose.map(p=>({...p,x:.5+(p.x-.5)*.65*image.videoHeight/image.videoWidth,y:.5+(p.y-.5)*.65}))})}};`,
+      body: `window.__catalogPose=${JSON.stringify(catalogPose(id, "base"))};window.__catalogSamples=[];window.Pose=class{setOptions(){}onResults(cb){this.cb=cb}async close(){}async send({image}){const now=performance.now(),samples=window.__catalogSamples;if(samples.length&&now-samples.at(-1)>400)samples.length=0;samples.push(now);if(samples.length>30)samples.shift();this.cb({poseLandmarks:window.__catalogPose.map(p=>({...p,x:.5+(p.x-.5)*.65*image.videoHeight/image.videoWidth,y:.5+(p.y-.5)*.65}))})}};`,
     }),
   );
   await page.goto("/");
@@ -18,15 +18,27 @@ async function setup(page: Page, id: AdditionId) {
   await expect(page.getByRole("button", { name: "Pausar", exact: true })).toBeVisible({
     timeout: 18000,
   });
+  if (EXERCISE_BY_ID[id].type === "REP_BASED") await pose(page, id, "base");
 }
 async function pose(page: Page, id: AdditionId, stage: Stage, side: "left" | "right" = "left") {
   await page.evaluate(
     (l) => {
-      (window as unknown as { __catalogPose: unknown }).__catalogPose = l;
+      const harness = window as unknown as { __catalogPose: unknown; __catalogSamples: number[] };
+      harness.__catalogPose = l;
+      harness.__catalogSamples = [];
     },
     catalogPose(id, stage, side),
   );
   await page.waitForTimeout(800);
+  // Advancing wall time alone does not prove that the camera sampled this fixture stage.
+  await page.waitForFunction(
+    () => {
+      const samples = (window as unknown as { __catalogSamples: number[] }).__catalogSamples;
+      return samples.length >= 4 && samples[samples.length - 1]! - samples[0]! >= 400;
+    },
+    null,
+    { timeout: 12000 },
+  );
 }
 for (const id of ADDITION_IDS) {
   test(`${id}: selection, measurement, report and persisted history`, async ({ page }) => {
@@ -40,7 +52,6 @@ for (const id of ADDITION_IDS) {
         );
       }
     }
-    await page.waitForTimeout(650);
     if (EXERCISE_BY_ID[id].type === "HOLD_BASED") {
       await page.waitForTimeout(1600);
       await expect(page.locator(".workout-metrics")).toContainText("Contando");
@@ -91,6 +102,7 @@ test("side change preserves completed Bulgarian repetitions and prepares opposit
   await expect(page.getByRole("button", { name: "Pausar", exact: true })).toBeVisible({
     timeout: 18000,
   });
+  await pose(page, "bulgariansquat", "base", "right");
   await pose(page, "bulgariansquat", "entry", "right");
   await pose(page, "bulgariansquat", "target", "right");
   await pose(page, "bulgariansquat", "base", "right");

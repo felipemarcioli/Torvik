@@ -110,3 +110,29 @@ limitações específicas são apresentadas antes do início e na documentação
 
 Na entrega local inicial, ainda não havia commit, push ou deploy. Arquivos temporários de revisão permanecem fora
 do repositório em `/workspace/work/torvik-catalog30`.
+
+### Revalidação para integrar à main — 06/10/2026
+
+A implementação foi salva no commit `9a840b1`. Após atualizar as referências,
+`origin/main` estava em `01470b61187ae30f00a017a817e6ff52f204e4c5`, ancestral da
+implementação. A integração local foi por fast-forward, sem conflitos ou
+reescrita de histórico, conforme autorização para publicação direta na main.
+
+Foram repetidos tipos, lint, os 156 testes unitários, os builds padrão e Vercel,
+a decodificação e os hashes dos 42 assets novos, além da integridade dos 48
+anteriores. Todos passaram; o lint manteve os seis avisos preexistentes.
+
+A execução simultânea de dois navegadores foi interrompida após falhas de início
+automático sob limitação de CPU. Com um único worker, a suíte completa teve
+108 aprovações e duas falhas: amostragem do ciclo sintético de calcanhares aos
+glúteos e rolagem da orientação sob a ação fixa. Os testes agora aguardam amostras
+contínuas de cada pose, incluindo a posição inicial, e centralizam a orientação
+antes de avaliar sua posição em relação ao botão. Os limiares e as regras do
+produto não foram alterados.
+
+Após esses ajustes, tipos e lint passaram novamente. A repetição direcionada
+teve **12 aprovações**, cobrindo os dois cenários que falharam, patinador, salto e
+trocas de lado nos perfis móvel e desktop. Somando a suíte completa e a repetição,
+os **110 cenários únicos** tiveram execuções aprovadas. Não houve uma única
+execução da suíte completa com 110 aprovações. A validação prática com movimentos
+reais e dispositivos físicos continua pendente, conforme descrito acima.

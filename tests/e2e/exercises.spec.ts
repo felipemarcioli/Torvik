@@ -313,7 +313,11 @@ test("preparação acompanha a seleção e reutiliza os previews e orientações
   }
   for (const width of [360, 390, 550, 1280]) {
     await page.setViewportSize({ width, height: 844 });
-    await preparation.locator("li").last().scrollIntoViewIfNeeded();
+    // "If needed" treats text behind the fixed action as already visible.
+    await preparation
+      .locator("li")
+      .last()
+      .evaluate((tip) => tip.scrollIntoView({ block: "center" }));
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
