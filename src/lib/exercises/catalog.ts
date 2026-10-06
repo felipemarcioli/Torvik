@@ -1,4 +1,6 @@
+import { ADDITIONS, type AdditionId } from "./additions";
 export type ExerciseId =
+  | AdditionId
   | "squat"
   | "pushup"
   | "jumpingjack"
@@ -33,6 +35,14 @@ export type Exercise = {
   previewAlt: string;
   previewInstruction: string;
   previewAvailable?: boolean;
+  equipment?: readonly string[];
+  preparation?: string;
+  execution?: string;
+  repDefinition?: string;
+  cameraGuidance?: string;
+  sideMode?: "selected" | "alternating";
+  analysisLimitations?: string;
+  previewSprite?: string;
 };
 const existing: Omit<
   Exercise,
@@ -132,6 +142,7 @@ function extra(
   };
 }
 const DEFINITIONS: readonly Exercise[] = [
+  ...ADDITIONS,
   ...existing.map((e) => ({
     ...e,
     ...metadata[e.id as keyof typeof metadata],
@@ -353,6 +364,8 @@ export const EXERCISE_BY_ID = Object.fromEntries(EXERCISES.map((e) => [e.id, e])
 export const isExerciseId = (id: unknown): id is ExerciseId =>
   typeof id === "string" && Object.hasOwn(EXERCISE_BY_ID, id);
 export const MOVEMENT_LABELS: Record<string, string> = {
+  airborne: "Elevação observada",
+  landing: "Estabilizando o retorno",
   positioning: "Posicionando",
   standing: "Em pé",
   high: "Prancha alta",

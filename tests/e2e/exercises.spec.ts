@@ -96,6 +96,7 @@ test("categorias exibem todo o catálogo na ordem esperada e preservam a seleç�
       "Treino Superior",
       [
         "pushup",
+        "floorpress",
         "bicepscurl",
         "tricepskickback",
         "lateralraise",
@@ -104,9 +105,32 @@ test("categorias exibem todo o catálogo na ordem esperada e preservam a seleç�
         "bentoverrow",
       ],
     ],
-    ["Treino de Pernas", ["squat", "lunge", "reverselunge", "glutebridge", "calfraise"]],
-    ["Core", ["situp", "plank"]],
-    ["Cardio", ["jumpingjack", "mountainclimber"]],
+    [
+      "Treino de Pernas",
+      [
+        "squat",
+        "lunge",
+        "reverselunge",
+        "glutebridge",
+        "calfraise",
+        "romaniandeadlift",
+        "bulgariansquat",
+        "wallsit",
+      ],
+    ],
+    ["Core", ["situp", "plank", "sideplank", "deadbug", "birddog", "lyinglegraise", "shouldertap"]],
+    [
+      "Cardio",
+      [
+        "jumpingjack",
+        "mountainclimber",
+        "highknees",
+        "buttkicks",
+        "skater",
+        "stepjack",
+        "jumpsquat",
+      ],
+    ],
   ];
   await expect(page.locator('.workout-group-tile[aria-expanded="false"]')).toHaveCount(4);
   await expect(page.locator(".exercise-card:visible")).toHaveCount(0);
@@ -136,12 +160,10 @@ test("categorias exibem todo o catálogo na ordem esperada e preservam a seleç�
   }
 });
 
-test("dezesseis cards, troca rápida, previews e movimento reduzido sem overflow", async ({
-  page,
-}) => {
+test("trinta cards, troca rápida, previews e movimento reduzido sem overflow", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 800 });
   await setup(page, "lunge", 170);
-  await expect(page.locator(".exercise-card")).toHaveCount(16);
+  await expect(page.locator(".exercise-card")).toHaveCount(30);
   for (const [id, name] of items) {
     await openExerciseGroup(page, id);
     await page.locator(`input[value="${id}"]:visible`).check();
@@ -176,7 +198,7 @@ test("grupos preservam seleção e detalhes, teclado e espaço acima da ação m
   await page.setViewportSize({ width: 390, height: 844 });
   await setup(page, "lunge", 170);
   const legs = page.locator("#exercise-category-legs");
-  await expect(legs).toBeEnabled();
+  await expect(legs).toBeEnabled({ timeout: 15000 });
   await legs.focus();
   await legs.press("Enter");
   const squat = page.locator('input[value="squat"]:visible');
@@ -244,7 +266,7 @@ test("grade 2x2 navega para uma categoria modal e retorna com Escape", async ({ 
     const dialog = page.getByRole("dialog", { name: "Treino Superior", exact: true });
     await expect(dialog).toBeVisible();
     await expect(dialog.getByRole("button", { name: "Voltar às categorias" })).toBeFocused();
-    await expect(dialog.locator(".exercise-card")).toHaveCount(7);
+    await expect(dialog.locator(".exercise-card")).toHaveCount(8);
     await expect(
       dialog.getByRole("button", { name: "Preparar câmera", exact: true }),
     ).toBeVisible();

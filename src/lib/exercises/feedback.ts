@@ -169,3 +169,17 @@ Object.assign(FEEDBACK, {
     posture: true,
   },
 });
+
+Object.assign(FEEDBACK, {
+  "Revise a flexão dos joelhos no terra romeno": {
+    voice: "Revise a flexão dos joelhos.",
+    detail:
+      "A flexão estimada dos joelhos excedeu a faixa inicial configurada para o terra romeno.",
+    posture: true,
+  },
+  "Revise o alinhamento observado na prancha": {
+    voice: "Revise o alinhamento do corpo.",
+    detail: "O eixo ombro, quadril e tornozelo ficou fora da faixa de alinhamento configurada.",
+    posture: true,
+  },
+});

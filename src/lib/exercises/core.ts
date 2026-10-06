@@ -36,6 +36,7 @@ export const LM = {
   RIGHT_FOOT_INDEX: 32,
 } as const;
 export type RepetitionEvent = {
+  side?: "left" | "right";
   id: number;
   type: "repetition";
   correct: boolean;
@@ -47,7 +48,14 @@ export type AnalysisEvent =
   | { id: number; type: "hold-issue"; issue: string; timestamp: number }
   | { id: number; type: "interrupted"; timestamp: number };
 export type AnalysisResult = {
-  measurement?: { type: "REP_BASED" } | { type: "HOLD_BASED"; valid: boolean; validMs: number };
+  measurement?:
+    | { type: "REP_BASED" }
+    | {
+        type: "HOLD_BASED";
+        valid: boolean;
+        validMs: number;
+        validMsBySide?: { left: number; right: number };
+      };
   message: string;
   level: FeedbackLevel;
   state: string;
@@ -186,4 +194,8 @@ export abstract class Analyzer {
     this.resetCycle();
   }
   abstract analyze(frame: AnalysisFrame, count?: boolean): AnalysisResult;
+  /** Optional explicit anatomical side; existing analyzers retain automatic selection. */
+  selectSide(_side: "left" | "right", timestamp = 0) {
+    return this.resetPartial(timestamp);
+  }
 }

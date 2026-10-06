@@ -2,6 +2,10 @@ import { type AnalysisEvent, type AnalysisResult, type ExerciseId } from "./biom
 import { EXERCISE_BY_ID } from "./exercises/catalog";
 import { LEGACY_ENGINE_ID } from "./mediapipe";
 type SessionBase = {
+  sideResults?: {
+    left: { totalReps: number; correctReps: number; validSeconds: number };
+    right: { totalReps: number; correctReps: number; validSeconds: number };
+  };
   id: string;
   createdAt: string;
   exercise: ExerciseId;
@@ -14,7 +18,13 @@ type SessionBase = {
 };
 export type RepetitionLog = {
   version: 1;
-  events: { id: number; activeSeconds: number; correct: boolean; issues: string[] }[];
+  events: {
+    id: number;
+    activeSeconds: number;
+    correct: boolean;
+    issues: string[];
+    side?: "left" | "right";
+  }[];
 };
 export type SessionReport = SessionBase &
   (
@@ -73,6 +83,10 @@ export class SessionLedger {
   private correctReps = 0;
   private validMs = 0;
   private log: RepetitionLog = { version: 1, events: [] };
+  private sideResults = {
+    left: { totalReps: 0, correctReps: 0, validSeconds: 0 },
+    right: { totalReps: 0, correctReps: 0, validSeconds: 0 },
+  };
   constructor(
     private exercise: ExerciseId,
     engineVersion = LEGACY_ENGINE_ID,
@@ -102,17 +116,27 @@ export class SessionLedger {
     }
     this.totalReps++;
     if (event.correct) this.correctReps++;
+    if (event.side) {
+      this.sideResults[event.side].totalReps++;
+      if (event.correct) this.sideResults[event.side].correctReps++;
+    }
     this.log.events.push({
       id: event.id,
       activeSeconds: this.clock.seconds(event.timestamp),
       correct: event.correct,
       issues: [...new Set(event.issues)],
+      ...(event.side ? { side: event.side } : {}),
     });
     for (const issue of new Set(event.issues))
       this.base.feedbackCounts[issue] = (this.base.feedbackCounts[issue] ?? 0) + 1;
   }
   observe(result: AnalysisResult) {
-    if (result.measurement?.type === "HOLD_BASED") this.validMs = result.measurement.validMs;
+    if (result.measurement?.type === "HOLD_BASED") {
+      this.validMs = result.measurement.validMs;
+      if (result.measurement.validMsBySide)
+        for (const side of ["left", "right"] as const)
+          this.sideResults[side].validSeconds = result.measurement.validMsBySide[side] / 1000;
+    }
   }
   tracking(visible: boolean) {
     if (this.previousTracking === true && !visible) this.base.trackingLosses++;
@@ -127,6 +151,14 @@ export class SessionLedger {
       seconds: this.clock.seconds(now),
       feedbackCounts: { ...this.base.feedbackCounts },
       schemaVersion: 2 as const,
+      ...(EXERCISE_BY_ID[this.exercise].sideMode
+        ? {
+            sideResults: {
+              left: { ...this.sideResults.left },
+              right: { ...this.sideResults.right },
+            },
+          }
+        : {}),
     };
     return EXERCISE_BY_ID[this.exercise].type === "HOLD_BASED"
       ? { ...base, type: "HOLD_BASED", validSeconds: this.validMs / 1000 }

@@ -113,9 +113,35 @@ export function WorkoutScreen({
         )}
       </section>
       <section className="workout-controls border-t border-border bg-card px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-6">
+        {details.sideMode === "selected" &&
+          ["preparing", "running", "paused"].includes(w.phase) && (
+            <div className="mx-auto mb-2 flex max-w-3xl flex-wrap items-center gap-2 text-sm">
+              <span>{exercise === "bulgariansquat" ? "Perna dianteira:" : "Lado de apoio:"}</span>
+              {(["left", "right"] as const).map((side) => (
+                <button
+                  key={side}
+                  type="button"
+                  className="torvik-secondary"
+                  aria-pressed={w.selectedSide === side}
+                  onClick={() => w.selectSide(side)}
+                >
+                  {side === "left" ? "Esquerdo" : "Direito"}
+                </button>
+              ))}
+              <span className="text-xs text-muted-foreground">
+                A troca preserva os resultados e prepara o outro lado.
+              </span>
+            </div>
+          )}
         {(w.phase === "running" || w.phase === "paused") && (
           <div className="workout-metrics mx-auto mb-3 flex max-w-3xl items-center justify-between gap-5 border-b border-border pb-3">
-            <div className="flex items-baseline gap-3">
+            <div
+              className={
+                details.type === "HOLD_BASED"
+                  ? "flex min-w-0 flex-col items-start gap-1"
+                  : "flex items-baseline gap-3"
+              }
+            >
               <p className="font-display text-[clamp(3.5rem,12vw,4.5rem)] font-extrabold leading-none text-primary tabular-nums">
                 {details.type === "HOLD_BASED"
                   ? formatTime(
@@ -152,8 +178,17 @@ export function WorkoutScreen({
               Posicione-se na câmera para iniciar automaticamente
             </h2>
             <p className="mt-1 text-sm leading-snug text-muted-foreground">
-              {details.instructions[0]}. {details.initialPosition}
+              {details.cameraGuidance ?? details.instructions[0]}. {details.initialPosition}
             </p>
+            {details.repDefinition && (
+              <p className="mt-1 text-xs text-muted-foreground">{details.repDefinition}</p>
+            )}
+            {details.analysisLimitations && (
+              <details className="mt-1 text-xs text-muted-foreground">
+                <summary>O que a câmera consegue observar</summary>
+                {details.analysisLimitations}
+              </details>
+            )}
           </div>
         )}
         {w.phase !== "loading" && w.phase !== "error" && w.phase !== "paused" && (

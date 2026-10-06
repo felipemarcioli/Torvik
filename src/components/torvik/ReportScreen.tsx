@@ -10,6 +10,7 @@ import {
   Save,
 } from "lucide-react";
 import { EXERCISES } from "./data";
+import { SideResults } from "./history/SideResults";
 import { formatTime, type SessionReport } from "@/lib/session";
 import { createHistoryStore, exportReport, type HistorySession } from "@/lib/history";
 
@@ -95,7 +96,7 @@ export function ReportScreen({
           {hold ? (
             <>
               <h2 id="report-summary-heading" className="report-section-title">
-                {hasReps ? "Resultado da prancha" : "Nenhum tempo válido registrado"}
+                {hasReps ? "Resultado da sustentação" : "Nenhum tempo válido registrado"}
               </h2>
               <dl className="report-metrics">
                 <div className="report-metric-main">
@@ -172,6 +173,7 @@ export function ReportScreen({
             </div>
           )}
         </section>
+        <SideResults report={report} />
 
         {(hasReps || (hold && issues.length > 0)) && (
           <section className="report-review" aria-labelledby="report-review-heading">

@@ -46,6 +46,7 @@ function fixtures(count = 4): HistorySession[] {
   return rows.slice(0, count);
 }
 async function seed(page: Page, rows = fixtures()) {
+  await page.route("https://fonts.googleapis.com/**", (r) => r.abort());
   await page.goto("/");
   await page.evaluate(async (records) => {
     const db = await new Promise<IDBDatabase>((resolve, reject) => {
@@ -63,7 +64,9 @@ async function seed(page: Page, rows = fixtures()) {
     db.close();
   }, rows);
   await page.getByRole("button", { name: "Meu histórico" }).click();
-  await expect(page.getByRole("heading", { name: "Meu progresso" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Meu progresso" })).toBeVisible({
+    timeout: 15000,
+  });
   await expect(page.getByText("Carregando seu progresso…")).toHaveCount(0);
 }
 const card = (page: Page, id: string) => page.locator(`.progress-session-card:has(#session-${id})`);

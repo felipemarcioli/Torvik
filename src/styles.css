@@ -232,6 +232,7 @@
 .workout-layout {
   min-height: 100dvh;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(240px, 1fr) auto;
 }
 .camera-region {

@@ -23,6 +23,7 @@ function validRepetitionLog(value: unknown) {
         Number.isSafeInteger(e["activeSeconds"]) &&
         Number(e["activeSeconds"]) >= 0 &&
         typeof e["correct"] === "boolean" &&
+        (e["side"] === undefined || e["side"] === "left" || e["side"] === "right") &&
         Array.isArray(e["issues"]) &&
         e["issues"].every((issue: unknown) => typeof issue === "string")
       );
@@ -68,8 +69,46 @@ export function isSessionReport(value: unknown): value is SessionReport {
     typeof v["feedbackCounts"] === "object" &&
     !Array.isArray(v["feedbackCounts"]) &&
     Object.values(v["feedbackCounts"]).every(nonnegative) &&
-    validRepetitionLog(v["repetitionLog"])
+    validRepetitionLog(v["repetitionLog"]) &&
+    validSideResults(v)
   );
+}
+function validSideResults(v: Record<string, unknown>) {
+  if (v["sideResults"] === undefined) return true;
+  if (
+    v["schemaVersion"] !== 2 ||
+    !isExerciseId(v["exercise"]) ||
+    !EXERCISE_BY_ID[v["exercise"]].sideMode
+  )
+    return false;
+  const sides = v["sideResults"];
+  if (!sides || typeof sides !== "object" || Array.isArray(sides)) return false;
+  let reps = 0,
+    correct = 0,
+    seconds = 0;
+  for (const side of ["left", "right"]) {
+    const entry = (sides as Record<string, unknown>)[side];
+    if (!entry || typeof entry !== "object") return false;
+    const e = entry as Record<string, unknown>;
+    if (
+      !["totalReps", "correctReps", "validSeconds"].every(
+        (k) => typeof e[k] === "number" && Number.isFinite(e[k]) && Number(e[k]) >= 0,
+      )
+    )
+      return false;
+    if (
+      !Number.isSafeInteger(e["totalReps"]) ||
+      !Number.isSafeInteger(e["correctReps"]) ||
+      Number(e["correctReps"]) > Number(e["totalReps"])
+    )
+      return false;
+    reps += Number(e["totalReps"]);
+    correct += Number(e["correctReps"]);
+    seconds += Number(e["validSeconds"]);
+  }
+  return v["type"] === "HOLD_BASED"
+    ? reps === 0 && correct === 0 && Math.abs(seconds - Number(v["validSeconds"])) < 0.001
+    : seconds === 0 && reps === v["totalReps"] && correct === v["correctReps"];
 }
 /** Read-only compatibility: absent optional metrics remain absent in the returned record. */
 export function isHistorySession(value: unknown): value is HistorySession {

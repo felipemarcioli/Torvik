@@ -85,11 +85,13 @@ export function evolution(
   period: ProgressPeriod,
   version: string,
   now = new Date(),
+  side: "all" | "left" | "right" = "all",
 ) {
   const rows = sessions
     .filter(
       (r) =>
         r.exercise === exercise &&
+        (side === "all" || !!r.sideResults) &&
         cohort(r) === version &&
         Date.parse(r.createdAt) >= periodStart(period, now) &&
         Date.parse(r.createdAt) <= now.getTime(),
@@ -122,9 +124,10 @@ export function evolution(
       validSeconds: 0,
     };
     point.sessions++;
-    point.totalReps += r.totalReps ?? 0;
-    point.correctReps += r.correctReps ?? 0;
-    point.validSeconds += r.validSeconds ?? 0;
+    point.totalReps += side === "all" ? (r.totalReps ?? 0) : r.sideResults![side].totalReps;
+    point.correctReps += side === "all" ? (r.correctReps ?? 0) : r.sideResults![side].correctReps;
+    point.validSeconds +=
+      side === "all" ? (r.validSeconds ?? 0) : r.sideResults![side].validSeconds;
     point.seconds += r.seconds;
     point.proportion = proportion(point);
     map.set(key, point);

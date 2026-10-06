@@ -38,6 +38,7 @@ export function useWorkout(exercise: ExerciseId, voice?: WorkoutVoiceSink) {
   }, []);
   const [stage, setStage] = useState<PipelineStage>("model");
   const [error, setError] = useState("");
+  const [selectedSide, setSelectedSide] = useState<"left" | "right">("left");
   const [result, setResult] = useState(initialResult);
   const resultRef = useRef(initialResult);
   const held = useRef<{ until: number; result: AnalysisResult } | null>(null);
@@ -256,6 +257,17 @@ export function useWorkout(exercise: ExerciseId, voice?: WorkoutVoiceSink) {
     devices,
     deviceId,
     mirrored,
+    selectedSide,
+    selectSide: (side: "left" | "right") => {
+      if (side === selectedSide) return;
+      interrupt();
+      runtime.current!.ledger.consume(
+        runtime.current!.analyzer.selectSide(side, performance.now()),
+      );
+      controller.current?.setPaused(false);
+      setSelectedSide(side);
+      setPhase("preparing");
+    },
     pause,
     retry,
     start: () => {

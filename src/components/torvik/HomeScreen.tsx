@@ -311,9 +311,17 @@ function ExerciseCard({
         hidden={!open}
         className="mt-2 space-y-2 border-t border-border pt-3 text-sm text-muted-foreground"
       >
+        {exercise.equipment && (
+          <li>
+            Equipamentos: {exercise.equipment.length ? exercise.equipment.join("; ") : "nenhum"}.
+          </li>
+        )}
         {exercise.instructions.map((i) => (
           <li key={i}>{i}</li>
         ))}
+        {exercise.analysisLimitations && (
+          <li className="text-xs">{exercise.analysisLimitations}</li>
+        )}
       </ul>
       <div
         id={previewId}

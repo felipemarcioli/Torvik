@@ -105,6 +105,27 @@ export function SessionComparison({
             : "p.p. = pontos percentuais. Proporções sem repetições avaliadas não são comparáveis."}
         </p>
       </section>
+      {a.sideResults && b.sideResults && (
+        <section className="progress-panel">
+          <h2>Resultados por lado</h2>
+          {(["left", "right"] as const).map((side) => {
+            const av = hold ? a.sideResults![side].validSeconds : a.sideResults![side].totalReps;
+            const bv = hold ? b.sideResults![side].validSeconds : b.sideResults![side].totalReps;
+            return (
+              <div className="progress-comparison-row" key={side}>
+                <h3>{side === "left" ? "Esquerdo" : "Direito"}</h3>
+                <div>
+                  <span>{hold ? durationLabel(av) : av}</span>
+                  <span>{hold ? durationLabel(bv) : bv}</span>
+                  <strong>
+                    {signed(values.compatible ? bv - av : null, hold ? " s" : " reps")}
+                  </strong>
+                </div>
+              </div>
+            );
+          })}
+        </section>
+      )}
       <section className="progress-panel">
         <h2>Ocorrências por critério</h2>
         {!values.compatible ? (

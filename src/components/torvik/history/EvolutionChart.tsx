@@ -26,9 +26,14 @@ export function EvolutionChart({ sessions }: { sessions: SessionReport[] }) {
     [chosenMetric, setMetric] = useState<ProgressMetric>("totalReps"),
     [version, setVersion] = useState(""),
     [selected, setSelected] = useState("");
+  const [chosenSide, setSide] = useState<"all" | "left" | "right">("all");
+  const sided = !!EXERCISES.find((e) => e.id === exercise)?.sideMode;
+  const activeSide = sided ? chosenSide : "all";
   const hold = EXERCISES.find((e) => e.id === exercise)?.type === "HOLD_BASED";
-  const metrics = Object.entries(METRICS).filter(([key]) =>
-    hold ? key === "validSeconds" || key === "seconds" : key !== "validSeconds",
+  const metrics = Object.entries(METRICS).filter(
+    ([key]) =>
+      (activeSide === "all" || key !== "seconds") &&
+      (hold ? key === "validSeconds" || key === "seconds" : key !== "validSeconds"),
   );
   const metric: ProgressMetric = metrics.some(([key]) => key === chosenMetric)
     ? chosenMetric
@@ -47,8 +52,8 @@ export function EvolutionChart({ sessions }: { sessions: SessionReport[] }) {
     ? version
     : (versions[0]?.[0] ?? "");
   const { points, grouping } = useMemo(
-    () => evolution(sessions, exercise, period, activeVersion),
-    [sessions, exercise, period, activeVersion],
+    () => evolution(sessions, exercise, period, activeVersion, new Date(), activeSide),
+    [sessions, exercise, period, activeVersion, activeSide],
   );
   const point = points.find((p) => p.id === selected) ?? points.at(-1);
   const hasValues = points.some((p) => p[metric] !== null);
@@ -110,6 +115,19 @@ export function EvolutionChart({ sessions }: { sessions: SessionReport[] }) {
             ))}
           </select>
         </label>
+        {sided && (
+          <label>
+            Lado do gráfico
+            <select
+              value={activeSide}
+              onChange={(e) => setSide(e.target.value as "all" | "left" | "right")}
+            >
+              <option value="all">Todos os lados</option>
+              <option value="left">Esquerdo</option>
+              <option value="right">Direito</option>
+            </select>
+          </label>
+        )}
         <label>
           Período
           <select value={period} onChange={(e) => setPeriod(e.target.value as ProgressPeriod)}>

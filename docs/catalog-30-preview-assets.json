@@ -1,0 +1,296 @@
+[
+  {
+    "id": "romaniandeadlift",
+    "frames": 8,
+    "width": 256,
+    "height": 256,
+    "durationMs": 1920,
+    "files": {
+      "torvik-romaniandeadlift.webp": {
+        "bytes": 66436,
+        "sha256": "120a750c38e2faf771b820c055ec90561aa867451c8faa9c556a5f2902b59b68"
+      },
+      "torvik-romaniandeadlift-still.webp": {
+        "bytes": 8400,
+        "sha256": "1bac42b1180132a8d084b34236c4b887901a80085302c7a3400374ab0a4128ea"
+      },
+      "torvik-romaniandeadlift-sprite.webp": {
+        "bytes": 157870,
+        "sha256": "d481839ad3867eeac41bce5c53a161c21ee6264d6a7d279a76525fc1afb33a40"
+      }
+    }
+  },
+  {
+    "id": "bulgariansquat",
+    "frames": 8,
+    "width": 256,
+    "height": 256,
+    "durationMs": 1920,
+    "files": {
+      "torvik-bulgariansquat.webp": {
+        "bytes": 93894,
+        "sha256": "06dd517b73b77f38d139b63a73ccabf7ae089192cd81a64c6c87080263ceb5c0"
+      },
+      "torvik-bulgariansquat-still.webp": {
+        "bytes": 12108,
+        "sha256": "7d2dbe796db0bcd261f11db77d1ecfc484552c22da90aa6135bc0284d29bdd05"
+      },
+      "torvik-bulgariansquat-sprite.webp": {
+        "bytes": 212696,
+        "sha256": "57536e8e1ce3bd33d5218bb209408bd2f67ab12401a0c270afc42b08dfe64e10"
+      }
+    }
+  },
+  {
+    "id": "wallsit",
+    "frames": 8,
+    "width": 256,
+    "height": 256,
+    "durationMs": 1920,
+    "files": {
+      "torvik-wallsit.webp": {
+        "bytes": 80218,
+        "sha256": "f149be941075a5b63f4ae58978915171b642c5b0220e764867d0932c100481af"
+      },
+      "torvik-wallsit-still.webp": {
+        "bytes": 10368,
+        "sha256": "cf394283254874ac982b5e8aba3c8b7a3225f4287b0e179fe98f318d8e4b4943"
+      },
+      "torvik-wallsit-sprite.webp": {
+        "bytes": 233288,
+        "sha256": "93c1f0b73e1ee484b8320260c9da00d45b5fdb7c7729e27b70cfc1ef73b81ff6"
+      }
+    }
+  },
+  {
+    "id": "floorpress",
+    "frames": 8,
+    "width": 256,
+    "height": 256,
+    "durationMs": 1920,
+    "files": {
+      "torvik-floorpress.webp": {
+        "bytes": 77950,
+        "sha256": "32477f814e49c05143470ca9428b18541841586049562286a3beb8ae2adaffae"
+      },
+      "torvik-floorpress-still.webp": {
+        "bytes": 8558,
+        "sha256": "51ccdeb805b7d097554fb45faf690d5763f1bca47b8f6e96064429065e87c057"
+      },
+      "torvik-floorpress-sprite.webp": {
+        "bytes": 194478,
+        "sha256": "d7c64915d69869eb362e610aefa4a823f0d0a13474ec5aba3afe78837271079a"
+      }
+    }
+  },
+  {
+    "id": "sideplank",
+    "frames": 8,
+    "width": 256,
+    "height": 256,
+    "durationMs": 1920,
+    "files": {
+      "torvik-sideplank.webp": {
+        "bytes": 74896,
+        "sha256": "99042291ae78c0966a3546ae31d3dabe24b54df49eae713151b7412fdf7ebccc"
+      },
+      "torvik-sideplank-still.webp": {
+        "bytes": 9456,
+        "sha256": "8755e9c15808717431074dec2bf6795fd64368939b5bd1dfbbf4bc785b19fbeb"
+      },
+      "torvik-sideplank-sprite.webp": {
+        "bytes": 100342,
+        "sha256": "5791908cf24fad1c32138492fb421e64eca8727baef3813f7304807c56e7495c"
+      }
+    }
+  },
+  {
+    "id": "deadbug",
+    "frames": 8,
+    "width": 256,
+    "height": 256,
+    "durationMs": 1920,
+    "files": {
+      "torvik-deadbug.webp": {
+        "bytes": 97404,
+        "sha256": "41dc4680f287810458a00811d6a646b326f3e9954b4993d883592d86ddb90799"
+      },
+      "torvik-deadbug-still.webp": {
+        "bytes": 11802,
+        "sha256": "52cf0367de53ec79d9647094480d04aa3a153aad06fddf680591715dbb396f3c"
+      },
+      "torvik-deadbug-sprite.webp": {
+        "bytes": 256928,
+        "sha256": "138c175a30ae3faa1a6c81dfbf6c87de34cd6ff5d42a179064e41dc8e19c88ac"
+      }
+    }
+  },
+  {
+    "id": "birddog",
+    "frames": 8,
+    "width": 256,
+    "height": 256,
+    "durationMs": 1920,
+    "files": {
+      "torvik-birddog.webp": {
+        "bytes": 73418,
+        "sha256": "ff7ff40c5c276e0982dcdd11627545ce7f4797931e627183a65428d4739c0c08"
+      },
+      "torvik-birddog-still.webp": {
+        "bytes": 8716,
+        "sha256": "87310ef1ca0259a7e2e72b1fa63402c48ef4e219b92d2f31787d6572d5ee308b"
+      },
+      "torvik-birddog-sprite.webp": {
+        "bytes": 156210,
+        "sha256": "d3d13a7e7fc9921fe9f32fd59e966b41da2609329c11e41b2e2ed1b49ecb96b3"
+      }
+    }
+  },
+  {
+    "id": "lyinglegraise",
+    "frames": 8,
+    "width": 256,
+    "height": 256,
+    "durationMs": 1920,
+    "files": {
+      "torvik-lyinglegraise.webp": {
+        "bytes": 64188,
+        "sha256": "e6e1495661ef8f122b80cb340eacd0a727f82d575a879600e909e62c7ddcf385"
+      },
+      "torvik-lyinglegraise-still.webp": {
+        "bytes": 6558,
+        "sha256": "37354236b96f594452aac44224a423ca4cd4a59ae1591673ba4b1f424e2f4533"
+      },
+      "torvik-lyinglegraise-sprite.webp": {
+        "bytes": 155854,
+        "sha256": "cd1f61ae6395a8824b43786f060e2f954d49582815deb81914ba810a846d1ab1"
+      }
+    }
+  },
+  {
+    "id": "shouldertap",
+    "frames": 8,
+    "width": 256,
+    "height": 256,
+    "durationMs": 1920,
+    "files": {
+      "torvik-shouldertap.webp": {
+        "bytes": 82548,
+        "sha256": "cec12e01ea446ef9a0d5ecf8ceb5bd6f90daeb785429efbb6a0d43d3dbfab60d"
+      },
+      "torvik-shouldertap-still.webp": {
+        "bytes": 11262,
+        "sha256": "727e90b672651d8a2521f64cadba94a4fd2918d1486ea40caef919a31a2aa653"
+      },
+      "torvik-shouldertap-sprite.webp": {
+        "bytes": 208714,
+        "sha256": "c607f8bf2a34467ddf80f176ca956f82241277b1a0e56f8142cd7fabe5e12fbf"
+      }
+    }
+  },
+  {
+    "id": "highknees",
+    "frames": 8,
+    "width": 256,
+    "height": 256,
+    "durationMs": 1920,
+    "files": {
+      "torvik-highknees.webp": {
+        "bytes": 77588,
+        "sha256": "25df4e4b99c2dcaa9b309909923ec0b417179b971b8738340d8b8281fa154e95"
+      },
+      "torvik-highknees-still.webp": {
+        "bytes": 10080,
+        "sha256": "ced056e81fd21e139e48d4604b3ff3e02ea2aa33d9ee273f329620b00182b706"
+      },
+      "torvik-highknees-sprite.webp": {
+        "bytes": 138180,
+        "sha256": "4a3f507121b276a8c7c07812aca5f8e9b091a76ea3d48e11b3a91bf0493b651e"
+      }
+    }
+  },
+  {
+    "id": "buttkicks",
+    "frames": 8,
+    "width": 256,
+    "height": 256,
+    "durationMs": 1920,
+    "files": {
+      "torvik-buttkicks.webp": {
+        "bytes": 72580,
+        "sha256": "6965c1ca00f0a8d922befc37a57d330bb57eab2dcb19e1bb45fbaf6a7a1780e6"
+      },
+      "torvik-buttkicks-still.webp": {
+        "bytes": 9846,
+        "sha256": "a4e532dd2d3208e4dd0dac6468a6523f8bbba6147266dbb6de4d8c7e14f93206"
+      },
+      "torvik-buttkicks-sprite.webp": {
+        "bytes": 131180,
+        "sha256": "c370806c141272fa903071f57ecd652c642d8803cc8a4c4bf14f55b59a5ca242"
+      }
+    }
+  },
+  {
+    "id": "skater",
+    "frames": 8,
+    "width": 256,
+    "height": 256,
+    "durationMs": 1920,
+    "files": {
+      "torvik-skater.webp": {
+        "bytes": 85108,
+        "sha256": "81b524df46fc6ed79879a05cad8e12b5528882a1fb6a6a6dee426a37fb42c603"
+      },
+      "torvik-skater-still.webp": {
+        "bytes": 10702,
+        "sha256": "54d76ab17e32251ea6d52e854397a97184b0f8dcc087316d549420549f0e0c21"
+      },
+      "torvik-skater-sprite.webp": {
+        "bytes": 200088,
+        "sha256": "4bf4bbb1097612d21005c208943f022eef0858973c01487ef2c86c35160dc716"
+      }
+    }
+  },
+  {
+    "id": "stepjack",
+    "frames": 8,
+    "width": 256,
+    "height": 256,
+    "durationMs": 1920,
+    "files": {
+      "torvik-stepjack.webp": {
+        "bytes": 88186,
+        "sha256": "fffde0bb44c5e4b739c04bed6400229afe890a9426dcd7e19ad307cdaceadf2f"
+      },
+      "torvik-stepjack-still.webp": {
+        "bytes": 9694,
+        "sha256": "5ca6fac7d0f5a1fdb417de6342b9091aaf683008dd4e58cba11550f4740f190c"
+      },
+      "torvik-stepjack-sprite.webp": {
+        "bytes": 203080,
+        "sha256": "72c49d7d81965693d6c57937d2fa44c26274257d5c7e439eb2606515bd56f1bd"
+      }
+    }
+  },
+  {
+    "id": "jumpsquat",
+    "frames": 8,
+    "width": 256,
+    "height": 256,
+    "durationMs": 1920,
+    "files": {
+      "torvik-jumpsquat.webp": {
+        "bytes": 79924,
+        "sha256": "fa3ca19ae6158353d7f209f53c5650628c543960dbe9d376f4f124b0081879c8"
+      },
+      "torvik-jumpsquat-still.webp": {
+        "bytes": 10420,
+        "sha256": "3f5f17a90fb55735f2c521628fff21fe3138803fd99639dab5d918832cf9976a"
+      },
+      "torvik-jumpsquat-sprite.webp": {
+        "bytes": 192936,
+        "sha256": "c2a86552f40f166e39bb57d49f165fd3d8f600bf802e260c155e5024693cd312"
+      }
+    }
+  }
+]

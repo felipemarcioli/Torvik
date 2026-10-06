@@ -19,9 +19,13 @@ const frame = (id: ExerciseId, a: number, t: number): AnalysisFrame => ({
   height: 1000,
   timestamp: t,
 });
-test("catálogo tem dezesseis identificadores únicos e modalidade explícita", () => {
-  expect(new Set(EXERCISES.map((e) => e.id)).size).toBe(16);
-  expect(EXERCISES.filter((e) => e.type === "HOLD_BASED").map((e) => e.id)).toEqual(["plank"]);
+test("catálogo tem trinta identificadores únicos e modalidade explícita", () => {
+  expect(new Set(EXERCISES.map((e) => e.id)).size).toBe(30);
+  expect(
+    EXERCISES.filter((e) => e.type === "HOLD_BASED")
+      .map((e) => e.id)
+      .sort(),
+  ).toEqual(["plank", "sideplank", "wallsit"]);
 });
 for (const [id, base, enter, target, partial] of specs) {
   test(`${id}: ciclo completo e eventos únicos em diferentes escalas, rotações e cadências`, () => {

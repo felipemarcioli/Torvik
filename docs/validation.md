@@ -62,3 +62,51 @@ Definir critérios de aceitação por aparelho/exercício antes de comparar: err
 ## Entrega e reversão
 
 A CI valida Pull Requests; não faz deploy. O trabalho local não confirma a branch de produção nem altera serviços externos. Após aprovação do Preview e dos dispositivos, integrar sem reescrever histórico publicado. Reverter por novo commit e, se necessário, restaurar a implantação anterior na Vercel. O schema persistido é versionado; futuras migrações devem preservar dados ou apresentar recuperação explícita antes de mudar a versão do banco.
+
+## Expansão para 30 exercícios — 06/10/2026
+
+Implementação em `codex/catalog-30`. O código confirma 30 IDs únicos e grupos
+8 pernas/glúteos, 8 superiores, 7 core e 7 cardio. Os 16 IDs anteriores, suas regras
+e 48 arquivos de preview foram preservados. Regras específicas, câmeras, parâmetros
+e limitações dos 14 novos exercícios estão em [catalog-30.md](catalog-30.md).
+
+Ambiente: Node 20.20.2, Bun 1.3.10, Pillow 12.3 e Chromium instalado no ambiente.
+Manifesto e lockfile não foram alterados. As verificações finais foram:
+
+| Verificação                            | Resultado                                                                                                                                               |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bun run typecheck`                    | Aprovado, incluindo os testes.                                                                                                                          |
+| `bun run lint`                         | Zero erros, seis avisos de Fast Refresh preexistentes nos componentes UI.                                                                               |
+| `bun run test`                         | **156 testes aprovados**, 944 asserções, incluindo 41 testes novos e regressões anteriores.                                                             |
+| `bun run build`                        | Aprovado para cliente, SSR e Nitro.                                                                                                                     |
+| `NITRO_PRESET=vercel bun run build`    | Aprovado, sem publicação.                                                                                                                               |
+| Playwright em Chromium móvel e desktop | **110 cenários únicos aprovados em execuções por grupos**: 74 anteriores e 36 novos.                                                                    |
+| Assets novos                           | 42 arquivos presentes e decodificados: 14 animações, 14 miniaturas e 14 faixas lossless. Alpha, margens, loop, dimensões, duração e hashes verificados. |
+| Assets anteriores                      | Os 48 arquivos permanecem idênticos por SHA-256.                                                                                                        |
+| Largura e reprodução                   | 14 previews animados em 360/390px, movimento reduzido, troca de lado e cronômetros; inspeção visual adicional em 390×844.                               |
+| Layout final do treino                 | Seis cenários direcionados aprovados após limitar a coluna do grid: isometrias em 360/390px e câmera/ações em retrato e paisagem.                       |
+| `git diff --check`                     | Aprovado.                                                                                                                                               |
+
+O ambiente usou `node_modules/.cloud-playwright.mjs` para apontar ao Chromium
+instalado, câmera sintética e estimador controlado. O servidor local e o navegador
+exigiram permissão de execução fora do sandbox; isso não publica o aplicativo.
+As regressões finais corrigem seletores ambíguos de Agachamento/Polichinelo e a
+contagem anterior de sete membros superiores. Os prazos de execução locais foram
+ajustados para incluir recarregamento e revisão de todos os previews.
+
+Os testes cobrem ciclos completos/parciais, preparação, ausência de pose, confiança
+baixa, valores inválidos, lacunas, jitter, espelhamento, lados alternados/selecionados,
+membros opostos, flexão simultânea indevida nas corridas, aquisição/pausa das
+isometrias, troca de lado com tempos separados, persistência, exportação e evolução.
+Nenhuma mudança promoveu Tasks Vision ao treino.
+
+**Análise implementada e verificada com dados sintéticos; não validada com
+movimentos reais.** Continuam pendentes vídeos consentidos anotados por ciclo/lado,
+calibração dos limiares, avaliação de falsos positivos/negativos e erro do tempo
+válido, além de câmera, desempenho e acessibilidade em Android/Chrome e iPhone/Safari.
+O patinador não comprova fase aérea; o agachamento com salto estima elevação em 2D e
+pode confundir movimento vertical da câmera. Ambos exigem câmera fixa. As demais
+limitações específicas são apresentadas antes do início e na documentação.
+
+Na entrega local inicial, ainda não havia commit, push ou deploy. Arquivos temporários de revisão permanecem fora
+do repositório em `/workspace/work/torvik-catalog30`.

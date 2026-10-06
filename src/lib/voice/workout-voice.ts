@@ -122,7 +122,7 @@ export class WorkoutVoice implements WorkoutVoiceSink {
       this.milestones.add(total);
       this.speech.offer({
         key: `milestone:${total}`,
-        text: `${total} repetições!`,
+        text: `${total} repetições!${event.side ? ` Último ciclo do lado ${event.side === "left" ? "esquerdo" : "direito"}.` : ""}`,
         priority: 60,
         expires: this.now() + 8000,
         valid: () => this.active && this.phase === "running",

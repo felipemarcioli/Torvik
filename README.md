@@ -2,6 +2,12 @@
 
 Treino com câmera e estimativa de pose no navegador, sem cadastro. Agachamento, flexão e polichinelo usam regras determinísticas versionadas; os resultados representam os critérios do aplicativo, não uma avaliação clínica.
 
+O catálogo tem **30 exercícios únicos**: 8 de pernas/glúteos, 8 de membros superiores,
+7 de core e 7 de cardio. Preparação, equipamentos, câmera e definição de medição estão
+no cadastro. Exercícios bilaterais continuam uma entrada e podem registrar resultados
+por lado. Veja [expansão para 30 exercícios](docs/catalog-30.md) para regras, sprites e
+limitações de validação.
+
 A análise dos frames é local. Modelos e fontes são baixados de serviços externos; o editor Lovable pode receber diagnósticos técnicos sanitizados. O aplicativo não envia frames nem landmarks. Resumos só são guardados em IndexedDB quando a pessoa escolhe **Salvar sessão**; podem ser exportados em JSON e excluídos. Não há sincronização ou garantia de funcionamento offline.
 
 ## Desenvolvimento

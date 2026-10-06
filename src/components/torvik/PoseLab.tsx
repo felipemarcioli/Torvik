@@ -134,7 +134,7 @@ export function PoseLab() {
               </select>
             </label>
             <label className="flex flex-col gap-2 text-sm font-semibold">
-              {exercise === "plank"
+              {EXERCISES.find((e) => e.id === exercise)?.type === "HOLD_BASED"
                 ? "Segundos de postura válida anotados nos primeiros 60s"
                 : "Repetições anotadas nos primeiros 60s"}
               <input
@@ -185,7 +185,11 @@ export function PoseLab() {
               <thead>
                 <tr className="border-b border-border text-muted-foreground">
                   <th>Motor</th>
-                  <th>{exercise === "plank" ? "Tempo válido" : "Contagem"}</th>
+                  <th>
+                    {EXERCISES.find((e) => e.id === exercise)?.type === "HOLD_BASED"
+                      ? "Tempo válido"
+                      : "Contagem"}
+                  </th>
                   <th>Erro absoluto</th>
                   <th>Frames rastreados</th>
                   <th>Latência p95</th>

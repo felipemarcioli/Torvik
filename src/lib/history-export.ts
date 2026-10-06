@@ -22,11 +22,19 @@ export function reportCsv(report: SessionReport) {
         ]),
     ["ciclos_interrompidos", report.interruptedCycles ?? "nao registrado"],
     ["perdas_rastreamento", report.trackingLosses ?? "nao registrado"],
+    ...(report.sideResults
+      ? Object.entries(report.sideResults).flatMap(([side, values]) => [
+          [`lado_${side}_repeticoes`, values.totalReps],
+          [`lado_${side}_nos_criterios`, values.correctReps],
+          [`lado_${side}_tempo_valido_segundos`, values.validSeconds],
+        ])
+      : []),
     ["versao_regras", report.rulesVersion],
     ["versao_estimador", report.engineVersion],
     ...occurrences(report).map(([message, count]) => [`ocorrencia: ${message}`, count]),
     ...(report.repetitionLog?.events.flatMap((event, index) => [
       [`repeticao_${index + 1}_id`, event.id],
+      ...(event.side ? [[`repeticao_${index + 1}_lado`, event.side]] : []),
       [`repeticao_${index + 1}_tempo_ativo_segundos`, event.activeSeconds],
       [`repeticao_${index + 1}_nos_criterios`, event.correct ? "sim" : "nao"],
       [`repeticao_${index + 1}_motivos`, event.issues.join("; ")],
@@ -66,11 +74,23 @@ export function printableReport(report: SessionReport) {
     )
     .join("")}</div>
   ${report.type === "HOLD_BASED" ? "" : `<p>Proporção nos critérios: <strong>${ratio === null ? "Dados insuficientes" : `${ratio.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`}</strong></p>`}
+${
+  report.sideResults
+    ? `<h2>Resultados por lado</h2><table><thead><tr><th>Lado</th><th>Resultado</th></tr></thead><tbody>${Object.entries(
+        report.sideResults,
+      )
+        .map(
+          ([side, value]) =>
+            `<tr><td>${side === "left" ? "Esquerdo" : "Direito"}</td><td>${report.type === "HOLD_BASED" ? escape(durationLabel(value.validSeconds)) : `${value.totalReps} repetições · ${value.correctReps} nos critérios`}</td></tr>`,
+        )
+        .join("")}</tbody></table>`
+    : ""
+}
   <h2>Resumo da sessão</h2><p class="summary">${escape(factualSummary(report))}</p>
   <h2>Ocorrências registradas</h2>${rows.length ? `<table><thead><tr><th>Orientação / critério não atendido</th><th>${report.type === "HOLD_BASED" ? "Episódios" : "Repetições"}</th></tr></thead><tbody>${rows.map(([message, count]) => `<tr><td>${escape(message)}</td><td>${count}</td></tr>`).join("")}</tbody></table>` : report.feedbackCounts ? "<p>Nenhuma ocorrência registrada.</p>" : "<p>Detalhamento dos critérios não registrado nesta sessão.</p>"}
   <p class="muted">${report.type === "HOLD_BASED" ? "As ocorrências contam episódios persistentes. O tempo válido exclui intervalos de postura inválida." : "Uma repetição pode conter mais de uma ocorrência. O histórico não registra o atendimento individual de cada critério nem todas as orientações momentâneas."}</p>
   <p>Ciclos interrompidos: ${report.interruptedCycles ?? "não registrado"} • Perdas de rastreamento: ${report.trackingLosses ?? "não registrado"}</p>
-  ${report.type === "HOLD_BASED" ? "" : report.repetitionLog ? `<h2>Repetições registradas</h2><table><thead><tr><th>Repetição / tempo ativo</th><th>Resultado registrado</th></tr></thead><tbody>${report.repetitionLog.events.map((event, index) => `<tr><td>${index + 1} · ${escape(durationLabel(event.activeSeconds))}</td><td>${event.correct ? "Dentro dos critérios" : escape(event.issues.join("; ") || "Fora dos critérios")}</td></tr>`).join("")}</tbody></table>` : '<p class="muted">Eventos individuais não registrados nesta sessão.</p>'}
+  ${report.type === "HOLD_BASED" ? "" : report.repetitionLog ? `<h2>Repetições registradas</h2><table><thead><tr><th>Repetição / tempo ativo</th><th>Resultado registrado</th></tr></thead><tbody>${report.repetitionLog.events.map((event, index) => `<tr><td>${index + 1} · ${escape(durationLabel(event.activeSeconds))}${event.side ? ` · ${event.side === "left" ? "esquerdo" : "direito"}` : ""}</td><td>${event.correct ? "Dentro dos critérios" : escape(event.issues.join("; ") || "Fora dos critérios")}</td></tr>`).join("")}</tbody></table>` : '<p class="muted">Eventos individuais não registrados nesta sessão.</p>'}
   <footer><p class="muted versions">Regras: ${escape(report.rulesVersion)} • Estimador: ${escape(report.engineVersion)}</p><p class="muted">Resultados de regras automáticas do aplicativo. Não comprovam melhora biomecânica nem segurança da execução. Tempo ativo exclui preparação, pausas e períodos sem rastreamento. Dados salvos somente no navegador e dispositivo de origem.</p></footer>
   </main></body></html>`;
 }

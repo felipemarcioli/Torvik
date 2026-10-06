@@ -10,6 +10,7 @@ import {
   sessionStats,
 } from "@/lib/progress";
 import { EXERCISES } from "../data";
+import { SideResults } from "./SideResults";
 export function SessionDetail({
   report,
   onBack,
@@ -78,6 +79,7 @@ export function SessionDetail({
           segurança da execução.
         </p>
       </section>
+      <SideResults report={report} />
       <section className="progress-panel">
         <h2>Análise da execução</h2>
         <p className="progress-caption">
@@ -139,6 +141,7 @@ export function SessionDetail({
                 <li key={event.id}>
                   <span>
                     Repetição {index + 1} · {durationLabel(event.activeSeconds)}
+                    {event.side ? ` · lado ${event.side === "left" ? "esquerdo" : "direito"}` : ""}
                     <br />
                     {event.correct
                       ? "Dentro dos critérios"

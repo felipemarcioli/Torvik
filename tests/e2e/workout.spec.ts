@@ -53,16 +53,20 @@ test("accordion mobile abre somente o exercício selecionado", async ({ page }) 
   await page.setViewportSize({ width: 390, height: 844 });
   await setup(page);
 
-  const squat = page.locator(".exercise-card").filter({ hasText: "Agachamento" });
+  const squat = page
+    .locator(".exercise-card")
+    .filter({ has: page.locator('input[value="squat"]') });
   const pushup = page.locator(".exercise-card").filter({ hasText: "Flexão de Braço" });
-  const jumpingJack = page.locator(".exercise-card").filter({ hasText: "Polichinelo" });
+  const jumpingJack = page
+    .locator(".exercise-card")
+    .filter({ has: page.locator('input[value="jumpingjack"]') });
   await openExerciseGroup(page, "squat");
   const nextCard = page
     .locator(".exercise-card")
     .filter({ has: page.locator('input[value="lunge"]') });
   const pushupBefore = await nextCard.boundingBox();
 
-  await expect(page.getByRole("radio", { name: /Agachamento/ })).toBeChecked();
+  await expect(squat.locator('input[value="squat"]:visible')).toBeChecked();
   await expect(page.locator("#exercise-preview-squat")).toHaveAttribute("aria-hidden", "true");
 
   await squat.locator(".mobile-exercise-select").click();
@@ -75,7 +79,7 @@ test("accordion mobile abre somente o exercício selecionado", async ({ page }) 
 
   await squat.locator(".mobile-exercise-select").click();
   await expect(page.locator("#exercise-preview-squat")).toHaveAttribute("aria-hidden", "true");
-  await expect(page.getByRole("radio", { name: /Agachamento/ })).toBeChecked();
+  await expect(squat.locator('input[value="squat"]:visible')).toBeChecked();
 
   await openExerciseGroup(page, "pushup");
   await pushup.locator(".mobile-exercise-select").click();
@@ -85,7 +89,7 @@ test("accordion mobile abre somente o exercício selecionado", async ({ page }) 
   await expect(page.locator('.exercise-card[data-preview-open="true"]')).toHaveCount(1);
 
   await openExerciseGroup(page, "jumpingjack");
-  const jumpingJackRadio = page.getByRole("radio", { name: /Polichinelo/ });
+  const jumpingJackRadio = jumpingJack.locator('input[value="jumpingjack"]:visible');
   await jumpingJackRadio.focus();
   await jumpingJackRadio.press("Space");
   await expect(jumpingJackRadio).toBeChecked();

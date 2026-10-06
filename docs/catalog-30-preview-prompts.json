@@ -1,0 +1,52 @@
+{
+  "tool": "built-in image_gen",
+  "reference": "public/exercise-previews/torvik-lunge-still.webp",
+  "commonPrompt": "Generate EXACTLY eight distinct poses in an equal 4 columns x 2 rows transparent sprite sheet, reading order. Reference is ONLY Torvik identity: same orange kangaroo, cream belly/muzzle, black sunglasses, sleeveless black vest, dark feet, long tail, polished 3D. Consistent perspective, proportions, scale, camera and lighting. Figures generously separated inside their cells, all ears/tail/hands/feet and props uncut. No background, ground shadows, text or borders, actual alpha transparency. Fixed support/floor level relative to each cell. ",
+  "prompts": {
+    "romaniandeadlift": "SIDE view, two dumbbells. Stand knees slightly flexed; hips move backwards and torso inclines with straight arms, full hinge, return upright. Eight sequential preparation, descent, bottom and return poses.",
+    "bulgariansquat": "BULGARIAN SPLIT SQUAT, three-quarter side view. A small stable gray bench behind the character supports the rear foot throughout. Near leg is front working leg, foot planted in front, hands clasped at chest. Poses 1 tall split stance rear foot on bench; 2 lower slightly; 3 lower halfway; 4 deepest front knee bent 90 degrees rear knee near ground; 5 bottom; 6 rise halfway; 7 almost tall; 8 original tall. Bench always same location. Show real rear foot resting on bench, no lunging step or deep squat with both feet together.",
+    "wallsit": "WALL SIT ISOMETRIC. Three-quarter side view. Torvik's back against a narrow light gray vertical wall panel, thighs approximately horizontal, knees 90 degrees, feet firmly ahead on a fixed floor level, forearms held forward or on thighs. All EIGHT poses remain this SAME wall sit hold, with only tiny breathing and head variation. Wall present every frame. No standing, no squats, no jumping. Show full wall panel with modest height that doesn't dwarf the character.",
+    "floorpress": "DUMBBELL FLOOR PRESS. Three-quarter diagonal side view, Torvik lying SUPINE on back, knees bent feet planted, two black dumbbells. Poses1 elbows bent beside torso weights above chest;2 forearms extend partly;3 both arms extend more;4 both arms straight pointing up above chest;5 same full extension;6 elbows bend partly;7 both elbows lower near torso;8 original bent. Torso/head/knees/feet fixed every pose. No overhead shoulder press, no seated character. Each dumbbell and each arm clearly visible, tail alongside.",
+    "sideplank": "SIDE FOREARM PLANK hold on BOTH SIDES, low diagonal view. Body straight horizontal from shoulder to ankle, hips lifted, only one forearm and sides of stacked feet support the body, free hand on hip. First row (poses1-4): left forearm support, same sustained straight-body pose, slight breathing. Second row (poses5-8): opposite right forearm support, same sustained pose, free hand on hip; character turns to demonstrate opposite side. No prone plank, no pushups, no bent knees, hips always lifted. Whole long body and tail inside each cell.",
+    "deadbug": "DEAD BUG, SUPINE ON BACK, diagonal elevated side view so BOTH arms and legs visible. Pose1 arms straight pointing up, both hips/knees at 90 degrees in tabletop;2 left leg extends down/forward toward floor while RIGHT arm extends backward above head;3 same opposite pair fully extended near floor, right knee remains tabletop LEFT arm remains upright;4 return toward tabletop;5 tabletop arms up;6 RIGHT leg extends while LEFT arm goes overhead;7 opposite pair fully extended, other arm up knee tabletop;8 return toward tabletop. Always lying on back, never quadruped, no same-side arm/leg extensions. Readable differences between both pairs.",
+    "birddog": "BIRD DOG, three-quarter side view, QUADRUPED on hands/knees. Pose1 hands under shoulders and knees under hips;2 LEFT leg begins extending back while RIGHT arm reaches forward;3 opposite pair fully straight horizontal, left hand and right knee remain supporting;4 return toward quadruped;5 original hands/knees;6 RIGHT leg extends back LEFT arm reaches forward;7 opposite pair straight horizontal other hand/knee supports;8 returning to quadruped. No prone plank, no lying on back, keep opposite support knee clearly bent on floor.",
+    "lyinglegraise": "LYING TWO-LEG RAISE, three-quarter side view. Torvik supine on back, head and shoulders fixed, arms along sides on floor, two legs straight together. Pose1 both straight legs low almost horizontal;2 both legs lift 25 degrees;3 both legs lift 55 degrees;4 both straight legs nearly vertical 85 degrees;5 both vertical;6 lower 55 degrees;7 lower 25 degrees;8 both legs low original. No abdominal sit-up, torso never raises, both knees remain straight, both legs move together.",
+    "shouldertap": "HIGH PLANK ALTERNATING SHOULDER TAPS, elevated three-quarter FRONT view showing both arms. Body straight horizontal supported on hands and toes, legs straight, feet moderately apart. Pose1 both arms straight hands on floor;2 LEFT hand lifts toward RIGHT shoulder;3 LEFT hand rests visibly on RIGHT shoulder, right arm straight supports body;4 left hand returns;5 both hands down;6 RIGHT hand lifts to LEFT shoulder;7 right hand visibly touches left shoulder, left arm straight supports;8 right hand returns. No pushup, no elbow flexion in support arm, hips stable.",
+    "highknees": "STATIONARY HIGH KNEES RUN, three-quarter FRONT view. Poses1 upright two feet low;2 LEFT thigh lifting;3 left knee at hip height, left shin hangs below bent knee, RIGHT foot low, opposite arm forward;4 left foot returns;5 upright two feet low;6 RIGHT thigh lifts;7 right knee at hip height, right shin hangs below bent knee LEFT foot low opposite arm forward;8 right foot returns. Each knee high in front, no heel kick behind, no squat, upright torso.",
+    "buttkicks": "STATIONARY BUTT KICKS, three-quarter SIDE view. Poses1 upright two feet low;2 LEFT knee flexes heel moves behind toward buttocks;3 LEFT heel near buttock, LEFT thigh remains approximately vertical knee points down, right foot low;4 left foot returns;5 two feet low;6 RIGHT knee flexes heel moves behind;7 RIGHT heel near buttock, right thigh vertical knee down left foot low;8 right foot returns. Upright body, no high knee lifts in front, feet clearly behind in active poses.",
+    "skater": "LATERAL SKATER JUMPS, FRONT three-quarter view. Poses1 body settled over LEFT bent leg, right leg crossed behind without support, arms counterbalance;2 push off left leg move toward image right;3 airborne moving right, legs changing;4 landed stable on RIGHT bent leg with LEFT crossed behind;5 right-side stable;6 push off right toward image left;7 airborne moving left legs changing;8 settled back on LEFT bent leg RIGHT behind. Keep relative horizontal position changing inside each equal cell, a wide empty cell margin allows displacement. Show lateral travel, no ordinary stationary lunges.",
+    "stepjack": "STEP JACK WITHOUT JUMP, FRONT view. Poses1 feet together arms down;2 LEFT foot steps sideways while BOTH arms lift diagonally;3 left foot fully out, RIGHT foot remains at center, both arms overhead;4 left foot returns while arms lower;5 feet together arms down;6 RIGHT foot steps sideways BOTH arms rise;7 right foot fully out LEFT foot remains center both arms overhead;8 right foot returns arms lower. At least one foot planted every pose. Never both legs spread symmetrically, no jumping.",
+    "jumpsquat": "JUMP SQUAT, SIDE view. Poses1 upright feet planted;2 knees bend descending;3 deep squat hips low knees near 90 degrees;4 explosive rise extending knees;5 body AIRBORNE BOTH feet visibly elevated above SAME floor level, legs extended;6 descent both feet still above floor;7 landing knees softly bent both feet original floor level;8 upright feet planted. Keep same scale and relative floor line in each equal cell. Airborne figure is higher inside its cell, do NOT recenter it lower. Generous headroom, ears and tail uncut."
+  },
+  "revisions": {
+    "romaniandeadlift": "Correct hip hinge, slightly bent knees, both weights, same floor plane.",
+    "deadbug": "Elevated view from feet toward head, supine, opposite IMAGE LEFT leg/IMAGE RIGHT arm in top row and opposite pair in bottom row, return bent-knee arms-up baseline.",
+    "birddog": "Two opposite arm/leg pairs, two support limbs stay planted, entire extended limbs isolated; extract complete components preserving source origins.",
+    "shouldertap": "Elevated frontal view, hands in foreground. Top row image-left hand to opposite shoulder then return; bottom row image-right hand and return.",
+    "highknees": "Direct front view. Top row IMAGE LEFT knee rises with opposite arm; bottom row IMAGE RIGHT knee. Reuse that side's neutral pose for return.",
+    "buttkicks": "Rear diagonal view to distinguish both heel lifts; top row left heel toward seat and return; bottom row right heel and return.",
+    "skater": "Fixed frontal view, each row shows lateral transfer, flight and opposite landed stance. Reverse bottom row to close alternating loop.",
+    "sideplank": "Use the first sustained support-side sequence twice; omit the reversed view to avoid an abrupt orientation change during the hold. Side is chosen explicitly in the workout."
+  },
+  "encoding": {
+    "frames": 8,
+    "width": 256,
+    "height": 256,
+    "frameMs": 240,
+    "loop": 0,
+    "quality": 88,
+    "method": 6,
+    "alpha": true
+  },
+  "conversion": {
+    "default": ["--grid", "--align-rows"],
+    "birddog": ["--preserve-origin", "--align-rows"],
+    "orders": {
+      "highknees": [0, 1, 2, 0, 4, 5, 6, 4],
+      "buttkicks": [0, 1, 2, 0, 4, 5, 6, 4],
+      "skater": [0, 1, 2, 3, 7, 6, 5, 4],
+      "sideplank": [0, 1, 2, 3, 0, 1, 2, 3]
+    }
+  },
+  "pending": []
+}

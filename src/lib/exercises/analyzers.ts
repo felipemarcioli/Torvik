@@ -11,6 +11,8 @@ import { SquatAnalyzer, PushUpAnalyzer, JumpingJackAnalyzer } from "./legacy";
 import { THRESHOLDS, type ExerciseId } from "./catalog";
 import { LEFT, sides, distance, SideAnalyzer } from "./side";
 import { ExpansionAnalyzer } from "./expansion";
+import { CatalogAnalyzer } from "./catalog-analyzers";
+import { IsometricAnalyzer } from "./isometrics";
 type BendKind = "lunge" | "bicepscurl" | "situp";
 const AMPLITUDE = {
   lunge: "Amplie a descida do afundo",
@@ -308,6 +310,20 @@ export class PlankAnalyzer extends SideAnalyzer {
   }
 }
 const FACTORIES: Record<ExerciseId, () => Analyzer> = {
+  romaniandeadlift: () => new CatalogAnalyzer("romaniandeadlift"),
+  bulgariansquat: () => new CatalogAnalyzer("bulgariansquat"),
+  wallsit: () => new IsometricAnalyzer("wallsit"),
+  floorpress: () => new CatalogAnalyzer("floorpress"),
+  sideplank: () => new IsometricAnalyzer("sideplank"),
+  deadbug: () => new CatalogAnalyzer("deadbug"),
+  birddog: () => new CatalogAnalyzer("birddog"),
+  lyinglegraise: () => new CatalogAnalyzer("lyinglegraise"),
+  shouldertap: () => new CatalogAnalyzer("shouldertap"),
+  highknees: () => new CatalogAnalyzer("highknees"),
+  buttkicks: () => new CatalogAnalyzer("buttkicks"),
+  skater: () => new CatalogAnalyzer("skater"),
+  stepjack: () => new CatalogAnalyzer("stepjack"),
+  jumpsquat: () => new CatalogAnalyzer("jumpsquat"),
   squat: () => new SquatAnalyzer(),
   pushup: () => new PushUpAnalyzer(),
   jumpingjack: () => new JumpingJackAnalyzer(),
