@@ -12,7 +12,9 @@ A análise dos frames é local. Modelos e fontes são baixados de serviços exte
 
 ## Desenvolvimento
 
-Use Node **20.20.2** e Bun **1.3.10**, registrados em `.node-version` e `package.json`.
+Use Node **22.23.3** e Bun **1.3.10**, registrados em `.node-version` e `package.json`.
+TanStack Start exige Node 22.12 ou posterior; o intervalo `22.x` também seleciona
+Node 22 na Vercel, e a CI usa a versão registrada em `.node-version`.
 
 ```sh
 bun install --frozen-lockfile

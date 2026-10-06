@@ -136,3 +136,47 @@ trocas de lado nos perfis móvel e desktop. Somando a suíte completa e a repeti
 os **110 cenários únicos** tiveram execuções aprovadas. Não houve uma única
 execução da suíte completa com 110 aprovações. A validação prática com movimentos
 reais e dispositivos físicos continua pendente, conforme descrito acima.
+
+### Atualização de segurança do TanStack Start — 06/10/2026
+
+Para corrigir o bloqueio de implantação informado para CVE-2026-102989,
+`@tanstack/react-start` foi atualizado de `1.168.32` para `1.168.60`.
+`@tanstack/react-router` passou a `1.170.41` e `@tanstack/router-plugin` a
+`1.168.42`, acompanhando as dependências exatas do Start e compartilhando
+`@tanstack/router-core@1.171.34`. O `bun.lock` foi regenerado com Bun 1.3.10;
+há uma única resolução de Start, na versão corrigida, sem cópia de `1.168.32`.
+
+O Start atualizado exige Node 22.12 ou posterior. `.node-version` agora registra
+22.23.3, utilizado pela CI existente, e `engines.node` seleciona `22.x` na Vercel.
+A configuração gerada em `.vc-config.json` confirmou `nodejs22.x`. A configuração
+compartilhada do Lovable continua compatível. O componente de erro raiz usa agora
+`ErrorComponentProps`, pois o Router atualizado tipa o erro recebido como
+`unknown`; os diagnósticos continuam sanitizados.
+
+Verificações executadas em Node 22.23.3 e Bun 1.3.10:
+
+- Instalação com `bun install --frozen-lockfile`: aprovada, sem alterar o lockfile.
+- Tipos: aprovados após ajustar o tipo do componente de erro.
+- Lint: zero erros; os mesmos seis avisos de Fast Refresh dos componentes UI.
+- Testes unitários: **156 aprovados**, com 944 asserções.
+- Builds padrão e `NITRO_PRESET=vercel`: aprovados para cliente, SSR e Nitro.
+- SSR da saída Vercel, servido localmente por adaptador HTTP: página inicial
+  respondeu 200 e rota inexistente respondeu 404, com os respectivos conteúdos.
+- Playwright: **oito cenários direcionados aprovados**, quatro em Chromium móvel
+  e quatro em desktop, usando essa saída de produção. Cobrem supino no chão,
+  troca de lado e tempos separados da prancha lateral, filtros/gráfico/calendário
+  do histórico, preparação, treino, pausa, relatório, salvamento e reinício.
+  Nesta atualização não foi repetida a suíte completa de 110 cenários.
+- `git diff --check`: aprovado.
+
+`bun audit --json` não reportou vulnerabilidades no TanStack Start ou nos demais
+pacotes TanStack resolvidos. O comando continua retornando status 1 por avisos
+preexistentes em `brace-expansion` (1.1.18 e 5.0.9), `shell-quote` (1.10.0) e
+`source-map-js` (1.2.1), cujas versões já estavam no lockfile anterior e foram
+preservadas. Esses achados independentes permanecem pendentes.
+
+No ambiente local, a resolução inicial de metadados em cache ficou parada;
+`bun install --no-cache --network-concurrency=1` concluiu a atualização pela mesma
+origem npm e pelo proxy configurado. A instalação congelada posterior não precisou
+desse ajuste. Ferramentas, logs e adaptadores usados na revisão permanecem fora
+dos arquivos versionados.
