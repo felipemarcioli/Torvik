@@ -2208,6 +2208,9 @@
   color: var(--foreground);
   border-radius: 0.4rem;
 }
+.app-shell .exercise-search input:focus-visible {
+  outline: none;
+}
 .exercise-list {
   display: grid;
   gap: 0.75rem;
