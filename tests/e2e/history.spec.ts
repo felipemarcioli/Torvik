@@ -1,4 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
+import { test, expect } from "./build-fixture";
+import type { Page } from "@playwright/test";
 import type { HistorySession } from "../../src/lib/history";
 function fixtures(count = 4): HistorySession[] {
   const at = (days: number) => {
@@ -63,8 +64,8 @@ async function seed(page: Page, rows = fixtures()) {
     });
     db.close();
   }, rows);
-  await page.getByRole("button", { name: "Meu histórico" }).click();
-  await expect(page.getByRole("heading", { name: "Meu progresso" })).toBeVisible({
+  await page.getByRole("button", { name: "Progresso", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Progresso", exact: true })).toBeVisible({
     timeout: 15000,
   });
   await expect(page.getByText("Carregando seu progresso…")).toHaveCount(0);
@@ -76,11 +77,16 @@ test("dashboard calcula totais, filtra, ordena, consulta gráfico e calendário"
   await seed(page);
   await expect(page.locator(".progress-totals dd")).toHaveText(["4", "40", "34", "6min 30s"]);
   await expect(page.locator(".progress-session-card")).toHaveCount(4);
+  await page.getByRole("button", { name: /^Filtrar/ }).click();
+  await expect(page.getByRole("group", { name: "Filtrar sessões" }).getByRole("button")).toHaveText(
+    ["Todos", "Agachamento", "Flexão de Braço"],
+  );
   await page
     .getByRole("group", { name: "Filtrar sessões" })
     .getByRole("button", { name: "Flexão de Braço" })
     .click();
   await expect(page.locator(".progress-session-card")).toHaveCount(1);
+  await page.getByRole("button", { name: /^Filtrar/ }).click();
   await page
     .getByRole("group", { name: "Filtrar sessões" })
     .getByRole("button", { name: "Todos", exact: true })
@@ -90,6 +96,7 @@ test("dashboard calcula totais, filtra, ordena, consulta gráfico e calendário"
     "id",
     "session-b",
   );
+  await page.getByText("Gráficos de evolução", { exact: true }).click();
   await page.getByLabel("Exercício do gráfico").selectOption("squat");
   await page.getByRole("combobox", { name: "Métrica", exact: true }).selectOption("proportion");
   await expect(page.locator(".progress-chart-reading")).toContainText("80%");
@@ -160,7 +167,7 @@ test("detalhes preservam dados antigos, exportam e excluem só a sessão escolhi
   await page.getByRole("button", { name: "Confirmar exclusão" }).click();
   await expect(page.locator(".progress-session-card")).toHaveCount(3);
   await page.reload();
-  await page.getByRole("button", { name: "Meu histórico" }).click();
+  await page.getByRole("button", { name: "Progresso", exact: true }).click();
   await expect(page.locator(".progress-session-card")).toHaveCount(3);
   await expect(page.locator("#session-a")).toBeVisible();
 });
@@ -170,7 +177,8 @@ test("vazio, armazenamento indisponível e exportação bloqueada são recuperá
   await seed(page, []);
   await expect(page.getByText(/Nenhuma sessão salva/)).toBeVisible();
   await page.getByRole("button", { name: "Iniciar um treino" }).click();
-  await expect(page.getByRole("button", { name: "Preparar câmera", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Vamos treinar?" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Preparar/ })).toHaveCount(0);
   await seed(page, fixtures(1));
   await page.locator("#session-a").click();
   await page.evaluate(() => {
@@ -180,18 +188,19 @@ test("vazio, armazenamento indisponível e exportação bloqueada são recuperá
   await expect(page.getByRole("alert")).toContainText("Não foi possível exportar");
   await page.addInitScript(() => Object.defineProperty(window, "indexedDB", { value: undefined }));
   await page.reload();
-  await page.getByRole("button", { name: "Meu histórico" }).click();
+  await page.getByRole("button", { name: "Progresso", exact: true }).click();
   await expect(page.getByRole("alert")).toContainText("Histórico indisponível");
   await expect(page.getByRole("button", { name: "Tentar novamente" })).toBeVisible();
 });
 test("mil sessões paginam e layout não transborda com texto ampliado", async ({ page }, info) => {
   await seed(page, fixtures(1000));
-  await expect(page.locator(".progress-session-card")).toHaveCount(20);
+  await expect(page.locator(".progress-session-card")).toHaveCount(5);
   await page.getByRole("button", { name: /Mostrar mais sessões/ }).click();
-  await expect(page.locator(".progress-session-card")).toHaveCount(40);
+  await expect(page.locator(".progress-session-card")).toHaveCount(25);
   for (const [width, height] of [
     [360, 800],
     [390, 844],
+    [430, 932],
     [844, 390],
     [768, 1024],
     [1440, 900],

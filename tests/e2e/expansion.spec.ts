@@ -1,5 +1,6 @@
-import { openExerciseGroup } from "./home-helpers";
-import { expect, test, type Page } from "@playwright/test";
+import { openExerciseGroup, selectExercise, prepareExercise, finishWorkout } from "./home-helpers";
+import { test, expect } from "./build-fixture";
+import type { Page } from "@playwright/test";
 import { expansionPose, NEW_IDS, type Stage } from "../fixtures/expansion";
 import { EXERCISE_BY_ID } from "../../src/lib/exercises/catalog";
 import type { NewExerciseId } from "../../src/lib/exercises/expansion";
@@ -13,8 +14,8 @@ async function setup(page: Page, id: NewExerciseId) {
   );
   await page.goto("/");
   await openExerciseGroup(page, id);
-  await page.locator(`input[value="${id}"]:visible`).check();
-  await page.getByRole("button", { name: "Preparar câmera", exact: true }).click();
+  await selectExercise(page, id);
+  await prepareExercise(page);
 }
 async function pose(page: Page, id: NewExerciseId, stage: Stage) {
   await page.evaluate(
@@ -37,7 +38,7 @@ for (const id of NEW_IDS) {
     await pose(page, id, "entry");
     await pose(page, id, "target");
     await pose(page, id, "base");
-    await page.getByRole("button", { name: "Finalizar treino", exact: true }).click();
+    await finishWorkout(page);
     await expect(page.getByText("1 de 1 nos critérios do app")).toBeVisible();
     await page.getByRole("button", { name: "Salvar sessão", exact: true }).click();
     await expect(page.getByRole("button", { name: "Salvo neste dispositivo" })).toBeVisible();
@@ -49,7 +50,7 @@ for (const id of NEW_IDS) {
     await page.getByRole("button", { name: "Exportar CSV" }).click();
     expect((await download).suggestedFilename()).toMatch(/\.csv$/);
     await page.reload();
-    await page.getByRole("button", { name: "Meu histórico" }).click();
+    await page.getByRole("button", { name: "Progresso", exact: true }).click();
     await expect(page.locator(".progress-session-card")).toContainText(EXERCISE_BY_ID[id].name);
   });
 }
@@ -64,10 +65,10 @@ test("new previews fit mobile, retain instructions on desktop and honor reduced 
     await page.setViewportSize({ width: width!, height: height! });
     for (const id of NEW_IDS) {
       await openExerciseGroup(page, id);
-      await page.locator(`input[value="${id}"]:visible`).check();
+      await selectExercise(page, id);
       const preview = page.locator(`#exercise-preview-${id}`);
-      await expect(preview).toHaveAttribute("aria-hidden", "false");
-      await expect(page.locator('.exercise-card[data-preview-open="true"]')).toHaveCount(1);
+      await expect(preview).toBeVisible();
+      await expect(page.locator(".detail-preview")).toHaveCount(1);
       await expect
         .poll(() =>
           preview
@@ -104,12 +105,9 @@ test("new previews fit mobile, retain instructions on desktop and honor reduced 
   await page.screenshot({ path: "/tmp/torvik-sixteen-mobile.png", fullPage: true });
   await page.setViewportSize({ width: 1280, height: 800 });
   await openExerciseGroup(page, "glutebridge");
-  const card = page
-    .locator(".exercise-card")
-    .filter({ has: page.locator('input[value="glutebridge"]') });
-  await card.getByRole("button", { name: "Ver instruções" }).click();
+  await selectExercise(page, "glutebridge");
   await expect(
-    card.getByText("Posicione a câmera de lado, próxima ao chão", { exact: true }),
+    page.getByText("Posicione a câmera de lado, próxima ao chão", { exact: true }),
   ).toBeVisible();
   await page.screenshot({ path: "/tmp/torvik-sixteen-desktop.png", fullPage: true });
 });

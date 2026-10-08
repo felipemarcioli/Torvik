@@ -1,5 +1,6 @@
-import { openExerciseGroup } from "./home-helpers";
-import { expect, test, type Page } from "@playwright/test";
+import { selectExercise, prepareExercise, finishWorkout } from "./home-helpers";
+import { test, expect } from "./build-fixture";
+import type { Page } from "@playwright/test";
 async function setup(page: Page, visible = true) {
   await page.route("https://fonts.googleapis.com/**", (route) => route.abort());
   await page.route("https://cdn.jsdelivr.net/npm/@mediapipe/pose@*/pose.js", (route) =>
@@ -27,112 +28,11 @@ async function setup(page: Page, visible = true) {
     }),
   );
   await page.goto("/");
+  await selectExercise(page, "squat");
 }
-test("controles de exercício funcionam por teclado", async ({ page }) => {
-  await setup(page);
-  await openExerciseGroup(page, "pushup");
-  await page.getByRole("radio", { name: /Flexão de Braço/ }).check();
-  if ((page.viewportSize()?.width ?? 0) < 600) {
-    const flex = page.getByRole("radio", { name: /Flexão de Braço/ });
-    await expect(flex).toBeChecked();
-    await expect(flex).toHaveAttribute("aria-expanded", "true");
-    await flex.press("Space");
-    await expect(flex).toBeChecked();
-    await expect(flex).toHaveAttribute("aria-expanded", "false");
-    return;
-  }
-  await openExerciseGroup(page, "squat");
-  const button = page.locator('button[aria-controls="instructions-squat"]');
-  await button.focus();
-  await button.press("Enter");
-  await expect(button).toHaveAttribute("aria-expanded", "true");
-  await expect(page.locator('input[value="pushup"]').first()).toBeChecked();
-});
-
-test("accordion mobile abre somente o exercício selecionado", async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await setup(page);
-
-  const squat = page
-    .locator(".exercise-card")
-    .filter({ has: page.locator('input[value="squat"]') });
-  const pushup = page.locator(".exercise-card").filter({ hasText: "Flexão de Braço" });
-  const jumpingJack = page
-    .locator(".exercise-card")
-    .filter({ has: page.locator('input[value="jumpingjack"]') });
-  await openExerciseGroup(page, "squat");
-  const nextCard = page
-    .locator(".exercise-card")
-    .filter({ has: page.locator('input[value="lunge"]') });
-  const pushupBefore = await nextCard.boundingBox();
-
-  await expect(squat.locator('input[value="squat"]:visible')).toBeChecked();
-  await expect(page.locator("#exercise-preview-squat")).toHaveAttribute("aria-hidden", "true");
-
-  await squat.locator(".mobile-exercise-select").click();
-  await expect(page.locator("#exercise-preview-squat")).toHaveAttribute("aria-hidden", "false");
-  await expect(page.getByText("Mantenha os pés alinhados e desça com controle.")).toBeVisible();
-  await expect(page.locator('.exercise-card[data-preview-open="true"]')).toHaveCount(1);
-  await expect
-    .poll(async () => (await nextCard.boundingBox())?.y ?? 0)
-    .toBeGreaterThan(pushupBefore!.y + 60);
-
-  await squat.locator(".mobile-exercise-select").click();
-  await expect(page.locator("#exercise-preview-squat")).toHaveAttribute("aria-hidden", "true");
-  await expect(squat.locator('input[value="squat"]:visible')).toBeChecked();
-
-  await openExerciseGroup(page, "pushup");
-  await pushup.locator(".mobile-exercise-select").click();
-  await expect(page.locator('input[value="pushup"]').first()).toBeChecked();
-  await expect(page.locator("#exercise-preview-pushup")).toHaveAttribute("aria-hidden", "false");
-  await expect(page.locator("#exercise-preview-squat")).toHaveAttribute("aria-hidden", "true");
-  await expect(page.locator('.exercise-card[data-preview-open="true"]')).toHaveCount(1);
-
-  await openExerciseGroup(page, "jumpingjack");
-  const jumpingJackRadio = jumpingJack.locator('input[value="jumpingjack"]:visible');
-  await jumpingJackRadio.focus();
-  await jumpingJackRadio.press("Space");
-  await expect(jumpingJackRadio).toBeChecked();
-  await expect(page.locator("#exercise-preview-jumpingjack")).toHaveAttribute(
-    "aria-hidden",
-    "false",
-  );
-  await jumpingJackRadio.press("Space");
-  await expect(jumpingJackRadio).toBeChecked();
-  await expect(page.locator("#exercise-preview-jumpingjack")).toHaveAttribute(
-    "aria-hidden",
-    "true",
-  );
-
-  await jumpingJack.locator(".mobile-exercise-select").click();
-  const animation = jumpingJack.locator(".exercise-preview-animation");
-  await expect(animation).toHaveAttribute("src", "/exercise-previews/torvik-jumpingjack.webp");
-  await expect
-    .poll(() =>
-      animation.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth === 256),
-    )
-    .toBe(true);
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect
-    .poll(() => animation.evaluate((img: HTMLImageElement) => img.currentSrc))
-    .toContain("torvik-jumpingjack-still.webp");
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  for (const size of [
-    { width: 390, height: 844 },
-    { width: 360, height: 800 },
-  ]) {
-    await page.setViewportSize(size);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
-      true,
-    );
-    const action = await page.getByRole("button", { name: "Preparar câmera" }).boundingBox();
-    expect(action).not.toBeNull();
-    expect(action!.y + action!.height).toBeLessThanOrEqual(size.height);
-  }
-});
 test("preparação, treino, pausa, relatório, histórico e reinício", async ({ page }) => {
   await setup(page);
-  await page.getByRole("button", { name: "Preparar câmera", exact: true }).click();
+  await prepareExercise(page);
   const start = page.getByRole("button", { name: "Iniciar em 5 segundos" });
   await expect(start).toBeEnabled();
   await start.click();
@@ -148,7 +48,7 @@ test("preparação, treino, pausa, relatório, histórico e reinício", async ({
   await expect(page.getByText("Repetição dentro dos critérios", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Pausar", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Treino pausado" })).toBeVisible();
-  await page.getByRole("button", { name: "Preparar retomada" }).click();
+  await page.getByRole("button", { name: "Continuar", exact: true }).click();
   await expect(start).toBeEnabled();
   await start.click();
   await expect(page.getByRole("button", { name: "Pausar", exact: true })).toBeVisible({
@@ -164,21 +64,21 @@ test("preparação, treino, pausa, relatório, histórico e reinício", async ({
     Object.defineProperty(document, "hidden", { configurable: true, value: false });
     document.dispatchEvent(new Event("visibilitychange"));
   });
-  await expect(page.getByRole("button", { name: "Preparar retomada" })).toBeVisible();
-  await page.getByRole("button", { name: "Finalizar treino", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Continuar", exact: true })).toBeVisible();
+  await finishWorkout(page);
   await expect(page.getByText("1 de 1 nos critérios do app")).toBeVisible();
   await page.getByRole("button", { name: "Salvar sessão", exact: true }).click();
   await expect(page.getByRole("button", { name: "Salvo neste dispositivo" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Ver sessão salva" })).toBeVisible();
-  await page.getByRole("button", { name: "Voltar ao início" }).click();
-  await page.getByRole("button", { name: "Meu histórico" }).click();
-  await expect(page.getByRole("heading", { name: "Meu progresso" })).toBeVisible();
+  await page.getByRole("button", { name: "Voltar ao exercício" }).click();
+  await page.getByRole("button", { name: "Progresso", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Progresso", exact: true })).toBeVisible();
   await expect(page.getByText("Avaliadas", { exact: true })).toBeVisible();
   await expect(
     page.locator(".progress-card-stats").getByText("Nos critérios", { exact: true }),
   ).toBeVisible();
   await page.reload();
-  await page.getByRole("button", { name: "Meu histórico" }).click();
+  await page.getByRole("button", { name: "Progresso", exact: true }).click();
   await page.getByRole("button", { name: "Ver detalhes" }).click();
   await expect(page.getByRole("button", { name: "Exportar JSON", exact: true })).toBeVisible();
   await page.getByText("Repetições registradas (1)", { exact: true }).click();
@@ -186,14 +86,17 @@ test("preparação, treino, pausa, relatório, histórico e reinício", async ({
   await page.getByRole("button", { name: "Excluir sessão", exact: true }).click();
   await page.getByRole("button", { name: "Confirmar exclusão" }).click();
   await expect(page.getByText(/Nenhuma sessão salva/)).toBeVisible();
-  await page.getByRole("button", { name: "Voltar ao início" }).click();
-  await page.getByRole("button", { name: "Preparar câmera", exact: true }).click();
+  await page.getByRole("button", { name: "Treinar", exact: true }).click();
+  await selectExercise(page, "squat");
+  await prepareExercise(page);
   await expect(start).toBeEnabled();
-  await page.getByRole("button", { name: "Finalizar treino", exact: true }).click();
+  await finishWorkout(page);
   await expect(page.getByRole("heading", { name: "Nenhuma repetição avaliada" })).toBeVisible();
   await page.getByRole("button", { name: "Tentar novamente" }).click();
   await expect(start).toBeEnabled();
-  await page.getByRole("button", { name: "Cancelar", exact: true }).click();
+  await page.getByRole("button", { name: "Sair", exact: true }).click();
+  if (await page.getByRole("button", { name: "Descartar e sair" }).count())
+    await page.getByRole("button", { name: "Descartar e sair" }).click();
 });
 test("falha no script oferece nova tentativa funcional", async ({ page }) => {
   await setup(page);
@@ -202,19 +105,21 @@ test("falha no script oferece nova tentativa funcional", async ({ page }) => {
     if (failures-- > 0) await route.abort();
     else await route.fallback();
   });
-  await page.getByRole("button", { name: "Preparar câmera", exact: true }).click();
+  await prepareExercise(page);
   await expect(page.getByRole("alert")).toContainText("Não foi possível carregar");
   await page.getByRole("button", { name: "Tentar novamente" }).click();
   await expect(page.getByRole("button", { name: "Iniciar em 5 segundos" })).toBeEnabled();
 });
 test("imagem completa e ações sem sobreposição em retrato e paisagem", async ({ page }) => {
   await setup(page, false);
-  await page.getByRole("button", { name: "Preparar câmera", exact: true }).click();
+  await prepareExercise(page);
   await expect(page.getByRole("button", { name: "Iniciar em 5 segundos" })).toBeEnabled();
   for (const size of [
     { width: 390, height: 844 },
     { width: 844, height: 390 },
     { width: 360, height: 800 },
+    { width: 430, height: 932 },
+    { width: 360, height: 640 },
     { width: 768, height: 1024 },
   ]) {
     await page.setViewportSize(size);
@@ -264,7 +169,7 @@ test("início automático tolera movimento, cancela perda e não reinicia sessã
 }) => {
   test.setTimeout(45000);
   await setup(page);
-  await page.getByRole("button", { name: "Preparar câmera", exact: true }).click();
+  await prepareExercise(page);
   await expect(page.getByRole("heading", { name: /Posicione-se na câmera/ })).toBeVisible();
   await expect(
     page.getByText("Prepare-se. O treino já vai começar.", { exact: true }),
@@ -294,14 +199,14 @@ test("início automático tolera movimento, cancela perda e não reinicia sessã
   await expect(page.getByText("Prepare-se. O treino já vai começar.", { exact: true })).toHaveCount(
     0,
   );
-  await page.getByRole("button", { name: "Finalizar treino", exact: true }).click();
+  await finishWorkout(page);
   await expect(page.getByRole("heading", { name: "Nenhuma repetição avaliada" })).toBeVisible();
 });
 test("manual fora do quadro oferece cinco segundos e cancelamento não inicia sessão", async ({
   page,
 }) => {
   await setup(page, false);
-  await page.getByRole("button", { name: "Preparar câmera", exact: true }).click();
+  await prepareExercise(page);
   const manual = page.getByRole("button", { name: "Iniciar em 5 segundos" });
   await expect(manual).toBeEnabled();
   await manual.click();
@@ -311,14 +216,21 @@ test("manual fora do quadro oferece cinco segundos e cancelamento não inicia se
   await expect(page.getByRole("button", { name: "Pausar", exact: true })).toBeVisible({
     timeout: 10000,
   });
-  await page.getByRole("button", { name: "Cancelar", exact: true }).click();
-  await page.getByRole("button", { name: "Preparar câmera", exact: true }).click();
+  await page.getByRole("button", { name: "Pausar", exact: true }).click();
+  await page.getByRole("button", { name: "Sair", exact: true }).click();
+  if (await page.getByRole("button", { name: "Descartar e sair" }).count())
+    await page.getByRole("button", { name: "Descartar e sair" }).click();
+  await prepareExercise(page);
   await expect(
     page.getByText("Prepare-se. O treino já vai começar.", { exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Cancelar", exact: true }).click();
+  await page.getByRole("button", { name: "Sair", exact: true }).click();
+  if (await page.getByRole("button", { name: "Descartar e sair" }).count())
+    await page.getByRole("button", { name: "Descartar e sair" }).click();
   await page.waitForTimeout(5500);
-  await expect(page.getByRole("button", { name: "Preparar câmera", exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Preparar agachamento", exact: true }),
+  ).toBeVisible();
   await expect(page.getByRole("button", { name: "Pausar", exact: true })).toHaveCount(0);
 });
 
@@ -384,7 +296,7 @@ for (const enabled of [true, false]) {
     test.setTimeout(60000);
     await mockVoice(page, enabled);
     await setup(page);
-    await page.getByRole("button", { name: "Preparar câmera", exact: true }).click();
+    await prepareExercise(page);
     await expect(page.getByRole("button", { name: "Pausar", exact: true })).toBeVisible({
       timeout: 15000,
     });
@@ -416,7 +328,7 @@ for (const enabled of [true, false]) {
           async () => (await spokenVoice(page)).filter((v) => v.text === "5 repetições!").length,
         )
         .toBe(1);
-    await page.getByRole("button", { name: "Finalizar treino", exact: true }).click();
+    await finishWorkout(page);
     await expect(page.getByText("5 de 5 nos critérios do app")).toBeVisible();
     if (enabled)
       await expect
@@ -433,8 +345,8 @@ test("áudio bloqueado permite recuperação, ajustes e cancelamento sem reinici
 }) => {
   await mockVoice(page, true, true);
   await setup(page, false);
-  await page.getByRole("button", { name: "Preparar câmera", exact: true }).click();
-  await page.getByText("Voz ligada", { exact: false }).first().click();
+  await prepareExercise(page);
+  await page.getByRole("button", { name: "Controles de câmera e voz" }).click();
   await expect(page.getByText(/Não foi possível reproduzir o áudio/)).toBeVisible();
   await page.evaluate(() => {
     (window as unknown as { __voice: { blocked: boolean } }).__voice.blocked = false;
@@ -446,8 +358,11 @@ test("áudio bloqueado permite recuperação, ajustes e cancelamento sem reinici
   await page.getByRole("checkbox", { name: "Feedback por voz" }).uncheck();
   await page.getByRole("checkbox", { name: "Feedback por voz" }).check();
   expect((await spokenVoice(page)).at(-1)?.volume).toBe(0.4);
+  await page.getByRole("button", { name: "Fechar", exact: true }).click();
   await expect(page.getByRole("button", { name: "Iniciar em 5 segundos" })).toBeEnabled();
-  await page.getByRole("button", { name: "Cancelar", exact: true }).click();
+  await page.getByRole("button", { name: "Sair", exact: true }).click();
+  if (await page.getByRole("button", { name: "Descartar e sair" }).count())
+    await page.getByRole("button", { name: "Descartar e sair" }).click();
   const count = (await spokenVoice(page)).length;
   await page.waitForTimeout(1000);
   expect(await spokenVoice(page)).toHaveLength(count);
@@ -458,22 +373,25 @@ test("síntese indisponível não bloqueia o treino", async ({ page }) => {
     Object.defineProperty(window, "speechSynthesis", { configurable: true, value: undefined });
   });
   await setup(page, false);
-  await page.getByRole("button", { name: "Preparar câmera", exact: true }).click();
-  await page.getByText("Voz ligada", { exact: false }).first().click();
+  await prepareExercise(page);
+  await page.getByRole("button", { name: "Controles de câmera e voz" }).click();
   await expect(page.getByText(/Voz local em português indisponível/)).toBeVisible();
+  await page.getByRole("button", { name: "Fechar", exact: true }).click();
   await expect(page.getByRole("button", { name: "Iniciar em 5 segundos" })).toBeEnabled();
-  await page.getByRole("button", { name: "Cancelar", exact: true }).click();
+  await page.getByRole("button", { name: "Sair", exact: true }).click();
+  if (await page.getByRole("button", { name: "Descartar e sair" }).count())
+    await page.getByRole("button", { name: "Descartar e sair" }).click();
 });
 
 test("relatório vazio é claro e mantém informações técnicas recolhidas", async ({ page }) => {
   await setup(page);
-  await page.getByRole("button", { name: "Preparar câmera", exact: true }).click();
-  await page.getByRole("button", { name: "Finalizar treino", exact: true }).click();
+  await prepareExercise(page);
+  await finishWorkout(page);
   await expect(page.getByRole("heading", { name: "Sessão encerrada" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Nenhuma repetição avaliada" })).toBeVisible();
   await expect(page.locator(".report-progress")).toHaveCount(0);
   await expect(page.locator(".report-review")).toHaveCount(0);
-  await expect(page.getByText("Nenhuma sessão anterior salva neste dispositivo.")).toBeVisible();
+  await expect(page.locator(".report-history-list")).toHaveCount(0);
   if (test.info().project.name === "mobile-chromium")
     await page
       .locator(".report-content")
@@ -487,7 +405,9 @@ test("relatório vazio é claro e mantém informações técnicas recolhidas", a
   await expect(page.getByRole("button", { name: "Iniciar em 5 segundos" })).toBeVisible();
 });
 
-test("relatório mobile destaca resultados e abre detalhes de sessão anterior", async ({ page }) => {
+test("relatório destaca resultados, salva antes de novo treino e consulta anteriores em Progresso", async ({
+  page,
+}) => {
   test.setTimeout(45000);
   await setup(page);
   await page.evaluate(async () => {
@@ -517,7 +437,7 @@ test("relatório mobile destaca resultados e abre detalhes de sessão anterior",
     });
     db.close();
   });
-  await page.getByRole("button", { name: "Preparar câmera", exact: true }).click();
+  await prepareExercise(page);
   const start = page.getByRole("button", { name: "Iniciar em 5 segundos" });
   await expect(start).toBeEnabled();
   await start.click();
@@ -536,14 +456,13 @@ test("relatório mobile destaca resultados e abre detalhes de sessão anterior",
     }, angle);
     await page.waitForTimeout(420);
   }
-  await page.getByRole("button", { name: "Finalizar treino", exact: true }).click();
+  await finishWorkout(page);
   await expect(page.getByRole("heading", { name: "Treino concluído!" })).toBeVisible();
   await expect(page.locator(".report-metric-main dd")).toHaveText("2");
   await expect(page.getByText("1 de 2 nos critérios do app")).toBeVisible();
   await page.locator(".report-issues summary").click();
   await expect(page.getByText(/limite de amplitude configurado/)).toBeVisible();
-  await expect(page.locator(".report-history-list li")).toHaveCount(1);
-  await expect(page.locator(".report-history-list")).toContainText("Flexão de Braço");
+  await expect(page.locator(".report-history-list")).toHaveCount(0);
   for (const [width, height] of [
     [360, 800],
     [390, 844],
@@ -558,7 +477,69 @@ test("relatório mobile destaca resultados e abre detalhes de sessão anterior",
   await page
     .locator(".report-content")
     .screenshot({ path: `/tmp/torvik-report-${test.info().project.name}.png` });
-  await page.getByRole("button", { name: /Ver detalhes de Flexão de Braço/ }).click();
+  await page.getByRole("button", { name: "Salvar sessão", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Salvo neste dispositivo" })).toBeVisible();
+  await page.getByRole("button", { name: "Ver Progresso" }).click();
+  await page.locator("#session-older").click();
   await expect(page.getByRole("heading", { name: "Flexão de Braço", exact: true })).toBeVisible();
   await expect(page.getByText("Amplie a descida da flexão", { exact: true })).toBeVisible();
+});
+
+test("browser back during execution pauses, asks before discard and preserves repetitions", async ({
+  page,
+}) => {
+  await setup(page);
+  await prepareExercise(page);
+  await expect(page.getByRole("button", { name: "Pausar", exact: true })).toBeVisible({
+    timeout: 15000,
+  });
+  for (const [angle, phase] of [
+    [140, "Descendo"],
+    [80, "Agachado"],
+    [170, "Em pé"],
+  ] as const) {
+    await page.evaluate((value) => {
+      (window as unknown as { __angle: number }).__angle = value;
+    }, angle);
+    await expect(page.locator(".workout-feedback-detail")).toContainText(phase);
+  }
+  await expect(page.locator(".workout-metrics > div:first-child > p:first-child")).toHaveText("1");
+  await expect(page.getByRole("navigation", { name: "Navegação principal" })).toHaveCount(0);
+  await page.goBack();
+  await expect(page.getByRole("heading", { name: "Treino pausado" })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole("alertdialog")).toBeVisible();
+  await page.getByRole("button", { name: "Voltar à pausa", exact: true }).click();
+  await expect(page.locator(".workout-metrics > div:first-child > p:first-child")).toHaveText("1");
+  await page.getByRole("button", { name: "Continuar", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Pausar", exact: true })).toBeVisible({
+    timeout: 15000,
+  });
+  await finishWorkout(page);
+  await expect(page.getByText("1 de 1 nos critérios do app")).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole("alertdialog")).toBeVisible();
+  await page.getByRole("button", { name: "Voltar ao resultado", exact: true }).click();
+  const save = await page.getByRole("button", { name: "Salvar sessão", exact: true }).boundingBox();
+  const restart = await page
+    .getByRole("button", { name: "Novo treino", exact: true })
+    .boundingBox();
+  expect(save!.y).toBeLessThan(restart!.y);
+  await page.getByRole("button", { name: "Salvar sessão", exact: true }).click();
+  await expect(page.getByRole("status")).toContainText("Sessão salva.");
+  await page.goBack();
+  await expect(page.getByRole("heading", { name: "Agachamento", exact: true })).toBeVisible();
+});
+
+test("back from preparation returns to the chosen exercise without starting a session", async ({
+  page,
+}) => {
+  await setup(page, false);
+  await prepareExercise(page);
+  await expect(page.getByRole("button", { name: "Iniciar em 5 segundos" })).toBeEnabled();
+  await page.goBack();
+  await expect(page.getByRole("heading", { name: "Agachamento", exact: true })).toBeVisible();
+  await expect(page.locator("video")).toHaveCount(0);
+  await page.getByRole("button", { name: "Progresso", exact: true }).click();
+  await expect(page.getByText(/Nenhuma sessão salva/)).toBeVisible();
 });

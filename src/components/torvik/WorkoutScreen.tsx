@@ -1,9 +1,28 @@
+import { useEffect, useState } from "react";
+import { SlidersHorizontal } from "lucide-react";
+import { BackButton } from "./AppNavigation";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetDescription,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogFooter,
+} from "@/components/ui/alert-dialog";
 import { VoiceControls } from "./VoiceControls";
 import type { WorkoutVoiceControls } from "@/hooks/use-workout-voice";
 import { useWorkout } from "@/hooks/use-workout";
 import type { ExerciseId } from "@/lib/biomech";
 import { formatTime, type SessionReport } from "@/lib/session";
-import { EXERCISES } from "./data";
+import { EXERCISES, CAMERA_TIPS } from "./data";
 const stages = {
   model: "Baixando modelo de movimento…",
   camera: "Aguardando acesso à câmera…",
@@ -22,17 +41,54 @@ export function WorkoutScreen({
   voice,
   onFinish,
   onCancel,
+  registerBack,
 }: {
   exercise: ExerciseId;
   voice: WorkoutVoiceControls;
   onFinish: (report: SessionReport) => void;
   onCancel: () => void;
+  registerBack: (handler: () => boolean) => () => void;
 }) {
   const w = useWorkout(exercise, voice.controller);
   const details = EXERCISES.find((e) => e.id === exercise)!;
+  const [confirmExit, setConfirmExit] = useState(false);
+  const [controlsOpen, setControlsOpen] = useState(false);
+  const hasProgress =
+    w.seconds > 0 ||
+    w.result.totalReps > 0 ||
+    (w.result.measurement?.type === "HOLD_BASED" && w.result.measurement.validMs > 0);
+  const requestExit = () => {
+    if (hasProgress) {
+      w.pause();
+      setConfirmExit(true);
+    } else onCancel();
+  };
+  useEffect(() =>
+    registerBack(() => {
+      if (controlsOpen) setControlsOpen(false);
+      else if (confirmExit) setConfirmExit(false);
+      else if (w.phase === "running" || w.phase === "countdown") w.pause();
+      else if (hasProgress) {
+        w.pause();
+        setConfirmExit(true);
+      } else {
+        voice.controller.stop();
+        return true;
+      }
+      return false;
+    }),
+  );
   return (
     <main className="workout-layout bg-background" aria-label={`Treino de ${details.name}`}>
       <header className="workout-header flex items-center justify-between gap-4 border-b border-border bg-card px-4 py-2.5 sm:px-6">
+        <BackButton
+          onClick={() => {
+            if (["running", "countdown"].includes(w.phase)) w.pause();
+            else requestExit();
+          }}
+        >
+          {["running", "countdown"].includes(w.phase) ? "Voltar à pausa" : "Voltar"}
+        </BackButton>
         <div className="min-w-0">
           <p className="torvik-kicker text-[0.625rem]">Torvik · treino local</p>
           <h1 className="truncate text-lg font-bold leading-tight sm:text-xl">{details.name}</h1>
@@ -113,26 +169,6 @@ export function WorkoutScreen({
         )}
       </section>
       <section className="workout-controls border-t border-border bg-card px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-6">
-        {details.sideMode === "selected" &&
-          ["preparing", "running", "paused"].includes(w.phase) && (
-            <div className="mx-auto mb-2 flex max-w-3xl flex-wrap items-center gap-2 text-sm">
-              <span>{exercise === "bulgariansquat" ? "Perna dianteira:" : "Lado de apoio:"}</span>
-              {(["left", "right"] as const).map((side) => (
-                <button
-                  key={side}
-                  type="button"
-                  className="torvik-secondary"
-                  aria-pressed={w.selectedSide === side}
-                  onClick={() => w.selectSide(side)}
-                >
-                  {side === "left" ? "Esquerdo" : "Direito"}
-                </button>
-              ))}
-              <span className="text-xs text-muted-foreground">
-                A troca preserva os resultados e prepara o outro lado.
-              </span>
-            </div>
-          )}
         {(w.phase === "running" || w.phase === "paused") && (
           <div className="workout-metrics mx-auto mb-3 flex max-w-3xl items-center justify-between gap-5 border-b border-border pb-3">
             <div
@@ -178,17 +214,8 @@ export function WorkoutScreen({
               Posicione-se na câmera para iniciar automaticamente
             </h2>
             <p className="mt-1 text-sm leading-snug text-muted-foreground">
-              {details.cameraGuidance ?? details.instructions[0]}. {details.initialPosition}
+              {details.cameraGuidance ?? details.instructions[0]} {details.initialPosition}
             </p>
-            {details.repDefinition && (
-              <p className="mt-1 text-xs text-muted-foreground">{details.repDefinition}</p>
-            )}
-            {details.analysisLimitations && (
-              <details className="mt-1 text-xs text-muted-foreground">
-                <summary>O que a câmera consegue observar</summary>
-                {details.analysisLimitations}
-              </details>
-            )}
           </div>
         )}
         {w.phase !== "loading" && w.phase !== "error" && w.phase !== "paused" && (
@@ -208,79 +235,153 @@ export function WorkoutScreen({
             </p>
           </div>
         )}
-        {w.devices.length > 1 &&
-          (w.phase === "preparing" || w.phase === "paused" || w.phase === "error") && (
-            <label className="mx-auto mt-3 flex max-w-3xl items-center gap-3 text-sm font-semibold">
-              Câmera
-              <select
-                className="torvik-control min-w-0 flex-1 font-normal"
-                value={w.deviceId}
-                onChange={(e) => w.selectCamera(e.target.value)}
-              >
-                <option value="">Frontal / padrão</option>
-                {w.devices.map((d, i) => (
-                  <option key={d.deviceId} value={d.deviceId}>
-                    {d.label || `Câmera ${i + 1}`}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
         <div className="workout-actions mx-auto mt-3 flex max-w-3xl flex-wrap gap-2">
           {w.phase === "preparing" && (
-            <button
-              type="button"
-              className="torvik-primary w-full sm:w-auto sm:flex-1"
-              onClick={w.start}
-            >
+            <button type="button" className="torvik-primary flex-1" onClick={w.start}>
               Iniciar em 5 segundos
             </button>
           )}
-          {w.phase === "paused" && (
-            <button
-              type="button"
-              className="torvik-primary w-full sm:w-auto sm:flex-1"
-              onClick={w.resume}
-            >
-              Preparar retomada
-            </button>
-          )}
           {w.phase === "running" && (
-            <button
-              type="button"
-              className="torvik-primary w-full sm:w-auto sm:flex-1"
-              onClick={() => onFinish(w.finish())}
-            >
-              Finalizar treino
-            </button>
-          )}
-          {w.phase === "running" && (
-            <button
-              type="button"
-              className="torvik-secondary w-[calc(50%-0.25rem)] sm:w-auto"
-              onClick={w.pause}
-            >
+            <button type="button" className="torvik-primary flex-1" onClick={w.pause}>
               Pausar
             </button>
           )}
-          {(w.phase === "paused" || w.phase === "preparing") && (
-            <button
-              type="button"
-              className="torvik-secondary w-[calc(50%-0.25rem)] sm:w-auto sm:flex-1"
-              onClick={() => onFinish(w.finish())}
-            >
-              Finalizar treino
+          {w.phase === "paused" && (
+            <>
+              <button type="button" className="torvik-primary w-full" onClick={w.resume}>
+                Continuar
+              </button>
+              <button
+                type="button"
+                className="torvik-secondary flex-1"
+                onClick={() => onFinish(w.finish())}
+              >
+                Finalizar treino
+              </button>
+              <button type="button" className="torvik-secondary flex-1" onClick={requestExit}>
+                Sair
+              </button>
+            </>
+          )}
+          {["loading", "error", "countdown", "preparing"].includes(w.phase) && (
+            <button type="button" className="torvik-secondary" onClick={requestExit}>
+              Sair
             </button>
           )}
-          <button
-            type="button"
-            className={`torvik-secondary ${["loading", "error", "countdown"].includes(w.phase) ? "w-full" : "w-[calc(50%-0.25rem)]"} sm:w-auto`}
-            onClick={onCancel}
-          >
-            Cancelar
-          </button>
+          <Sheet open={controlsOpen} onOpenChange={setControlsOpen}>
+            <SheetTrigger asChild>
+              <button
+                type="button"
+                className="torvik-secondary"
+                aria-label="Controles de câmera e voz"
+              >
+                <SlidersHorizontal size={20} aria-hidden="true" />
+                <span>Controles</span>
+              </button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="app-sheet">
+              <SheetTitle>Câmera e voz</SheetTitle>
+              <SheetDescription>Controles do treino atual.</SheetDescription>
+              {details.sideMode === "selected" &&
+                ["preparing", "running", "paused"].includes(w.phase) && (
+                  <div className="mx-auto mb-2 flex max-w-3xl flex-wrap items-center gap-2 text-sm">
+                    <span>
+                      {exercise === "bulgariansquat" ? "Perna dianteira:" : "Lado de apoio:"}
+                    </span>
+                    {(["left", "right"] as const).map((side) => (
+                      <button
+                        key={side}
+                        type="button"
+                        className="torvik-secondary"
+                        aria-pressed={w.selectedSide === side}
+                        onClick={() => w.selectSide(side)}
+                      >
+                        {side === "left" ? "Esquerdo" : "Direito"}
+                      </button>
+                    ))}
+                    <span className="text-xs text-muted-foreground">
+                      A troca preserva os resultados e prepara o outro lado.
+                    </span>
+                  </div>
+                )}
+
+              {w.devices.length > 1 &&
+                (w.phase === "preparing" || w.phase === "paused" || w.phase === "error") && (
+                  <label className="mx-auto mt-3 flex max-w-3xl items-center gap-3 text-sm font-semibold">
+                    Câmera
+                    <select
+                      className="torvik-control min-w-0 flex-1 font-normal"
+                      value={w.deviceId}
+                      onChange={(e) => w.selectCamera(e.target.value)}
+                    >
+                      <option value="">Frontal / padrão</option>
+                      {w.devices.map((d, i) => (
+                        <option key={d.deviceId} value={d.deviceId}>
+                          {d.label || `Câmera ${i + 1}`}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+
+              {w.devices.length <= 1 && (
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Câmera padrão do dispositivo. A escolha aparece quando há mais de uma câmera
+                  disponível.
+                </p>
+              )}
+              {w.devices.length > 1 && ["running", "countdown", "loading"].includes(w.phase) && (
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Pause o treino para trocar de câmera.
+                </p>
+              )}
+              {w.phase === "preparing" && (
+                <button
+                  type="button"
+                  className="torvik-secondary mt-3"
+                  onClick={() => onFinish(w.finish())}
+                >
+                  Finalizar treino
+                </button>
+              )}
+              <VoiceControls voice={voice} expanded />
+              <details className="app-disclosure">
+                <summary>Ajuda de posicionamento</summary>
+                <ul className="space-y-2">
+                  {CAMERA_TIPS.map((tip) => (
+                    <li key={tip}>{tip}</li>
+                  ))}
+                </ul>
+              </details>
+              <details className="app-disclosure">
+                <summary>Leitura da análise</summary>
+                <p>
+                  {states[w.result.state] ?? w.result.state}
+                  {w.result.side
+                    ? ` · lado ${w.result.side === "left" ? "esquerdo" : "direito"}`
+                    : ""}
+                </p>
+                <p>
+                  {details.analysisLimitations ??
+                    "A câmera estima o movimento em 2D segundo os critérios do app, sem validação clínica."}
+                </p>
+              </details>
+            </SheetContent>
+          </Sheet>
         </div>
-        <VoiceControls voice={voice} />
+        <AlertDialog open={confirmExit} onOpenChange={setConfirmExit}>
+          <AlertDialogContent className="app-confirm">
+            <AlertDialogTitle>Descartar este treino?</AlertDialogTitle>
+            <AlertDialogDescription>
+              O progresso desta sessão será descartado. Para guardar um resultado, volte e escolha
+              Finalizar treino.
+            </AlertDialogDescription>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Voltar à pausa</AlertDialogCancel>
+              <AlertDialogAction onClick={onCancel}>Descartar e sair</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </section>
     </main>
   );

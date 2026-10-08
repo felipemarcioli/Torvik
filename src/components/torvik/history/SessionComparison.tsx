@@ -1,5 +1,5 @@
+import { BackButton } from "../AppNavigation";
 import { useEffect, useRef } from "react";
-import { ArrowLeft } from "lucide-react";
 import type { HistorySession } from "@/lib/history";
 import { comparison, durationLabel, metricLabel, proportion } from "@/lib/progress";
 import { EXERCISES } from "../data";
@@ -56,10 +56,7 @@ export function SessionComparison({
       ];
   return (
     <div>
-      <button type="button" className="progress-back" onClick={onBack}>
-        <ArrowLeft size={18} />
-        Voltar ao progresso
-      </button>
+      <BackButton onClick={onBack}>Voltar ao progresso</BackButton>
       <header className="progress-header">
         <p className="torvik-kicker">{EXERCISES.find((e) => e.id === a.exercise)?.name}</p>
         <h1 ref={heading} tabIndex={-1}>

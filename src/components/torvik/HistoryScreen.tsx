@@ -1,13 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  ArrowLeft,
-  ArrowRight,
-  Activity,
-  CheckCheck,
-  Clock3,
-  Layers,
-  GitCompareArrows,
-} from "lucide-react";
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetDescription,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowRight, Activity, CheckCheck, Clock3, Layers, GitCompareArrows } from "lucide-react";
 import { createHistoryStore, type HistorySession } from "@/lib/history";
 import { durationLabel, filterHistory, historyTotals, type HistorySort } from "@/lib/progress";
 import type { ExerciseId } from "@/lib/biomech";
@@ -19,9 +18,11 @@ import { SessionComparison } from "./history/SessionComparison";
 export function HistoryScreen({
   onHome,
   initialDetailId = null,
+  registerBack,
 }: {
   onHome: () => void;
   initialDetailId?: string | null;
+  registerBack: (handler: () => boolean) => () => void;
 }) {
   const [sessions, setSessions] = useState<HistorySession[]>([]),
     [loading, setLoading] = useState(true),
@@ -30,11 +31,22 @@ export function HistoryScreen({
   const [exercise, setExercise] = useState<ExerciseId | "all">("all"),
     [sort, setSort] = useState<HistorySort>("recent"),
     [day, setDay] = useState(""),
-    [limit, setLimit] = useState(20);
+    [limit, setLimit] = useState(5);
   const [detail, setDetail] = useState<string | null>(initialDetailId),
     [selecting, setSelecting] = useState(false),
     [selected, setSelected] = useState<string[]>([]),
     [comparing, setComparing] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const listScroll = useRef(0);
+  useEffect(() =>
+    registerBack(() => {
+      if (filtersOpen) setFiltersOpen(false);
+      else if (detail) setDetail(null);
+      else if (comparing) setComparing(false);
+      else return true;
+      return false;
+    }),
+  );
   const heading = useRef<HTMLHeadingElement>(null),
     returnFocus = useRef("");
   useEffect(() => {
@@ -65,6 +77,7 @@ export function HistoryScreen({
         ? (document.getElementById(returnFocus.current) ?? heading.current)
         : heading.current;
       target?.focus({ preventScroll: true });
+      if (returnFocus.current) window.scrollTo(0, listScroll.current);
       returnFocus.current = "";
     }
   }, [detail, comparing, loading]);
@@ -96,7 +109,7 @@ export function HistoryScreen({
   const filter = (id: ExerciseId | "all") => {
     setSort("recent");
     setExercise(id);
-    setLimit(20);
+    setLimit(5);
   };
   if (detail && loading)
     return (
@@ -122,14 +135,10 @@ export function HistoryScreen({
           <SessionComparison a={picked[0]!} b={picked[1]!} onBack={() => setComparing(false)} />
         ) : (
           <>
-            <button type="button" className="progress-back" onClick={onHome}>
-              <ArrowLeft size={18} />
-              Voltar ao início
-            </button>
             <header className="progress-header">
               <p className="torvik-kicker">Torvik · Neste dispositivo</p>
               <h1 ref={heading} tabIndex={-1}>
-                Meu progresso
+                Progresso
               </h1>
               <p>Seus treinos registrados, uma sessão de cada vez.</p>
             </header>
@@ -153,36 +162,38 @@ export function HistoryScreen({
               </section>
             ) : (
               <>
-                <dl className="progress-totals" aria-label="Resumo de todas as sessões">
-                  {[
-                    [Layers, "Sessões registradas", totals.sessions],
-                    ...(sessions.some((r) => r.type !== "HOLD_BASED") || !sessions.length
-                      ? [
-                          [Activity, "Repetições avaliadas", totals.totalReps],
-                          [CheckCheck, "Nos critérios", totals.correctReps],
-                        ]
-                      : []),
-                    ...(sessions.some((r) => r.type === "HOLD_BASED")
-                      ? [[Clock3, "Tempo em postura válida", durationLabel(totals.validSeconds)]]
-                      : []),
-                    [Clock3, "Tempo ativo total", durationLabel(totals.seconds)],
-                  ].map(([Icon, label, value]) => {
-                    const Symbol = Icon as typeof Layers;
-                    return (
-                      <div key={String(label)}>
-                        <dt>
-                          <Symbol size={18} aria-hidden="true" />
-                          {String(label)}
-                        </dt>
-                        <dd>
-                          {typeof value === "number"
-                            ? value.toLocaleString("pt-BR")
-                            : String(value)}
-                        </dd>
-                      </div>
-                    );
-                  })}
-                </dl>
+                {!!sessions.length && (
+                  <dl className="progress-totals" aria-label="Resumo de todas as sessões">
+                    {[
+                      [Layers, "Sessões registradas", totals.sessions],
+                      ...(sessions.some((r) => r.type !== "HOLD_BASED") || !sessions.length
+                        ? [
+                            [Activity, "Repetições avaliadas", totals.totalReps],
+                            [CheckCheck, "Nos critérios", totals.correctReps],
+                          ]
+                        : []),
+                      ...(sessions.some((r) => r.type === "HOLD_BASED")
+                        ? [[Clock3, "Tempo em postura válida", durationLabel(totals.validSeconds)]]
+                        : []),
+                      [Clock3, "Tempo ativo total", durationLabel(totals.seconds)],
+                    ].map(([Icon, label, value]) => {
+                      const Symbol = Icon as typeof Layers;
+                      return (
+                        <div key={String(label)}>
+                          <dt>
+                            <Symbol size={18} aria-hidden="true" />
+                            {String(label)}
+                          </dt>
+                          <dd>
+                            {typeof value === "number"
+                              ? value.toLocaleString("pt-BR")
+                              : String(value)}
+                          </dd>
+                        </div>
+                      );
+                    })}
+                  </dl>
+                )}
                 {!sessions.length ? (
                   <section className="progress-panel progress-empty">
                     <img src="/torvik-image-2d.webp" width="160" height="240" alt="" />
@@ -198,21 +209,11 @@ export function HistoryScreen({
                   </section>
                 ) : (
                   <>
-                    <EvolutionChart sessions={sessions} />
-                    <ActivityCalendar
-                      sessions={sessions}
-                      selected={day}
-                      onSelect={(value) => {
-                        setDay(value);
-                        setExercise("all");
-                        setLimit(20);
-                      }}
-                    />
                     <section className="progress-sessions" aria-labelledby="sessions-title">
                       <div className="progress-section-heading">
                         <div>
                           <p className="torvik-kicker">Explore seus registros</p>
-                          <h2 id="sessions-title">Sessões salvas</h2>
+                          <h2 id="sessions-title">Sessões recentes</h2>
                         </div>
                         <button
                           type="button"
@@ -227,29 +228,53 @@ export function HistoryScreen({
                           {selecting ? "Cancelar comparação" : "Comparar"}
                         </button>
                       </div>
-                      <div
-                        className="progress-exercise-filters"
-                        role="group"
-                        aria-label="Filtrar sessões por exercício"
-                      >
-                        <button
-                          type="button"
-                          aria-pressed={exercise === "all"}
-                          onClick={() => filter("all")}
-                        >
-                          Todos
-                        </button>
-                        {EXERCISES.map((e) => (
-                          <button
-                            type="button"
-                            key={e.id}
-                            aria-pressed={exercise === e.id}
-                            onClick={() => filter(e.id)}
-                          >
-                            {e.name}
+                      <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+                        <SheetTrigger asChild>
+                          <button type="button" className="torvik-secondary">
+                            Filtrar
+                            {exercise !== "all"
+                              ? ` · ${EXERCISES.find((item) => item.id === exercise)?.name}`
+                              : ""}
                           </button>
-                        ))}
-                      </div>
+                        </SheetTrigger>
+                        <SheetContent side="bottom" className="app-sheet">
+                          <SheetTitle>Filtrar sessões</SheetTitle>
+                          <SheetDescription>
+                            Exercícios com registros neste dispositivo.
+                          </SheetDescription>
+                          <div
+                            className="progress-exercise-filters"
+                            role="group"
+                            aria-label="Filtrar sessões por exercício"
+                          >
+                            <button
+                              type="button"
+                              aria-pressed={exercise === "all"}
+                              onClick={() => {
+                                filter("all");
+                                setFiltersOpen(false);
+                              }}
+                            >
+                              Todos
+                            </button>
+                            {EXERCISES.filter((e) =>
+                              sessions.some((session) => session.exercise === e.id),
+                            ).map((e) => (
+                              <button
+                                type="button"
+                                key={e.id}
+                                aria-pressed={exercise === e.id}
+                                onClick={() => {
+                                  filter(e.id);
+                                  setFiltersOpen(false);
+                                }}
+                              >
+                                {e.name}
+                              </button>
+                            ))}
+                          </div>
+                        </SheetContent>
+                      </Sheet>
                       <div className="progress-list-options">
                         <p role="status">
                           {filtered.length}{" "}
@@ -264,7 +289,7 @@ export function HistoryScreen({
                             value={sort}
                             onChange={(e) => {
                               setSort(e.target.value as HistorySort);
-                              setLimit(20);
+                              setLimit(5);
                             }}
                           >
                             <option value="recent">Mais recentes</option>
@@ -299,6 +324,7 @@ export function HistoryScreen({
                             className="torvik-secondary"
                             disabled={picked.length !== 2}
                             onClick={() => {
+                              listScroll.current = window.scrollY;
                               returnFocus.current = "compare-selected";
                               setComparing(true);
                             }}
@@ -391,6 +417,7 @@ export function HistoryScreen({
                                     id={`session-${r.id}`}
                                     type="button"
                                     onClick={() => {
+                                      listScroll.current = window.scrollY;
                                       returnFocus.current = `session-${r.id}`;
                                       setDetail(r.id);
                                     }}
@@ -414,6 +441,19 @@ export function HistoryScreen({
                         </button>
                       )}
                     </section>
+                    <details className="app-disclosure">
+                      <summary>Gráficos de evolução</summary>
+                      <EvolutionChart sessions={sessions} />
+                    </details>
+                    <ActivityCalendar
+                      sessions={sessions}
+                      selected={day}
+                      onSelect={(value) => {
+                        setDay(value);
+                        setExercise("all");
+                        setLimit(5);
+                      }}
+                    />
                   </>
                 )}
               </>

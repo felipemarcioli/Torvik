@@ -2110,3 +2110,374 @@
     grid-template-columns: minmax(0, 144px) minmax(0, 1fr);
   }
 }
+
+/* App shell and presentation screens. All workout measurements stay in useWorkout. */
+.app-shell {
+  min-height: 100dvh;
+  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+}
+.app-content {
+  max-width: 56rem;
+  margin-inline: auto;
+  padding: max(1.25rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) 1.5rem
+    max(1rem, env(safe-area-inset-left));
+}
+.app-heading {
+  margin-bottom: 1.5rem;
+}
+.app-heading h1 {
+  font-size: clamp(1.7rem, 5vw, 2.25rem);
+  font-weight: 800;
+  line-height: 1.2;
+  margin-top: 0.4rem;
+}
+.app-heading > p:last-child:not(:first-child) {
+  color: var(--muted-foreground);
+  margin-top: 0.65rem;
+}
+.app-bottom-nav {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 30;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  border-top: 1px solid var(--border);
+  background: var(--card);
+  padding: 0.5rem max(0.75rem, env(safe-area-inset-right))
+    calc(0.5rem + env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-left));
+}
+.app-bottom-nav button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  min-height: 3.5rem;
+  flex: 1;
+  max-width: 15rem;
+  border-radius: 0.8rem;
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.app-bottom-nav button[aria-current="page"] {
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary);
+}
+.app-back {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  margin: 0 0 0.75rem -0.75rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.app-back:hover {
+  background: var(--secondary);
+}
+.app-shell :is(button, input, select, summary):focus-visible,
+.app-flow :is(button, input, select, summary):focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+.train-welcome {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  margin-bottom: 1.5rem;
+}
+.train-welcome img {
+  width: 64px;
+  height: 96px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.train-welcome p {
+  max-width: 28rem;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+.exercise-search {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: 0.8rem;
+  padding: 0.3rem 0.8rem;
+  margin-bottom: 1.5rem;
+  color: var(--muted-foreground);
+}
+.exercise-search:focus-within {
+  border-color: var(--primary);
+}
+.exercise-search input {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  background: transparent;
+  color: var(--foreground);
+  border-radius: 0.4rem;
+}
+.exercise-list {
+  display: grid;
+  gap: 0.75rem;
+}
+.exercise-row {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  width: 100%;
+  min-height: 76px;
+  padding: 1rem;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.18s;
+}
+.exercise-row:hover,
+.exercise-row[data-selected="true"] {
+  border-color: var(--primary);
+}
+.exercise-row > span:nth-child(2) {
+  min-width: 0;
+  flex: 1;
+}
+.exercise-row strong {
+  display: block;
+  font-size: 1rem;
+}
+.exercise-row small {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+.exercise-row-emoji {
+  font-size: 1.4rem;
+}
+.exercise-row svg {
+  flex-shrink: 0;
+  color: var(--primary);
+}
+.train-screen .workout-group-tile {
+  width: 100%;
+  gap: 0.75rem;
+}
+.workout-group-label small {
+  display: block;
+  margin-top: 0.3rem;
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+.exercise-detail {
+  max-width: 42rem;
+}
+.detail-preview {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.detail-preview img {
+  width: min(220px, 100%);
+  height: auto;
+}
+.detail-instructions {
+  margin-block: 1.5rem;
+}
+.detail-instructions ul {
+  display: grid;
+  gap: 0.75rem;
+  list-style: disc;
+  padding-left: 1.25rem;
+  margin-top: 0.75rem;
+  color: var(--muted-foreground);
+  line-height: 1.6;
+}
+.detail-start {
+  width: 100%;
+}
+.app-disclosure {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--card);
+  margin-top: 1rem;
+  line-height: 1.6;
+}
+.app-disclosure > summary {
+  min-height: 48px;
+  padding: 0.85rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.app-disclosure > :not(summary) {
+  margin: 0 1rem 1rem;
+  color: var(--muted-foreground);
+}
+.app-sheet {
+  max-height: 85dvh;
+  overflow-y: auto;
+  border-radius: 1.25rem 1.25rem 0 0;
+  padding: 1.5rem max(1.25rem, env(safe-area-inset-right))
+    calc(1.5rem + env(safe-area-inset-bottom)) max(1.25rem, env(safe-area-inset-left));
+}
+.app-confirm {
+  width: calc(100% - 2rem);
+  border-radius: 1rem;
+  max-height: 90dvh;
+  overflow-y: auto;
+}
+.app-shell .progress-content {
+  padding-top: max(1.25rem, env(safe-area-inset-top));
+}
+.progress-exercise-filters button {
+  min-height: 44px;
+}
+.report-save {
+  margin-top: 1.25rem;
+}
+.report-content {
+  padding-top: max(1rem, env(safe-area-inset-top));
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+}
+.workout-layout .workout-header {
+  padding-top: max(0.5rem, env(safe-area-inset-top));
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+  gap: 0.6rem;
+}
+.workout-header .app-back {
+  margin: 0;
+  padding-inline: 0.25rem;
+  flex-shrink: 0;
+  max-width: 6rem;
+  line-height: 1.2;
+}
+.workout-header > div:first-of-type {
+  flex: 1;
+}
+.workout-layout .workout-actions > button {
+  min-height: 44px;
+  width: auto;
+}
+.workout-layout .workout-actions > .w-full {
+  width: 100%;
+}
+.workout-layout .workout-feedback-detail {
+  display: none;
+}
+.workout-layout .workout-preparation {
+  margin-bottom: 0.75rem;
+}
+.workout-layout .workout-preparation h2 {
+  font-size: 1rem;
+}
+.workout-layout .workout-metrics {
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.6rem;
+}
+@media (max-width: 599px) {
+  .train-screen .workout-groups {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+  .train-screen .workout-group-tile {
+    min-height: 80px;
+    display: flex;
+    padding: 1rem;
+    text-align: left;
+  }
+  .train-screen .workout-group-label {
+    flex: 1;
+    font-size: 1rem;
+  }
+  .workout-layout .workout-header > div:last-child p:last-child {
+    font-size: 1.1rem;
+  }
+  .workout-layout .workout-header h1 {
+    font-size: 1rem;
+    white-space: normal;
+  }
+}
+@media (min-width: 600px) {
+  .exercise-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (orientation: portrait) and (max-height: 700px) {
+  .workout-layout {
+    height: 100dvh;
+    min-height: 0;
+    grid-template-rows: auto minmax(160px, 1fr) auto;
+  }
+  .workout-layout .camera-region {
+    min-height: 0;
+  }
+  .workout-layout .workout-controls {
+    max-height: 50dvh;
+    overflow-y: auto;
+    padding-top: 0.5rem;
+  }
+  .workout-layout .workout-metrics > div:first-child > p:first-child {
+    font-size: 2.75rem;
+  }
+}
+@media (orientation: landscape) and (max-height: 649px) {
+  .workout-layout .workout-actions > button {
+    width: auto;
+    flex: 1;
+  }
+  .workout-layout .workout-actions > .w-full {
+    width: 100%;
+    flex-basis: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-shell *,
+  .app-flow *,
+  [role="dialog"],
+  [role="alertdialog"] {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.app-shell :is(button, summary, input, select) {
+  scroll-margin-bottom: calc(6rem + env(safe-area-inset-bottom));
+}
+.app-content,
+.app-shell .progress-content {
+  animation: app-screen-enter 0.18s ease-out;
+}
+@keyframes app-screen-enter {
+  from {
+    opacity: 0.5;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-state][class*="animate"] {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+.workout-layout .workout-controls {
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+}

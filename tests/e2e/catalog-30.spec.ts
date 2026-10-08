@@ -2,7 +2,13 @@ import { test, expect, type Page } from "@playwright/test";
 import { ADDITION_IDS, type AdditionId } from "../../src/lib/exercises/additions";
 import { EXERCISE_BY_ID } from "../../src/lib/exercises/catalog";
 import { catalogPose, type Stage } from "../fixtures/catalog-30";
-import { openExerciseGroup } from "./home-helpers";
+import {
+  openExerciseGroup,
+  selectExercise,
+  prepareExercise,
+  finishWorkout,
+  changeSide,
+} from "./home-helpers";
 async function setup(page: Page, id: AdditionId) {
   await page.route("https://fonts.googleapis.com/**", (r) => r.abort());
   await page.route("https://cdn.jsdelivr.net/npm/@mediapipe/pose@*/pose.js", (r) =>
@@ -13,8 +19,8 @@ async function setup(page: Page, id: AdditionId) {
   );
   await page.goto("/");
   await openExerciseGroup(page, id);
-  await page.locator(`input[value="${id}"]:visible`).check();
-  await page.getByRole("button", { name: "Preparar câmera", exact: true }).click();
+  await selectExercise(page, id);
+  await prepareExercise(page);
   await expect(page.getByRole("button", { name: "Pausar", exact: true })).toBeVisible({
     timeout: 18000,
   });
@@ -65,7 +71,7 @@ for (const id of ADDITION_IDS) {
       }
       await pose(page, id, "base");
     }
-    await page.getByRole("button", { name: "Finalizar treino", exact: true }).click();
+    await finishWorkout(page);
     await expect(page.locator(".report-exercise")).toHaveText(EXERCISE_BY_ID[id].name);
     if (EXERCISE_BY_ID[id].type === "REP_BASED")
       await expect(page.getByText("1 de 1 nos critérios do app")).toBeVisible();
@@ -81,7 +87,7 @@ for (const id of ADDITION_IDS) {
     await page.getByRole("button", { name: "Exportar CSV" }).click();
     expect((await downloading).suggestedFilename()).toMatch(/\.csv$/);
     await page.reload();
-    await page.getByRole("button", { name: "Meu histórico" }).click();
+    await page.getByRole("button", { name: "Progresso", exact: true }).click();
     await expect(page.locator(".progress-session-card")).toContainText(EXERCISE_BY_ID[id].name);
   });
 }
@@ -94,11 +100,8 @@ test("side change preserves completed Bulgarian repetitions and prepares opposit
   await pose(page, "bulgariansquat", "target");
   await pose(page, "bulgariansquat", "base");
   await pose(page, "bulgariansquat", "base", "right");
-  await page.getByRole("button", { name: "Direito", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Direito", exact: true })).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
+  await changeSide(page, "Direito");
+
   await expect(page.getByRole("button", { name: "Pausar", exact: true })).toBeVisible({
     timeout: 18000,
   });
@@ -106,7 +109,7 @@ test("side change preserves completed Bulgarian repetitions and prepares opposit
   await pose(page, "bulgariansquat", "entry", "right");
   await pose(page, "bulgariansquat", "target", "right");
   await pose(page, "bulgariansquat", "base", "right");
-  await page.getByRole("button", { name: "Finalizar treino", exact: true }).click();
+  await finishWorkout(page);
   await expect(page.getByText("2 de 2 nos critérios do app")).toBeVisible();
   const sides = page.getByRole("region", { name: "Resultados por lado" });
   await expect(sides).toContainText("1 repetições");
@@ -118,12 +121,12 @@ test("side plank side change records separate valid times in report and history"
   await setup(page, "sideplank");
   await page.waitForTimeout(1800);
   await pose(page, "sideplank", "base", "right");
-  await page.getByRole("button", { name: "Direito", exact: true }).click();
+  await changeSide(page, "Direito");
   await expect(page.getByRole("button", { name: "Pausar", exact: true })).toBeVisible({
     timeout: 18000,
   });
   await page.waitForTimeout(1800);
-  await page.getByRole("button", { name: "Finalizar treino", exact: true }).click();
+  await finishWorkout(page);
   const sides = page.getByRole("region", { name: "Resultados por lado" });
   await expect(sides.locator("dd")).toHaveText([/^[1-9]/, /^[1-9]/]);
   await page.getByRole("button", { name: "Salvar sessão", exact: true }).click();
@@ -139,7 +142,7 @@ for (const width of [360, 390])
     await page.setViewportSize({ width, height: 800 });
     for (const id of ADDITION_IDS) {
       await openExerciseGroup(page, id);
-      await page.locator(`input[value="${id}"]:visible`).check();
+      await selectExercise(page, id);
       const img = page.locator(`#exercise-preview-${id} img`);
       await expect
         .poll(() => img.evaluate((i: HTMLImageElement) => (i.complete ? i.naturalWidth : 0)))

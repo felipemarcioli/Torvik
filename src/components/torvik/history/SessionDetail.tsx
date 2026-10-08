@@ -1,5 +1,6 @@
+import { BackButton } from "../AppNavigation";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Download, FileText, Trash2 } from "lucide-react";
+import { Download, FileText, Trash2 } from "lucide-react";
 import { exportReport, type HistorySession } from "@/lib/history";
 import { downloadCsv, printReport } from "@/lib/history-export";
 import {
@@ -43,10 +44,7 @@ export function SessionDetail({
   }
   return (
     <div className="progress-detail">
-      <button type="button" className="progress-back" onClick={onBack}>
-        <ArrowLeft size={18} />
-        Voltar ao progresso
-      </button>
+      <BackButton onClick={onBack}>Voltar ao progresso</BackButton>
       <header className="progress-header">
         <p className="torvik-kicker">Relatório salvo</p>
         <h1 ref={heading} tabIndex={-1}>

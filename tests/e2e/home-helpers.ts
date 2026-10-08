@@ -1,24 +1,49 @@
 import { expect, type Page } from "@playwright/test";
+import { EXERCISE_SECTIONS } from "../../src/components/torvik/data";
+import { EXERCISE_BY_ID, type ExerciseId } from "../../src/lib/exercises/catalog";
 
 export async function openExerciseGroup(page: Page, id: string) {
-  const group = page
-    .locator(".workout-group")
-    .filter({ has: page.locator(`input[value="${id}"]`) });
-  const dialog = group.locator("dialog");
-  if ((await dialog.getAttribute("open")) !== null) return;
-  const current = page.locator(".workout-category-dialog[open]");
-  if (await current.count()) {
-    await current.getByRole("button", { name: "Voltar às categorias" }).click();
-    await expect(current).toHaveCount(0);
+  const section = EXERCISE_SECTIONS.find((item) =>
+    item.exercises.some((exercise) => exercise.id === id),
+  )!;
+  if (await page.locator(".exercise-detail").count()) {
+    await page.getByRole("button", { name: "Voltar", exact: true }).click();
+    await expect(page.locator(".exercise-detail")).toHaveCount(0);
   }
-  await group.locator(".workout-group-tile").click();
-  await expect(dialog).toBeVisible();
-  await expect
-    .poll(() =>
-      dialog.evaluate(
-        (element) =>
-          element.getAnimations().filter((animation) => animation.playState === "running").length,
-      ),
-    )
-    .toBe(0);
+  if (await page.getByRole("heading", { name: section.title, exact: true }).count()) return;
+  const categoryBack = page.getByRole("button", { name: "Voltar às categorias" });
+  if (await categoryBack.count()) {
+    await categoryBack.click();
+    await expect(page.locator(".workout-group-tile")).toHaveCount(4);
+  }
+  await page.getByRole("button", { name: new RegExp(section.title) }).click();
+  await expect(page.getByRole("heading", { name: section.title, exact: true })).toBeVisible();
+}
+export async function selectExercise(page: Page, id: ExerciseId) {
+  await openExerciseGroup(page, id);
+  await page
+    .locator(".exercise-row")
+    .filter({ has: page.getByText(EXERCISE_BY_ID[id].name, { exact: true }) })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: EXERCISE_BY_ID[id].name, exact: true }),
+  ).toBeVisible();
+}
+export const prepareExercise = (page: Page) =>
+  page.getByRole("button", { name: /^Preparar / }).click();
+export async function finishWorkout(page: Page) {
+  const pause = page.getByRole("button", { name: "Pausar", exact: true });
+  const finish = page.getByRole("button", { name: "Finalizar treino", exact: true });
+  await expect(
+    pause.or(finish).or(page.getByRole("button", { name: "Iniciar em 5 segundos", exact: true })),
+  ).toBeVisible();
+  if (await pause.count()) await pause.click();
+  if (!(await finish.count()))
+    await page.getByRole("button", { name: "Controles de câmera e voz" }).click();
+  await finish.click();
+}
+export async function changeSide(page: Page, name: "Esquerdo" | "Direito") {
+  await page.getByRole("button", { name: "Controles de câmera e voz" }).click();
+  await page.getByRole("button", { name, exact: true }).click();
+  await page.getByRole("button", { name: "Fechar", exact: true }).click();
 }

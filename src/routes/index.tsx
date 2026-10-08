@@ -1,6 +1,6 @@
 import { useWorkoutVoice } from "@/hooks/use-workout-voice";
 import { createFileRoute } from "@tanstack/react-router";
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useState, useCallback } from "react";
 import { HomeScreen } from "@/components/torvik/HomeScreen";
 import { WorkoutScreen } from "@/components/torvik/WorkoutScreen";
 import { ReportScreen } from "@/components/torvik/ReportScreen";
@@ -8,7 +8,10 @@ const HistoryScreen = lazy(() =>
   import("@/components/torvik/HistoryScreen").then((m) => ({ default: m.HistoryScreen })),
 );
 import type { SessionReport } from "@/lib/session";
-import { useEffect, useRef } from "react";
+import { useAppNavigation } from "@/hooks/use-app-navigation";
+import { AppNavigation } from "@/components/torvik/AppNavigation";
+import { ExerciseDetailScreen } from "@/components/torvik/ExerciseDetailScreen";
+import { SettingsScreen } from "@/components/torvik/SettingsScreen";
 import type { ExerciseId } from "@/lib/biomech";
 
 const title = "Torvik — Acompanhe seu movimento pela câmera";
@@ -29,92 +32,109 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const voice = useWorkoutVoice();
-  const goHome = () => {
-    voice.controller.stop();
-    setHistoryTarget(null);
-    setScreen("home");
-  };
-  const [screen, setScreen] = useState<"home" | "workout" | "report" | "history">("home");
-  const [exercise, setExercise] = useState<ExerciseId>("squat");
+  const navigation = useAppNavigation();
+  const { view, navigate, back, guard } = navigation;
+  const [selected, setSelected] = useState<ExerciseId | undefined>();
+  const [search, setSearch] = useState("");
   const [report, setReport] = useState<SessionReport | null>(null);
   const [sessionKey, setSessionKey] = useState(0);
-  const [historyTarget, setHistoryTarget] = useState<string | null>(null);
-
-  const previousScreen = useRef(screen);
-  useEffect(() => {
-    if (previousScreen.current === screen) return;
-    previousScreen.current = screen;
-    window.scrollTo(0, 0);
-    const heading = document.querySelector<HTMLElement>("h1");
-    heading?.setAttribute("tabindex", "-1");
-    heading?.focus({ preventScroll: true });
-  }, [screen, sessionKey]);
-
-  if (screen === "history")
-    return (
-      <Suspense
-        fallback={
-          <p role="status" className="p-6">
-            Carregando progresso…
-          </p>
-        }
-      >
-        <HistoryScreen
-          key={historyTarget ?? "all"}
-          onHome={goHome}
-          initialDetailId={historyTarget}
-        />
-      </Suspense>
-    );
-
-  if (screen === "workout") {
-    return (
-      <WorkoutScreen
-        key={sessionKey}
-        exercise={exercise}
-        voice={voice}
-        onFinish={(r) => {
-          voice.controller.finish();
-          setReport(r);
-          setScreen("report");
-        }}
-        onCancel={goHome}
-      />
-    );
-  }
-
-  if (screen === "report" && report) {
-    return (
-      <ReportScreen
-        report={report}
-        onRestart={() => {
-          voice.controller.begin();
-          setSessionKey((k) => k + 1);
-          setScreen("workout");
-        }}
-        onHome={goHome}
-        onViewHistory={(id) => {
-          voice.controller.stop();
-          setHistoryTarget(id ?? null);
-          setScreen("history");
-        }}
-      />
-    );
-  }
-
+  const registerBack = useCallback(
+    (handler: () => boolean) => {
+      guard.current = handler;
+      return () => {
+        if (guard.current === handler) guard.current = null;
+      };
+    },
+    [guard],
+  );
+  const goHome = () => {
+    voice.controller.stop();
+    navigate({ screen: "home" });
+  };
+  const start = (replace = false) => {
+    if (!view.exercise) return;
+    voice.controller.begin();
+    setSessionKey((key) => key + 1);
+    navigate({ ...view, screen: "workout" }, replace);
+  };
+  const flow = view.screen === "workout" || view.screen === "report";
+  const active =
+    view.screen === "history" ? "history" : view.screen === "settings" ? "settings" : "home";
   return (
-    <HomeScreen
-      onHistory={() => {
-        setHistoryTarget(null);
-        setScreen("history");
-      }}
-      selected={exercise}
-      onSelect={setExercise}
-      onStart={() => {
-        voice.controller.begin();
-        setSessionKey((k) => k + 1);
-        setScreen("workout");
-      }}
-    />
+    <div className={flow ? "app-flow" : "app-shell"}>
+      {view.screen === "workout" && view.exercise ? (
+        <WorkoutScreen
+          key={sessionKey}
+          exercise={view.exercise}
+          voice={voice}
+          registerBack={registerBack}
+          onCancel={() => {
+            voice.controller.stop();
+            back(true);
+          }}
+          onFinish={(result) => {
+            voice.controller.finish();
+            setReport(result);
+            navigate({ ...view, screen: "report" }, true);
+          }}
+        />
+      ) : view.screen === "report" && report ? (
+        <ReportScreen
+          report={report}
+          registerBack={registerBack}
+          onRestart={() => start(true)}
+          onHome={() => back(true)}
+          onViewHistory={(id) => {
+            voice.controller.stop();
+            navigate({ screen: "history", ...(id ? { detailId: id } : {}) });
+          }}
+        />
+      ) : view.screen === "history" ? (
+        <Suspense
+          fallback={
+            <p role="status" className="p-6">
+              Carregando progresso…
+            </p>
+          }
+        >
+          <HistoryScreen
+            key={view.detailId ?? "all"}
+            initialDetailId={view.detailId ?? null}
+            onHome={goHome}
+            registerBack={registerBack}
+          />
+        </Suspense>
+      ) : view.screen === "settings" ? (
+        <SettingsScreen voice={voice} />
+      ) : view.screen === "details" && view.exercise ? (
+        <ExerciseDetailScreen
+          exercise={view.exercise}
+          onBack={() => back()}
+          onStart={() => start()}
+        />
+      ) : (
+        <HomeScreen
+          search={search}
+          onSearch={setSearch}
+          selected={selected}
+          category={view.screen === "category" ? view.category : undefined}
+          onBack={() => back()}
+          onCategory={(category) => navigate({ screen: "category", category })}
+          onOpen={(exercise) => {
+            setSelected(exercise);
+            navigate({ ...view, screen: "details", exercise });
+          }}
+        />
+      )}
+      {!flow && (
+        <AppNavigation
+          active={active}
+          onChange={(screen) => {
+            if (screen !== active) navigate({ screen });
+            else if (screen === "home" && view.screen !== "home") goHome();
+          }}
+        />
+      )}
+    </div>
   );
 }
