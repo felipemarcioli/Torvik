@@ -3,12 +3,17 @@ export type MainTab = "home" | "history" | "settings";
 export function AppNavigation({
   active,
   onChange,
+  placement = "mobile",
 }: {
   active: MainTab;
   onChange: (tab: MainTab) => void;
+  placement?: "mobile" | "desktop";
 }) {
   return (
-    <nav className="app-bottom-nav" aria-label="Navegação principal">
+    <nav
+      className={placement === "mobile" ? "app-bottom-nav" : "app-header-nav"}
+      aria-label="Navegação principal"
+    >
       {(
         [
           ["home", "Treinar", Dumbbell],
@@ -27,6 +32,29 @@ export function AppNavigation({
         </button>
       ))}
     </nav>
+  );
+}
+export function AppHeader({
+  active,
+  onChange,
+}: {
+  active: MainTab;
+  onChange: (tab: MainTab) => void;
+}) {
+  return (
+    <header className="app-desktop-header">
+      <div className="app-desktop-header-content">
+        <button
+          type="button"
+          className="app-brand font-display"
+          onClick={() => onChange("home")}
+          aria-label="Torvik · Treinar"
+        >
+          TORVIK
+        </button>
+        <AppNavigation active={active} onChange={onChange} placement="desktop" />
+      </div>
+    </header>
   );
 }
 export function BackButton({

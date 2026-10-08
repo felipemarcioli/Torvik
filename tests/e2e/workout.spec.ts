@@ -121,6 +121,8 @@ test("imagem completa e ações sem sobreposição em retrato e paisagem", async
     { width: 430, height: 932 },
     { width: 360, height: 640 },
     { width: 768, height: 1024 },
+    { width: 1366, height: 768 },
+    { width: 1920, height: 1080 },
   ]) {
     await page.setViewportSize(size);
     await expect(page.locator("video")).toHaveCSS("object-fit", "contain");
@@ -467,6 +469,9 @@ test("relatório destaca resultados, salva antes de novo treino e consulta anter
     [360, 800],
     [390, 844],
     [844, 390],
+    [768, 1024],
+    [1366, 768],
+    [1920, 1080],
   ]) {
     await page.setViewportSize({ width: width!, height: height! });
     await expect

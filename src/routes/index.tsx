@@ -1,6 +1,6 @@
 import { useWorkoutVoice } from "@/hooks/use-workout-voice";
 import { createFileRoute } from "@tanstack/react-router";
-import { lazy, Suspense, useState, useCallback } from "react";
+import { lazy, Suspense, useState, useCallback, useRef } from "react";
 import { HomeScreen } from "@/components/torvik/HomeScreen";
 import { WorkoutScreen } from "@/components/torvik/WorkoutScreen";
 import { ReportScreen } from "@/components/torvik/ReportScreen";
@@ -9,7 +9,7 @@ const HistoryScreen = lazy(() =>
 );
 import type { SessionReport } from "@/lib/session";
 import { useAppNavigation } from "@/hooks/use-app-navigation";
-import { AppNavigation } from "@/components/torvik/AppNavigation";
+import { AppNavigation, AppHeader, type MainTab } from "@/components/torvik/AppNavigation";
 import { ExerciseDetailScreen } from "@/components/torvik/ExerciseDetailScreen";
 import { SettingsScreen } from "@/components/torvik/SettingsScreen";
 import type { ExerciseId } from "@/lib/biomech";
@@ -36,6 +36,7 @@ function Index() {
   const { view, navigate, back, guard } = navigation;
   const [selected, setSelected] = useState<ExerciseId | undefined>();
   const [search, setSearch] = useState("");
+  const categoryPositions = useRef<Record<string, number>>({});
   const [report, setReport] = useState<SessionReport | null>(null);
   const [sessionKey, setSessionKey] = useState(0);
   const registerBack = useCallback(
@@ -52,16 +53,22 @@ function Index() {
     navigate({ screen: "home" });
   };
   const start = (replace = false) => {
-    if (!view.exercise) return;
+    const exercise = view.exercise ?? selected;
+    if (!exercise) return;
     voice.controller.begin();
     setSessionKey((key) => key + 1);
-    navigate({ ...view, screen: "workout" }, replace);
+    navigate({ ...view, screen: "workout", exercise }, replace);
   };
   const flow = view.screen === "workout" || view.screen === "report";
   const active =
     view.screen === "history" ? "history" : view.screen === "settings" ? "settings" : "home";
+  const changeTab = (screen: MainTab) => {
+    if (screen !== active) navigate({ screen });
+    else if (screen === "home" && view.screen !== "home") goHome();
+  };
   return (
     <div className={flow ? "app-flow" : "app-shell"}>
+      {!flow && <AppHeader active={active} onChange={changeTab} />}
       {view.screen === "workout" && view.exercise ? (
         <WorkoutScreen
           key={sessionKey}
@@ -120,21 +127,17 @@ function Index() {
           category={view.screen === "category" ? view.category : undefined}
           onBack={() => back()}
           onCategory={(category) => navigate({ screen: "category", category })}
-          onOpen={(exercise) => {
+          onSelect={setSelected}
+          onStart={() => start()}
+          onHistory={() => navigate({ screen: "history" })}
+          categoryPositions={categoryPositions}
+          onDetails={(exercise) => {
             setSelected(exercise);
             navigate({ ...view, screen: "details", exercise });
           }}
         />
       )}
-      {!flow && (
-        <AppNavigation
-          active={active}
-          onChange={(screen) => {
-            if (screen !== active) navigate({ screen });
-            else if (screen === "home" && view.screen !== "home") goHome();
-          }}
-        />
-      )}
+      {!flow && <AppNavigation active={active} onChange={changeTab} />}
     </div>
   );
 }

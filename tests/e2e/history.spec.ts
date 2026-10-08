@@ -177,8 +177,8 @@ test("vazio, armazenamento indisponível e exportação bloqueada são recuperá
   await seed(page, []);
   await expect(page.getByText(/Nenhuma sessão salva/)).toBeVisible();
   await page.getByRole("button", { name: "Iniciar um treino" }).click();
-  await expect(page.getByRole("heading", { name: "Vamos treinar?" })).toBeVisible();
-  await expect(page.getByRole("button", { name: /^Preparar/ })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Escolha o exercício" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Preparar câmera", exact: true })).toBeDisabled();
   await seed(page, fixtures(1));
   await page.locator("#session-a").click();
   await page.evaluate(() => {

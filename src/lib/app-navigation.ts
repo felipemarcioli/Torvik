@@ -32,6 +32,8 @@ export class AppNavigator {
   navigate(view: AppView, replace = false) {
     this.rememberPosition();
     const next = { view, index: this.current.index + (replace ? 0 : 1), key: ++this.serial };
+    // Category dialogs expand over the home without moving the card underneath.
+    if (view.screen === "category") this.positions.set(next.key, this.port.scrollY());
     if (replace) this.port.replace(next);
     else this.port.push(next);
     this.commit(next);

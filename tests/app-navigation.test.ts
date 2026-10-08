@@ -73,6 +73,22 @@ test("report replaces workout so back never restores a finished camera session",
   expect(app.current.view).toEqual({ screen: "details", exercise: "squat" });
 });
 
+test("restored category dialog keeps the home scroll and returns there after a direct workout", () => {
+  const { app, scroll, entries } = browser();
+  scroll(380);
+  app.navigate({ screen: "category", category: "legs" });
+  expect(app.scrollPosition).toBe(380);
+  app.navigate({ screen: "workout", category: "legs", exercise: "squat" });
+  app.navigate({ screen: "report", category: "legs", exercise: "squat" }, true);
+  expect(entries.map((entry) => entry.view.screen)).toEqual(["home", "category", "report"]);
+  app.back();
+  expect(app.current.view).toEqual({ screen: "category", category: "legs" });
+  expect(app.scrollPosition).toBe(380);
+  app.back();
+  expect(app.current.view.screen).toBe("home");
+  expect(app.scrollPosition).toBe(380);
+});
+
 test("browser back opens pause or confirmation without leaving; explicit discard goes back once", () => {
   const { app, browserBack, entries, rendered } = browser();
   app.navigate({ screen: "details", exercise: "plank" });

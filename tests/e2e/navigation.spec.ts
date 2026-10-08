@@ -1,5 +1,5 @@
 import { test, expect } from "./build-fixture";
-import { selectExercise, openExerciseGroup } from "./home-helpers";
+import { selectExercise, selectInCategory, openExerciseGroup } from "./home-helpers";
 import { EXERCISE_SECTIONS } from "../../src/components/torvik/data";
 import { EXERCISES } from "../../src/lib/exercises/catalog";
 
@@ -8,11 +8,14 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/");
 });
 
-test("home is compact, no default exercise, consistent tabs and useful settings", async ({
+test("restored home has preparation, no default exercise and useful navigation/settings", async ({
   page,
 }) => {
-  await expect(page.getByRole("button", { name: /^Preparar/ })).toHaveCount(0);
-  await expect(page.locator(".detail-preview, .home-preparation, .exercise-row")).toHaveCount(0);
+  await expect(page.locator(".home-preparation")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Exercício atual" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Antes de começar" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Preparar câmera", exact: true })).toBeDisabled();
+  await expect(page.locator(".workout-group-tile.torvik-panel")).toHaveCount(4);
   const nav = page.getByRole("navigation", { name: "Navegação principal" });
   await expect(nav.getByRole("button")).toHaveText(["Treinar", "Progresso", "Ajustes"]);
   await expect(nav.getByRole("button", { name: "Treinar" })).toHaveAttribute(
@@ -35,16 +38,14 @@ test("home is compact, no default exercise, consistent tabs and useful settings"
   await expect(page.getByRole("slider", { name: /Volume/ })).toHaveValue("0.4");
 });
 
-test("categories show all catalog entries, details reuse instructions and preserve selection", async ({
+test("animated categories contain all 30 entries and selection/details reuse the catalog", async ({
   page,
 }) => {
-  await expect(page.locator(".workout-group-tile")).toHaveCount(4);
   const seen: string[] = [];
   for (const section of EXERCISE_SECTIONS) {
     await openExerciseGroup(page, section.exercises[0]!.id);
-    await expect(page.locator(".exercise-row strong")).toHaveText(
-      section.exercises.map((item) => item.name),
-    );
+    const dialog = page.locator("dialog[open]");
+    await expect(dialog.locator(".exercise-card")).toHaveCount(section.exercises.length);
     for (const exercise of section.exercises) {
       await selectExercise(page, exercise.id);
       await expect(page.locator(".detail-instructions li")).toHaveText(
@@ -63,17 +64,44 @@ test("categories show all catalog entries, details reuse instructions and preser
           : exercise.previewAnimation,
       );
       await page.getByRole("button", { name: "Voltar", exact: true }).click();
-      await expect(page.locator('.exercise-row[data-selected="true"] strong')).toHaveText(
-        exercise.name,
-      );
-      await expect(page.locator('.exercise-row[data-selected="true"]')).toHaveAttribute(
-        "aria-current",
-        "true",
-      );
+      const selected = dialog.locator('.exercise-card[data-selected="true"]');
+      await expect(selected.locator("input:visible")).toBeChecked();
+      await expect(selected).toContainText(exercise.name);
       seen.push(exercise.id);
     }
+    await dialog.getByRole("button", { name: "Voltar às categorias" }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(page.locator(".current-exercise-content")).toContainText(
+      section.exercises.at(-1)!.name,
+    );
   }
   expect(seen.sort()).toEqual(EXERCISES.map((item) => item.id).sort());
+});
+
+test("preparing from the restored category uses the selected exercise and back reopens it", async ({
+  page,
+}) => {
+  await page.route("https://cdn.jsdelivr.net/npm/@mediapipe/pose@*/pose.js", (route) =>
+    route.fulfill({
+      contentType: "text/javascript",
+      body: "window.Pose=class{setOptions(){}onResults(cb){this.cb=cb}async close(){}async send(){this.cb({poseLandmarks:[]})}};",
+    }),
+  );
+  await selectInCategory(page, "lunge");
+  await page
+    .locator("dialog[open]")
+    .getByRole("button", { name: "Preparar câmera", exact: true })
+    .click();
+  await expect(page.getByRole("main", { name: "Treino de Afundo" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Iniciar em 5 segundos", exact: true }),
+  ).toBeEnabled();
+  await page.getByRole("button", { name: "Voltar", exact: true }).click();
+  await expect(page.locator("dialog[open]")).toBeVisible();
+  await expect(page.locator('dialog[open] input[value="lunge"]:visible')).toBeChecked();
+  await page.locator("dialog[open]").getByRole("button", { name: "Voltar às categorias" }).click();
+  await expect(page.locator("dialog[open]")).toHaveCount(0);
+  await expect(page.locator(".current-exercise-content")).toContainText("Afundo");
 });
 
 test("search ignores accents, keyboard opens details and browser back restores search", async ({
@@ -93,55 +121,97 @@ test("search ignores accents, keyboard opens details and browser back restores s
   await expect(page.getByRole("status")).toHaveText("0 exercícios encontrados");
 });
 
-test("list scroll and selected exercise survive details and browser back/forward", async ({
+test("category scroll and selection survive details, browser back/forward and Escape", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 360, height: 640 });
-  await openExerciseGroup(page, "wallsit");
-  await page
-    .getByRole("button", { name: /Agachamento isométrico na parede.*Ver detalhes/ })
-    .scrollIntoViewIfNeeded();
-  const before = await page.evaluate(() => scrollY);
-  await selectExercise(page, "wallsit");
+  const card = await selectInCategory(page, "wallsit");
+  const details = card.getByRole("button", { name: /^Ver detalhes de/ });
+  await details.scrollIntoViewIfNeeded();
+  const scroll = page.locator("dialog[open] .workout-category-scroll");
+  const before = await scroll.evaluate((element) => element.scrollTop);
+  await details.click();
   await page.goBack();
-  await expect(page.getByRole("heading", { name: "Treino de Pernas", exact: true })).toBeVisible();
-  await expect.poll(() => page.evaluate(() => scrollY)).toBe(before);
+  await expect(page.locator("dialog[open]")).toBeVisible();
+  await expect.poll(() => scroll.evaluate((element) => element.scrollTop)).toBe(before);
   await page.goForward();
   await expect(
     page.getByRole("heading", { name: /Agachamento isométrico na parede/ }),
   ).toBeVisible();
+  await page.goBack();
+  await page.keyboard.press("Escape");
+  await expect(page.locator("dialog[open]")).toHaveCount(0);
+  await expect(page.locator(".current-exercise-content")).toContainText(
+    "Agachamento isométrico na parede",
+  );
 });
 
 for (const [width, height] of [
   [360, 800],
   [390, 844],
-  [430, 932],
+  [768, 1024],
+  [1366, 768],
+  [1920, 1080],
   [360, 640],
   [844, 390],
-  [1440, 900],
-])
-  test(`home, list, details and settings fit ${width}×${height}`, async ({ page }) => {
+]) {
+  test(`restored home and navigation fit ${width}×${height}`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width: width!, height: height! });
     const fit = async () =>
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true,
       );
     await fit();
+    const mobile = width! < 768;
+    await expect(page.locator(".app-bottom-nav")).toBeVisible({ visible: mobile });
+    await expect(page.locator(".app-desktop-header")).toBeVisible({ visible: !mobile });
+    await expect(page.locator(width! < 600 ? ".home-mobile-welcome" : ".home-hero")).toBeVisible();
+    for (const tile of await page.locator(".workout-group-tile").all()) {
+      const style = await tile.evaluate((button) => ({
+        border: getComputedStyle(button).borderTopWidth,
+        background: getComputedStyle(button).backgroundColor,
+      }));
+      expect(style.border).not.toBe("0px");
+      expect(style.background).not.toBe("rgba(0, 0, 0, 0)");
+    }
+    const path = testInfo.outputPath(`home-${width}.png`);
+    await page.screenshot({ path, fullPage: true });
+    await testInfo.attach(`Home ${width}px`, { path, contentType: "image/png" });
+    const card = await selectInCategory(page, "mountainclimber");
+    await fit();
+    if (width! < 600) await expect(card.locator(".mobile-exercise-preview")).toBeVisible();
+    else {
+      await card.getByRole("button", { name: "Ver instruções", exact: true }).click();
+      await expect(card.locator("ul")).toBeVisible();
+    }
+    await page
+      .locator("dialog[open]")
+      .getByRole("button", { name: "Voltar às categorias" })
+      .click();
+    await expect(page.locator("dialog[open]")).toHaveCount(0);
+    await expect(page.locator(".current-exercise-preview img")).toBeVisible();
+    const start = page.getByRole("button", { name: "Preparar câmera", exact: true });
+    await expect(start).toBeEnabled();
+    await start.scrollIntoViewIfNeeded();
+    if (mobile) {
+      const box = await start.boundingBox(),
+        nav = await page.locator(".app-bottom-nav").boundingBox();
+      expect(box!.y + box!.height).toBeLessThanOrEqual(nav!.y);
+    }
     await selectExercise(page, "mountainclimber");
     await fit();
-    const button = page.getByRole("button", { name: /^Preparar/ });
-    await button.scrollIntoViewIfNeeded();
-    const box = await button.boundingBox(),
-      nav = await page.locator(".app-bottom-nav").boundingBox();
-    expect(box!.y + box!.height).toBeLessThanOrEqual(nav!.y);
     await page.emulateMedia({ reducedMotion: "reduce" });
     await expect
       .poll(() =>
         page.locator(".detail-preview img").evaluate((img: HTMLImageElement) => img.currentSrc),
       )
       .toContain("still.webp");
+    await page.getByRole("button", { name: "Progresso", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Progresso", exact: true })).toBeVisible();
+    await fit();
     await page.getByRole("button", { name: "Ajustes", exact: true }).click();
     await fit();
     await page.addStyleTag({ content: "html { font-size: 24px !important; }" });
     await fit();
   });
+}

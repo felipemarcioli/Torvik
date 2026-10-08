@@ -52,8 +52,12 @@ export function useAppNavigation() {
     // Let the router finish its own history notification before restoring the list.
     const frame = requestAnimationFrame(() => {
       window.scrollTo(0, position);
-      const heading = document.querySelector<HTMLElement>("h1");
-      heading?.setAttribute("tabindex", "-1");
+      const heading =
+        document.querySelector<HTMLElement>("dialog[open] .workout-category-back") ??
+        Array.from(document.querySelectorAll<HTMLElement>("h1")).find(
+          (item) => item.getClientRects().length > 0,
+        );
+      if (heading && heading.tagName !== "BUTTON") heading.setAttribute("tabindex", "-1");
       heading?.focus({ preventScroll: true });
     });
     return () => cancelAnimationFrame(frame);

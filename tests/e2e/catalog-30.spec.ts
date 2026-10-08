@@ -1,4 +1,5 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect } from "./build-fixture";
+import type { Page } from "@playwright/test";
 import { ADDITION_IDS, type AdditionId } from "../../src/lib/exercises/additions";
 import { EXERCISE_BY_ID } from "../../src/lib/exercises/catalog";
 import { catalogPose, type Stage } from "../fixtures/catalog-30";

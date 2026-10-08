@@ -10,20 +10,39 @@ export async function openExerciseGroup(page: Page, id: string) {
     await page.getByRole("button", { name: "Voltar", exact: true }).click();
     await expect(page.locator(".exercise-detail")).toHaveCount(0);
   }
-  if (await page.getByRole("heading", { name: section.title, exact: true }).count()) return;
-  const categoryBack = page.getByRole("button", { name: "Voltar às categorias" });
-  if (await categoryBack.count()) {
-    await categoryBack.click();
-    await expect(page.locator(".workout-group-tile")).toHaveCount(4);
+  const dialog = page.locator("dialog[open]");
+  if (await dialog.getByRole("heading", { name: section.title, exact: true }).count()) return;
+  if (await dialog.count()) {
+    await dialog.getByRole("button", { name: "Voltar às categorias" }).click();
+    await expect(dialog).toHaveCount(0);
   }
   await page.getByRole("button", { name: new RegExp(section.title) }).click();
-  await expect(page.getByRole("heading", { name: section.title, exact: true })).toBeVisible();
+  await expect(dialog.getByRole("heading", { name: section.title, exact: true })).toBeVisible();
+}
+export async function selectInCategory(page: Page, id: ExerciseId) {
+  await openExerciseGroup(page, id);
+  const card = page
+    .locator("dialog[open] .exercise-card")
+    .filter({ has: page.locator(`input[value="${id}"]`) });
+  const radio = card.locator("input:visible");
+  await radio.check();
+  // On phones, selecting also expands the existing sprite preview.
+  if (
+    (await card.locator(".mobile-exercise-select:visible").count()) &&
+    (await card.getAttribute("data-preview-open")) !== "true"
+  ) {
+    await card.locator(".mobile-exercise-select").click();
+  }
+  await expect(radio).toBeChecked();
+  return card;
 }
 export async function selectExercise(page: Page, id: ExerciseId) {
-  await openExerciseGroup(page, id);
-  await page
-    .locator(".exercise-row")
-    .filter({ has: page.getByText(EXERCISE_BY_ID[id].name, { exact: true }) })
+  const card = await selectInCategory(page, id);
+  await card
+    .getByRole("button", {
+      name: `Ver detalhes de ${EXERCISE_BY_ID[id].name.toLocaleLowerCase("pt-BR")}`,
+      exact: true,
+    })
     .click();
   await expect(
     page.getByRole("heading", { name: EXERCISE_BY_ID[id].name, exact: true }),
