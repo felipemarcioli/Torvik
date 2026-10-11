@@ -41,6 +41,8 @@ test("restored home has preparation, no default exercise and useful navigation/s
 test("animated categories contain all 30 entries and selection/details reuse the catalog", async ({
   page,
 }) => {
+  // This single test traverses 30 animated cards and detail screens on mobile too.
+  test.setTimeout(60000);
   const seen: string[] = [];
   for (const section of EXERCISE_SECTIONS) {
     await openExerciseGroup(page, section.exercises[0]!.id);
