@@ -2498,6 +2498,7 @@
     max-width: 69rem;
     margin-inline: auto;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: 1.5rem;
