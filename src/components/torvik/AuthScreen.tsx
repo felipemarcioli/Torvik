@@ -1,5 +1,15 @@
 import { useState, type FormEvent } from "react";
-import { ArrowRight, Eye, EyeOff, Mail } from "lucide-react";
+import {
+  Activity,
+  ArrowRight,
+  ChartNoAxesCombined,
+  Eye,
+  EyeOff,
+  LockKeyhole,
+  Mail,
+  ScanLine,
+  UserRound,
+} from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { getSupabase } from "@/lib/supabase";
 import { authErrorMessage, authRedirect, passwordError, MIN_PASSWORD_LENGTH } from "@/lib/auth";
@@ -97,35 +107,71 @@ export function AuthScreen({ onGuest }: { onGuest: () => void }) {
     }
   }
   return (
-    <main className="auth-screen hero-glow">
+    <main className="auth-screen">
       <div className="auth-layout">
         <section className="auth-intro" aria-label="Torvik">
-          <p className="torvik-kicker">Torvik</p>
-          <h2>
-            Seu movimento.
-            <br />
-            Sua evolução.
-          </h2>
-          <p>Treine com a câmera, acompanhe seus resultados e encontre seu ritmo.</p>
-          <img
-            src="/torvik-image-2d.webp"
-            width="160"
-            height="240"
-            alt="Torvik, mascote do treino"
-          />
+          <div className="auth-brand">
+            <span className="auth-brand-symbol">
+              <Activity size={24} aria-hidden="true" />
+            </span>
+            <span>TORVIK</span>
+          </div>
+          <div className="auth-intro-copy">
+            <p className="auth-eyebrow">Seu treino, no seu ritmo</p>
+            <h2>
+              Seu movimento.
+              <br />
+              <span>Sua evolução.</span>
+            </h2>
+            <p>
+              Um treino de cada vez. Acompanhe seus movimentos e veja até onde você pode chegar.
+            </p>
+          </div>
+          <div className="auth-mascot-scene">
+            <div className="auth-mascot-orbit" aria-hidden="true" />
+            <img
+              src="/torvik-image-2d.webp"
+              width="200"
+              height="300"
+              alt="Torvik, mascote do treino"
+            />
+            <div className="auth-scene-note">
+              <span>
+                <ScanLine size={18} aria-hidden="true" />
+              </span>
+              <div>
+                <strong>Treine com a câmera</strong>
+                <p>Feedback em tempo real</p>
+              </div>
+            </div>
+          </div>
+          <div className="auth-intro-footer">
+            <ChartNoAxesCombined size={18} aria-hidden="true" />
+            <p>Encontre seu ritmo. Construa sua rotina.</p>
+          </div>
         </section>
-        <section className="torvik-panel auth-panel" aria-labelledby="auth-heading">
-          <p className="torvik-kicker">
-            {recovery ? "Nova senha" : mode === "signup" ? "Sua conta Torvik" : "Vamos treinar?"}
-          </p>
-          <h1 id="auth-heading">{heading}</h1>
-          <p className="auth-description">
-            {recovery
-              ? "Escolha uma senha para voltar à sua conta."
-              : mode === "reset"
-                ? "Enviaremos um link para o e-mail da sua conta."
-                : "Seu histórico fica separado por conta neste dispositivo."}
-          </p>
+        <section className="auth-panel" aria-labelledby="auth-heading">
+          <div className="auth-form-heading">
+            <p className="auth-eyebrow">
+              {recovery
+                ? "Um novo começo"
+                : mode === "signup"
+                  ? "Faça parte do Torvik"
+                  : mode === "reset"
+                    ? "Vamos te ajudar"
+                    : "Vamos treinar?"}
+            </p>
+            <h1 id="auth-heading">{heading}</h1>
+            <p className="auth-description">
+              {recovery
+                ? "Escolha uma nova senha para acessar sua conta."
+                : mode === "reset"
+                  ? "Informe seu e-mail para receber o link de recuperação."
+                  : mode === "signup"
+                    ? "Crie sua conta e dê o primeiro passo no seu próximo treino."
+                    : "Entre na sua conta e continue no seu ritmo."}
+            </p>
+          </div>
           {auth.error && (
             <p role="alert" className="auth-error">
               {auth.error}
@@ -139,39 +185,49 @@ export function AuthScreen({ onGuest }: { onGuest: () => void }) {
               {!recovery && mode === "signup" && (
                 <label htmlFor="auth-name">
                   Como você quer ser chamado?
-                  <input
-                    id="auth-name"
-                    autoComplete="nickname"
-                    required
-                    maxLength={60}
-                    value={name}
-                    onChange={(event) => setName(event.target.value)}
-                  />
+                  <span className="auth-input-wrap">
+                    <UserRound size={18} aria-hidden="true" />
+                    <input
+                      id="auth-name"
+                      placeholder="Seu nome"
+                      autoComplete="nickname"
+                      required
+                      maxLength={60}
+                      value={name}
+                      onChange={(event) => setName(event.target.value)}
+                    />
+                  </span>
                 </label>
               )}
               {!recovery && (
                 <label htmlFor="auth-email">
                   E-mail
-                  <input
-                    id="auth-email"
-                    type="email"
-                    autoComplete="email"
-                    inputMode="email"
-                    autoCapitalize="none"
-                    spellCheck={false}
-                    required
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                  />
+                  <span className="auth-input-wrap">
+                    <Mail size={18} aria-hidden="true" />
+                    <input
+                      id="auth-email"
+                      placeholder="seu@email.com"
+                      type="email"
+                      autoComplete="email"
+                      inputMode="email"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      required
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                    />
+                  </span>
                 </label>
               )}
               {(recovery || mode !== "reset") && (
                 <>
                   <label htmlFor="auth-password">
                     {recovery ? "Nova senha" : "Senha"}
-                    <span className="auth-password">
+                    <span className="auth-input-wrap auth-password">
+                      <LockKeyhole size={18} aria-hidden="true" />
                       <input
                         id="auth-password"
+                        placeholder={newPassword ? "Crie uma senha" : "Sua senha"}
                         type={visible ? "text" : "password"}
                         autoComplete={newPassword ? "new-password" : "current-password"}
                         required
@@ -192,15 +248,19 @@ export function AuthScreen({ onGuest }: { onGuest: () => void }) {
                   {newPassword && (
                     <label htmlFor="auth-confirmation">
                       Confirmar senha
-                      <input
-                        id="auth-confirmation"
-                        type={visible ? "text" : "password"}
-                        autoComplete="new-password"
-                        required
-                        minLength={MIN_PASSWORD_LENGTH}
-                        value={confirmation}
-                        onChange={(event) => setConfirmation(event.target.value)}
-                      />
+                      <span className="auth-input-wrap">
+                        <LockKeyhole size={18} aria-hidden="true" />
+                        <input
+                          id="auth-confirmation"
+                          placeholder="Repita sua senha"
+                          type={visible ? "text" : "password"}
+                          autoComplete="new-password"
+                          required
+                          minLength={MIN_PASSWORD_LENGTH}
+                          value={confirmation}
+                          onChange={(event) => setConfirmation(event.target.value)}
+                        />
+                      </span>
                       <span className="auth-hint">Use pelo menos 8 caracteres.</span>
                     </label>
                   )}
@@ -240,12 +300,16 @@ export function AuthScreen({ onGuest }: { onGuest: () => void }) {
                 className="auth-link auth-switch"
                 onClick={() => changeMode(mode === "login" ? "signup" : "login")}
               >
-                {mode === "login" ? "Ainda não tem conta? Cadastre-se" : "Já tem conta? Entrar"}
+                <span>{mode === "login" ? "Ainda não tem conta?" : "Já tem conta?"}</span>{" "}
+                <strong>{mode === "login" ? "Cadastre-se" : "Entrar"}</strong>
               </button>
+              <div className="auth-divider" aria-hidden="true">
+                <span>ou</span>
+              </div>
               <button
                 type="button"
                 disabled={pending}
-                className="torvik-secondary w-full"
+                className="torvik-secondary auth-guest w-full"
                 onClick={onGuest}
               >
                 Continuar sem conta
@@ -253,7 +317,8 @@ export function AuthScreen({ onGuest }: { onGuest: () => void }) {
             </>
           )}
           <p className="auth-footnote">
-            A câmera é analisada no dispositivo. Seus treinos ainda não são sincronizados na nuvem.
+            <LockKeyhole size={14} aria-hidden="true" />
+            <span>Seu histórico fica nesta conta, neste dispositivo.</span>
           </p>
         </section>
       </div>
