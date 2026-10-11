@@ -55,3 +55,27 @@ export function LoadingState({ children }: { children: ReactNode }) {
     </div>
   );
 }
+
+export function StatePage({
+  title,
+  eyebrow = "Torvik",
+  children,
+  actions,
+}: {
+  title: string;
+  eyebrow?: string;
+  children: ReactNode;
+  actions: ReactNode;
+}) {
+  return (
+    <main className="app-state-screen">
+      <section className="app-state-content">
+        <Mascot decorative />
+        <ScreenHeading title={title} eyebrow={eyebrow}>
+          {children}
+        </ScreenHeading>
+        <div className="app-state-actions">{actions}</div>
+      </section>
+    </main>
+  );
+}

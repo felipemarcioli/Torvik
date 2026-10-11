@@ -2981,3 +2981,33 @@ textarea {
   white-space: nowrap;
   width: 3rem;
 }
+
+.app-state-screen {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: max(1.5rem, env(safe-area-inset-top)) 1.25rem calc(1.5rem + env(safe-area-inset-bottom));
+}
+.app-state-content {
+  max-width: 30rem;
+  text-align: center;
+}
+.app-state-content > .torvik-mascot {
+  height: 180px;
+  margin-inline: auto;
+}
+.app-state-content .app-heading {
+  margin-top: 1.5rem;
+}
+.app-state-content .app-heading h1 {
+  font-size: clamp(1.75rem, 6vw, 2.25rem);
+}
+.app-state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+.lab-screen .app-content {
+  max-width: 56rem;
+}

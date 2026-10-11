@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { StatePage, LoadingState } from "@/components/torvik/TorvikUI";
 import { lazy, Suspense } from "react";
 const PoseLab = lazy(() =>
   import("@/components/torvik/PoseLab").then((module) => ({ default: module.PoseLab })),
@@ -7,21 +8,21 @@ export const Route = createFileRoute("/lab")({ component: Laboratory });
 function Laboratory() {
   if (!import.meta.env.DEV && import.meta.env["VITE_ENABLE_POSE_LAB"] !== "true")
     return (
-      <main className="p-8">
-        <h1>Laboratório experimental desativado</h1>
-        <Link to="/" className="text-primary underline">
-          Voltar ao início
-        </Link>
-      </main>
+      <StatePage
+        title="Laboratório experimental desativado"
+        eyebrow="Torvik"
+        actions={
+          <Link to="/" className="torvik-primary">
+            Voltar ao início
+          </Link>
+        }
+      >
+        A ferramenta de comparação de motores está desativada nesta versão. Seus treinos continuam
+        disponíveis.
+      </StatePage>
     );
   return (
-    <Suspense
-      fallback={
-        <p role="status" className="p-8">
-          Carregando laboratório…
-        </p>
-      }
-    >
+    <Suspense fallback={<LoadingState>Carregando laboratório…</LoadingState>}>
       <PoseLab />
     </Suspense>
   );

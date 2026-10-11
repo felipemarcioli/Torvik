@@ -9,24 +9,23 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
+import { StatePage } from "@/components/torvik/TorvikUI";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
   return (
-    <div className="hero-glow flex min-h-screen items-center justify-center px-4">
-      <div className="torvik-panel w-full max-w-md p-8 text-center sm:p-10">
-        <p className="torvik-kicker">Torvik</p>
-        <h1 className="mt-2 font-display text-7xl font-extrabold text-primary">404</h1>
-        <h2 className="mt-3 text-2xl font-semibold">Página não encontrada</h2>
-        <p className="mt-2 text-sm text-muted-foreground">A página não existe ou foi movida.</p>
-        <div className="mt-6">
-          <Link to="/" className="torvik-primary">
-            Voltar ao início
-          </Link>
-        </div>
-      </div>
-    </div>
+    <StatePage
+      title="Página não encontrada"
+      eyebrow="Vamos voltar ao treino"
+      actions={
+        <Link to="/" className="torvik-primary">
+          Voltar ao início
+        </Link>
+      }
+    >
+      A página não existe ou foi movida.
+    </StatePage>
   );
 }
 
@@ -37,17 +36,13 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   }, [error]);
 
   return (
-    <div className="hero-glow flex min-h-screen items-center justify-center px-4">
-      <div className="torvik-panel w-full max-w-md p-8 text-center sm:p-10">
-        <p className="torvik-kicker text-caution">Atenção</p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-          Não foi possível carregar a página
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Ocorreu um problema. Tente novamente ou volte ao início.
-        </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
+    <StatePage
+      title="Não foi possível carregar a página"
+      eyebrow="Vamos tentar de novo"
+      actions={
+        <>
           <button
+            type="button"
             onClick={() => {
               router.invalidate();
               reset();
@@ -59,9 +54,11 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
           <a href="/" className="torvik-secondary">
             Voltar ao início
           </a>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    >
+      Ocorreu um problema. Tente novamente ou volte ao início.
+    </StatePage>
   );
 }
 
@@ -69,8 +66,13 @@ export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      {
+        name: "viewport",
+        content:
+          "width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content",
+      },
       { title: "Torvik" },
+      { name: "theme-color", content: "#0c1727" },
       { name: "description", content: "Acompanhamento local de movimento pela câmera." },
       { name: "author", content: "Torvik" },
       { property: "og:title", content: "Torvik" },

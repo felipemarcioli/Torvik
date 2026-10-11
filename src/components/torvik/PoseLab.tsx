@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPose } from "@/lib/mediapipe";
 import type { ExerciseId } from "@/lib/biomech";
 import { evaluateVideo, type EvaluationResult } from "@/lib/pose/evaluation";
+import { ScreenHeading } from "./TorvikUI";
 import { EXERCISES } from "./data";
 export function PoseLab() {
   const video = useRef<HTMLVideoElement>(null),
@@ -70,18 +71,15 @@ export function PoseLab() {
     }
   }
   return (
-    <main className="hero-glow min-h-screen">
-      <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-12">
+    <main className="lab-screen">
+      <div className="app-content">
         <a href="/" className="torvik-secondary text-sm">
           Voltar ao Torvik
         </a>
-        <p className="torvik-kicker mt-8">Ferramenta experimental</p>
-        <h1 className="mt-1 text-3xl font-bold sm:text-4xl">Laboratório local de pose</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-          Área experimental. Compare o mesmo vídeo nos dois motores, a 15 amostras por segundo, até
-          60 segundos. O arquivo permanece no navegador; os modelos são baixados pela internet.
-          Estes resultados não validam capacidade clínica.
-        </p>
+        <ScreenHeading title="Laboratório local de pose" eyebrow="Ferramenta experimental">
+          Compare o mesmo vídeo nos dois motores, a 15 amostras por segundo, até 60 segundos. O
+          arquivo permanece no navegador. Os resultados não validam capacidade clínica.
+        </ScreenHeading>
         <div className="torvik-panel mt-6 p-5 sm:p-6">
           <label className="block font-semibold">
             Vídeo autorizado
