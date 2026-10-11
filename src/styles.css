@@ -993,7 +993,7 @@ textarea {
 .camera-status {
   position: absolute;
   left: 1rem;
-  top: 0.875rem;
+  bottom: 0.875rem;
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -1011,6 +1011,8 @@ textarea {
   background: var(--success);
 }
 .workout-state {
+  max-height: calc(100% - 2rem);
+  overflow-y: auto;
   border: 1px solid var(--border);
   background: #142338f2;
   border-radius: 1.5rem;
@@ -2954,4 +2956,28 @@ textarea {
 }
 .home-footer p + p {
   margin-top: 0.5rem;
+}
+
+.report-save-status {
+  color: var(--muted-foreground);
+}
+.report-save[data-saved="true"] .report-save-status {
+  color: var(--success);
+}
+.progress-detail > .progress-panel:not(:first-of-type) {
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  padding: 1.5rem 0;
+}
+@media (min-width: 600px) and (max-width: 850px) {
+  .auth-layout {
+    max-width: 32rem;
+  }
+}
+
+.voice-controls .tabular-nums {
+  white-space: nowrap;
+  width: 3rem;
 }

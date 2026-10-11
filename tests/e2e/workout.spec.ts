@@ -548,3 +548,34 @@ test("back from preparation returns to the chosen exercise without starting a se
   await page.getByRole("button", { name: "Progresso", exact: true }).click();
   await expect(page.getByText(/Nenhuma sessão salva/)).toBeVisible();
 });
+
+test("permissão negada mantém nova tentativa e saída acessíveis em retrato e paisagem", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    navigator.mediaDevices.getUserMedia = async () => {
+      throw new DOMException("Permission denied", "NotAllowedError");
+    };
+  });
+  await setup(page, false);
+  await prepareExercise(page);
+  await expect(page.getByRole("alert")).toContainText("Permissão de câmera negada");
+  for (const size of [
+    { width: 320, height: 640 },
+    { width: 844, height: 390 },
+  ]) {
+    await page.setViewportSize(size);
+    const retry = page.getByRole("button", { name: "Tentar novamente", exact: true });
+    await retry.scrollIntoViewIfNeeded();
+    const camera = await page.locator(".camera-region").boundingBox();
+    const action = await retry.boundingBox();
+    expect(action!.y).toBeGreaterThanOrEqual(camera!.y);
+    expect(action!.y + action!.height).toBeLessThanOrEqual(camera!.y + camera!.height);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+  }
+  await page.getByRole("button", { name: "Sair", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Agachamento", exact: true })).toBeVisible();
+  await expect(page.locator("video")).toHaveCount(0);
+});

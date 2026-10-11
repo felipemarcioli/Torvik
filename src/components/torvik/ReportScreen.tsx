@@ -259,14 +259,14 @@ export function ReportScreen({
           </section>
         )}
 
-        <section className="report-save" aria-label="Guardar resultado">
+        <section className="report-save" aria-label="Guardar resultado" data-saved={saved}>
           <button
             type="button"
             className="torvik-primary w-full"
             disabled={saving || saved}
             onClick={() => void save()}
           >
-            <Save size={18} aria-hidden="true" />
+            {saved ? <Check size={18} aria-hidden="true" /> : <Save size={18} aria-hidden="true" />}
             {saved ? "Salvo neste dispositivo" : saving ? "Salvando…" : "Salvar sessão"}
           </button>
           <p role="status" className="report-save-status">
