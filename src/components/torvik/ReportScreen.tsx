@@ -22,7 +22,8 @@ import {
 import { EXERCISES } from "./data";
 import { SideResults } from "./history/SideResults";
 import { formatTime, type SessionReport } from "@/lib/session";
-import { createHistoryStore, exportReport } from "@/lib/history";
+import { exportReport } from "@/lib/history";
+import { useHistoryStore } from "@/hooks/use-history-store";
 
 import { FEEDBACK } from "@/lib/exercises/feedback";
 const issueDetails = Object.fromEntries(Object.entries(FEEDBACK).map(([k, v]) => [k, v.detail]));
@@ -39,6 +40,7 @@ export function ReportScreen({
   onViewHistory: (id?: string) => void;
   registerBack: (handler: () => boolean) => () => void;
 }) {
+  const history = useHistoryStore();
   const [saved, setSaved] = useState(false),
     [saving, setSaving] = useState(false),
     [error, setError] = useState("");
@@ -82,7 +84,7 @@ export function ReportScreen({
 
   useEffect(() => {
     let disposed = false;
-    void createHistoryStore()
+    void history
       .list()
       .then((items) => {
         if (disposed) return;
@@ -94,13 +96,13 @@ export function ReportScreen({
     return () => {
       disposed = true;
     };
-  }, [report.id]);
+  }, [report.id, history]);
 
   const save = async () => {
     setSaving(true);
     setError("");
     try {
-      await createHistoryStore().save(report);
+      await history.save(report);
       setSaved(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Não foi possível salvar.");

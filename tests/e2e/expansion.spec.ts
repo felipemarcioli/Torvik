@@ -54,15 +54,16 @@ for (const id of NEW_IDS) {
     await expect(page.locator(".progress-session-card")).toContainText(EXERCISE_BY_ID[id].name);
   });
 }
-test("new previews fit mobile, retain instructions on desktop and honor reduced motion", async ({
-  page,
-}) => {
-  await page.goto("/");
-  for (const [width, height] of [
-    [360, 800],
-    [390, 844],
-  ]) {
+// Keep each viewport within its own timeout budget on slower CI runners.
+for (const [width, height] of [
+  [360, 800],
+  [390, 844],
+]) {
+  test(`new previews fit ${width}×${height} and honor reduced motion`, async ({
+    page,
+  }, testInfo) => {
     await page.setViewportSize({ width: width!, height: height! });
+    await page.goto("/");
     for (const id of NEW_IDS) {
       await openExerciseGroup(page, id);
       await selectExercise(page, id);
@@ -93,21 +94,30 @@ test("new previews fit mobile, retain instructions on desktop and honor reduced 
         true,
       );
     }
-  }
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await expect
+      .poll(() =>
+        page
+          .locator("#exercise-preview-mountainclimber img")
+          .evaluate((i: HTMLImageElement) => i.currentSrc),
+      )
+      .toContain("torvik-mountainclimber-still.webp");
+    await page.screenshot({ path: testInfo.outputPath(`previews-${width}.png`), fullPage: true });
+  });
+}
+
+test("new previews retain instructions after resizing from mobile to desktop", async ({
+  page,
+}, testInfo) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await selectExercise(page, "mountainclimber");
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect
-    .poll(() =>
-      page
-        .locator("#exercise-preview-mountainclimber img")
-        .evaluate((i: HTMLImageElement) => i.currentSrc),
-    )
-    .toContain("torvik-mountainclimber-still.webp");
-  await page.screenshot({ path: "/tmp/torvik-sixteen-mobile.png", fullPage: true });
   await page.setViewportSize({ width: 1280, height: 800 });
   await openExerciseGroup(page, "glutebridge");
   await selectExercise(page, "glutebridge");
   await expect(
     page.getByText("Posicione a câmera de lado, próxima ao chão", { exact: true }),
   ).toBeVisible();
-  await page.screenshot({ path: "/tmp/torvik-sixteen-desktop.png", fullPage: true });
+  await page.screenshot({ path: testInfo.outputPath("previews-desktop.png"), fullPage: true });
 });

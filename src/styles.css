@@ -2498,6 +2498,7 @@
     max-width: 69rem;
     margin-inline: auto;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: 1.5rem;
@@ -2654,5 +2655,194 @@
     .workout-controls
     > :is(.workout-metrics, .workout-preparation, .workout-feedback, .workout-actions) {
     width: 100%;
+  }
+}
+
+/* Account and authentication screens use the app's existing color tokens. */
+.auth-screen {
+  min-height: 100svh;
+  display: grid;
+  align-items: center;
+  padding: max(24px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right))
+    max(24px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+}
+.auth-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(32px, 7vw, 96px);
+  width: min(100%, 1000px);
+  margin: 0 auto;
+  align-items: center;
+}
+.auth-intro h2 {
+  margin-top: 12px;
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 800;
+  line-height: 1.12;
+}
+.auth-intro > p:last-of-type {
+  margin-top: 20px;
+  max-width: 340px;
+  color: var(--muted-foreground);
+}
+.auth-intro img {
+  margin: 24px auto 0;
+  height: 240px;
+  object-fit: contain;
+}
+.auth-panel {
+  padding: clamp(24px, 3vw, 40px);
+}
+.auth-panel h1 {
+  font-size: clamp(24px, 3vw, 30px);
+  font-weight: 700;
+  margin-top: 8px;
+  line-height: 1.2;
+}
+.auth-description,
+.auth-footnote {
+  color: var(--muted-foreground);
+}
+.auth-description {
+  margin: 12px 0 24px;
+  font-size: 14px;
+}
+.auth-panel fieldset {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+.auth-panel label {
+  display: grid;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.auth-panel input {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--background);
+  color: var(--foreground);
+  font-size: 16px;
+  font-weight: 400;
+}
+.auth-password {
+  display: flex;
+  position: relative;
+}
+.auth-password input {
+  padding-right: 52px;
+}
+.auth-password button {
+  position: absolute;
+  right: 2px;
+  top: 2px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  color: var(--muted-foreground);
+  border-radius: 10px;
+}
+.auth-hint,
+.auth-footnote {
+  font-size: 12px;
+  font-weight: 400;
+}
+.auth-hint {
+  color: var(--muted-foreground);
+}
+.auth-link {
+  color: var(--primary);
+  font-size: 14px;
+  min-height: 44px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.auth-forgot {
+  justify-self: end;
+  margin-top: -12px;
+}
+.auth-switch {
+  width: 100%;
+  margin: 12px 0;
+}
+.auth-footnote {
+  margin-top: 24px;
+  line-height: 1.6;
+}
+.auth-error {
+  color: var(--destructive);
+  font-size: 14px;
+}
+.auth-panel > .auth-error {
+  margin-bottom: 18px;
+}
+.auth-message {
+  display: flex;
+  gap: 10px;
+  align-items: start;
+  color: var(--success);
+  font-size: 14px;
+}
+.auth-message svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.account-card {
+  padding: 24px;
+  display: grid;
+  gap: 12px;
+}
+.account-card .torvik-primary,
+.account-card .torvik-secondary {
+  justify-self: start;
+}
+.account-card > p {
+  color: var(--muted-foreground);
+  font-size: 14px;
+}
+.account-card .account-name {
+  font-size: 20px;
+  color: var(--foreground);
+  font-weight: 600;
+}
+.account-email {
+  overflow-wrap: anywhere;
+}
+.account-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.account-heading h2 {
+  font-size: 18px;
+  font-weight: 700;
+}
+.account-heading svg {
+  color: var(--primary);
+}
+@media (max-width: 700px) {
+  .auth-layout {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    max-width: 440px;
+  }
+  .auth-intro {
+    text-align: center;
+  }
+  .auth-intro h2 {
+    font-size: 28px;
+  }
+  .auth-intro > p:last-of-type,
+  .auth-intro img {
+    display: none;
+  }
+  .auth-panel {
+    padding: 24px;
   }
 }

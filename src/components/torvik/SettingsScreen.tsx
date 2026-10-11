@@ -1,7 +1,14 @@
 import type { WorkoutVoiceControls } from "@/hooks/use-workout-voice";
 import { VoiceControls } from "./VoiceControls";
 import { CAMERA_TIPS } from "./data";
-export function SettingsScreen({ voice }: { voice: WorkoutVoiceControls }) {
+import { AccountCard } from "./AccountCard";
+export function SettingsScreen({
+  voice,
+  onLogin,
+}: {
+  voice: WorkoutVoiceControls;
+  onLogin: () => void;
+}) {
   return (
     <main className="hero-glow">
       <div className="app-content">
@@ -10,6 +17,7 @@ export function SettingsScreen({ voice }: { voice: WorkoutVoiceControls }) {
           <h1>Ajustes</h1>
           <p>Preferências e ajuda para seu treino.</p>
         </header>
+        <AccountCard onLogin={onLogin} />
         <section aria-label="Preferências de voz">
           <VoiceControls voice={voice} expanded />
         </section>
@@ -48,12 +56,17 @@ export function SettingsScreen({ voice }: { voice: WorkoutVoiceControls }) {
             <p>
               Salvar sessão é opcional e acontece somente quando você escolhe essa ação no
               relatório. Os resumos ficam neste navegador e dispositivo, em IndexedDB. Consulte,
-              exporte ou exclua uma sessão em Progresso. As preferências de voz ficam no
+              exporte ou exclua uma sessão em Progresso. O histórico fica separado por conta; os
+              treinos feitos sem conta permanecem no modo sem conta. Ao sair, o histórico da conta
+              deixa de aparecer, mas continua neste dispositivo. As preferências de voz ficam no
               armazenamento local do navegador.
             </p>
             <p>
               O navegador pode apagar os dados locais. Exporte uma cópia para preservá-los. Não há
-              sincronização nem garantia de funcionamento offline.
+              sincronização de treinos nem garantia de funcionamento offline. Ao criar uma conta,
+              seu e-mail, nome escolhido e dados de autenticação são enviados ao Supabase. O
+              navegador guarda uma sessão de acesso para manter você conectado. A senha não é salva
+              pelo código do Torvik.
             </p>
           </div>
         </details>
