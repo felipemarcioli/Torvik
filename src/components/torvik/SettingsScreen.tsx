@@ -1,6 +1,7 @@
 import type { WorkoutVoiceControls } from "@/hooks/use-workout-voice";
 import { VoiceControls } from "./VoiceControls";
 import { CAMERA_TIPS } from "./data";
+import { ScreenHeading } from "./TorvikUI";
 import { AccountCard } from "./AccountCard";
 export function SettingsScreen({
   voice,
@@ -10,17 +11,17 @@ export function SettingsScreen({
   onLogin: () => void;
 }) {
   return (
-    <main className="hero-glow">
-      <div className="app-content">
-        <header className="app-heading">
-          <p className="torvik-kicker">Torvik</p>
-          <h1>Ajustes</h1>
-          <p>Preferências e ajuda para seu treino.</p>
-        </header>
+    <main className="settings-screen">
+      <div className="app-content settings-content">
+        <ScreenHeading title="Ajustes" eyebrow="Do seu jeito">
+          Preferências e ajuda para seu treino.
+        </ScreenHeading>
         <AccountCard onLogin={onLogin} />
-        <section aria-label="Preferências de voz">
+        <section className="settings-voice" aria-label="Preferências de voz">
+          <h2 className="settings-section-title">Durante o treino</h2>
           <VoiceControls voice={voice} expanded />
         </section>
+        <h2 className="settings-section-title">Ajuda e privacidade</h2>
         <details className="app-disclosure">
           <summary>Ajuda para usar a câmera</summary>
           <ul className="space-y-3">

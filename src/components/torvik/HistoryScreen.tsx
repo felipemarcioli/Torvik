@@ -1,3 +1,4 @@
+import { Mascot, LoadingState } from "./TorvikUI";
 import {
   Sheet,
   SheetContent,
@@ -145,9 +146,7 @@ export function HistoryScreen({
               <p>Seus treinos registrados, uma sessão de cada vez.</p>
             </header>
             {loading ? (
-              <p role="status" className="progress-panel">
-                Carregando seu progresso…
-              </p>
+              <LoadingState>Carregando seu progresso…</LoadingState>
             ) : error ? (
               <section className="progress-panel">
                 <p role="alert" className="progress-error">
@@ -198,7 +197,7 @@ export function HistoryScreen({
                 )}
                 {!sessions.length ? (
                   <section className="progress-panel progress-empty">
-                    <img src="/torvik-image-2d.webp" width="160" height="240" alt="" />
+                    <Mascot decorative />
                     <h2>Seu próximo treino começa esta história</h2>
                     <p>
                       Nenhuma sessão salva. Ao terminar um treino, escolha “Salvar sessão” para

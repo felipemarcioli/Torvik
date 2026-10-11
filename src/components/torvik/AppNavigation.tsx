@@ -1,4 +1,5 @@
 import { Dumbbell, ChartNoAxesCombined, Settings, ArrowLeft } from "lucide-react";
+import { Brand } from "./TorvikUI";
 export type MainTab = "home" | "history" | "settings";
 export function AppNavigation({
   active,
@@ -50,7 +51,7 @@ export function AppHeader({
           onClick={() => onChange("home")}
           aria-label="Torvik · Treinar"
         >
-          TORVIK
+          <Brand />
         </button>
         <AppNavigation active={active} onChange={onChange} placement="desktop" />
       </div>

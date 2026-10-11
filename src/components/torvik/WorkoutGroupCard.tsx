@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, type ReactNode } from "react";
-import { ArrowLeft, Dumbbell, Footprints, Flame, Zap } from "lucide-react";
+import { ArrowLeft, ChevronRight, Dumbbell, Footprints, Flame, Zap } from "lucide-react";
 
 const ICONS = { upper: Dumbbell, legs: Footprints, core: Flame, cardio: Zap };
 type Props = {
@@ -66,7 +66,7 @@ export function WorkoutGroupCard({
     const animation = dialog.animate(
       expanded ? [collapsed, full] : [interrupted.current?.panel ?? full, collapsed],
       {
-        duration: expanded ? 420 : 360,
+        duration: expanded ? 240 : 180,
         easing: "cubic-bezier(.4, 0, .2, 1)",
         fill: "both",
       },
@@ -83,7 +83,7 @@ export function WorkoutGroupCard({
           ],
       {
         duration: expanded ? 220 : 140,
-        delay: expanded ? 100 : 0,
+        delay: expanded ? 40 : 0,
         easing: "ease-out",
         fill: "both",
       },
@@ -139,6 +139,7 @@ export function WorkoutGroupCard({
           <span className="font-bold">{title}</span>
           <span className="text-xs text-muted-foreground">{count} exercícios</span>
         </span>
+        <ChevronRight className="category-chevron" size={20} aria-hidden="true" />
       </button>
       <dialog
         ref={panel}

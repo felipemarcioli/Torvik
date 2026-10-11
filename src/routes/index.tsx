@@ -1,6 +1,7 @@
 import { useWorkoutVoice } from "@/hooks/use-workout-voice";
 import { createFileRoute } from "@tanstack/react-router";
 import { lazy, Suspense, useState, useCallback, useRef } from "react";
+import { LoadingState } from "@/components/torvik/TorvikUI";
 import { HomeScreen } from "@/components/torvik/HomeScreen";
 import { WorkoutScreen } from "@/components/torvik/WorkoutScreen";
 import { ReportScreen } from "@/components/torvik/ReportScreen";
@@ -46,8 +47,8 @@ function AuthEntry() {
   const [open, setOpen] = useState(false);
   if (loading)
     return (
-      <main className="auth-screen hero-glow">
-        <p role="status">Carregando Torvik…</p>
+      <main className="auth-screen">
+        <LoadingState>Carregando Torvik…</LoadingState>
       </main>
     );
   if (recovery || (!session && (open || (configured && !guest)))) {
@@ -130,13 +131,7 @@ function TorvikApp({ onLogin }: { onLogin: () => void }) {
           }}
         />
       ) : view.screen === "history" ? (
-        <Suspense
-          fallback={
-            <p role="status" className="p-6">
-              Carregando progresso…
-            </p>
-          }
-        >
+        <Suspense fallback={<LoadingState>Carregando progresso…</LoadingState>}>
           <HistoryScreen
             key={view.detailId ?? "all"}
             initialDetailId={view.detailId ?? null}

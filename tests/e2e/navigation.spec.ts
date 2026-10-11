@@ -8,11 +8,11 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/");
 });
 
-test("restored home has preparation, no default exercise and useful navigation/settings", async ({
+test("mobile app home has preparation, no default exercise and useful navigation/settings", async ({
   page,
 }) => {
   await expect(page.locator(".home-preparation")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Exercício atual" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Seu próximo exercício" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Antes de começar" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Preparar câmera", exact: true })).toBeDisabled();
   await expect(page.locator(".workout-group-tile.torvik-panel")).toHaveCount(4);
@@ -149,6 +149,8 @@ test("category scroll and selection survive details, browser back/forward and Es
 });
 
 for (const [width, height] of [
+  [320, 640],
+  [430, 932],
   [360, 800],
   [390, 844],
   [768, 1024],
@@ -157,7 +159,7 @@ for (const [width, height] of [
   [360, 640],
   [844, 390],
 ]) {
-  test(`restored home and navigation fit ${width}×${height}`, async ({ page }, testInfo) => {
+  test(`mobile app home and navigation fit ${width}×${height}`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width: width!, height: height! });
     const fit = async () =>
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
@@ -167,7 +169,7 @@ for (const [width, height] of [
     const mobile = width! < 768;
     await expect(page.locator(".app-bottom-nav")).toBeVisible({ visible: mobile });
     await expect(page.locator(".app-desktop-header")).toBeVisible({ visible: !mobile });
-    await expect(page.locator(width! < 600 ? ".home-mobile-welcome" : ".home-hero")).toBeVisible();
+    await expect(page.locator(".home-welcome")).toBeVisible();
     for (const tile of await page.locator(".workout-group-tile").all()) {
       const style = await tile.evaluate((button) => ({
         border: getComputedStyle(button).borderTopWidth,

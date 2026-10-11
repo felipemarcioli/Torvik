@@ -1,6 +1,8 @@
 import { EXERCISE_BY_ID } from "@/lib/exercises/catalog";
 import type { ExerciseId } from "@/lib/biomech";
 import { ExercisePreview } from "./ExercisePreview";
+import { ScreenHeading } from "./TorvikUI";
+import { ArrowRight, Package } from "lucide-react";
 import { BackButton } from "./AppNavigation";
 export function ExerciseDetailScreen({
   exercise,
@@ -16,11 +18,9 @@ export function ExerciseDetailScreen({
     <main className="train-screen hero-glow">
       <div className="app-content exercise-detail">
         <BackButton onClick={onBack} />
-        <header className="app-heading">
-          <p className="torvik-kicker">Seu próximo treino</p>
-          <h1>{details.name}</h1>
-          <p>{details.summary}</p>
-        </header>
+        <ScreenHeading title={details.name} eyebrow="Seu próximo treino">
+          {details.summary}
+        </ScreenHeading>
         <div
           className="detail-preview torvik-panel"
           id={`exercise-preview-${exercise}`}
@@ -30,8 +30,10 @@ export function ExerciseDetailScreen({
           <ExercisePreview exercise={details} animated />
           {details.previewAvailable === false && <p>Demonstração animada indisponível.</p>}
         </div>
-        <section className="torvik-panel p-4">
-          <h2 className="font-bold">Equipamento</h2>
+        <section className="detail-equipment">
+          <h2 className="font-bold">
+            <Package size={18} aria-hidden="true" /> Equipamento
+          </h2>
           <p className="mt-2 text-sm text-muted-foreground">
             {details.equipment
               ? details.equipment.length
@@ -49,10 +51,11 @@ export function ExerciseDetailScreen({
           </ul>
         </section>
         <button type="button" className="torvik-primary detail-start" onClick={onStart}>
-          Preparar {details.name.toLocaleLowerCase("pt-BR")}
+          Preparar {details.name.toLocaleLowerCase("pt-BR")}{" "}
+          <ArrowRight size={18} aria-hidden="true" />
         </button>
         <details className="app-disclosure">
-          <summary>Ver mais</summary>
+          <summary>Posicionamento e detalhes da análise</summary>
           <div className="space-y-3 text-sm text-muted-foreground">
             {details.instructions.slice(3).map((instruction) => (
               <p key={instruction}>{instruction}</p>

@@ -1,5 +1,6 @@
 import { useEffect, useState, type MutableRefObject } from "react";
-import { Search, ChevronRight } from "lucide-react";
+import { Search, ChevronRight, ArrowRight, ScanLine, ShieldCheck } from "lucide-react";
+import { Brand, Mascot } from "./TorvikUI";
 import { ExercisePreview } from "./ExercisePreview";
 import { EXERCISE_BY_ID } from "@/lib/exercises/catalog";
 import { WorkoutGroupCard } from "./WorkoutGroupCard";
@@ -91,70 +92,45 @@ export function HomeScreen({
     setOpenPreview((current) => (current === id ? null : id));
   };
   return (
-    <main className="home-screen hero-glow min-h-screen">
-      <div className="home-content mx-auto max-w-6xl px-4 pt-4 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:px-6 sm:pt-8 sm:pb-12">
-        <header className="home-header flex items-center justify-between gap-3 border-b border-border/70 pb-4">
-          <p className="font-display text-xl font-extrabold tracking-[0.12em] text-primary">
-            TORVIK
-          </p>
+    <main className="home-screen">
+      <div className="home-content">
+        <header className="home-header">
+          <Brand />
           <button
             type="button"
-            className="torvik-secondary text-sm"
+            className="home-history-link"
             disabled={!interactive}
             onClick={onHistory}
           >
-            Meu histórico
+            Meu histórico <ArrowRight size={17} aria-hidden="true" />
           </button>
         </header>
-        <section className="home-mobile-welcome hidden" aria-labelledby="mobile-welcome-title">
-          <h1 id="mobile-welcome-title" className="sr-only">
-            Treine com o Torvik
-          </h1>
-          <img
-            src="/torvik-image-3d-360.webp"
-            srcSet="/torvik-image-3d-180.webp 180w, /torvik-image-3d-360.webp 360w"
-            sizes="132px"
-            width="360"
-            height="540"
-            alt="Torvik, o canguru assistente de treino"
-            className="home-mobile-mascot"
-          />
-          <div className="home-speech-bubble">
-            <p>
-              Olá, me chamo <strong>Torvik</strong>, sou seu assistente de treino em tempo real.
-              Escolhe o exercício que eu conto e corrijo cada repetição com você!
+        <section className="home-welcome" aria-labelledby="welcome-title">
+          <div className="welcome-copy">
+            <p className="welcome-label">
+              <ScanLine size={16} aria-hidden="true" /> Seu assistente de treino
             </p>
-          </div>
-        </section>
-        <section className="home-hero mt-5 hidden items-center gap-3 sm:mt-8 sm:grid sm:grid-cols-[minmax(0,1fr)_150px] md:grid-cols-[minmax(0,1fr)_190px]">
-          <div>
-            <p className="torvik-kicker">Seu treino, com atenção ao movimento</p>
-            <h1 className="mt-2 max-w-lg text-[clamp(1.8rem,7vw,3rem)] font-bold leading-[1.08]">
-              Cada repetição conta.
+            <h1 id="welcome-title">
+              Vamos nos
+              <br />
+              movimentar<span>?</span>
             </h1>
-            <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-              Escolha um exercício. O Torvik acompanha seu movimento pela câmera e ajuda a revisar a
-              execução.
+            <p>
+              Você faz o movimento.
+              <br />O Torvik acompanha com você.
             </p>
+            <span className="welcome-privacy">
+              <ShieldCheck size={15} aria-hidden="true" /> Câmera local. Sem gravação.
+            </span>
           </div>
-          <img
-            src="/torvik-image-3d-360.webp"
-            srcSet="/torvik-image-3d-180.webp 180w, /torvik-image-3d-360.webp 360w"
-            sizes="(min-width: 768px) 190px, (min-width: 640px) 150px, 76px"
-            width="360"
-            height="540"
-            alt="Torvik, o canguru assistente de treino"
-            className="h-auto w-full drop-shadow-lg"
-          />
+          <Mascot className="welcome-mascot" />
         </section>
-        <section className="home-exercises mt-6 sm:mt-8" aria-labelledby="exercise-heading">
+        <section className="home-exercises" aria-labelledby="exercise-heading">
           <div className="flex items-end justify-between gap-4">
-            <h2 id="exercise-heading" className="text-2xl font-bold leading-tight sm:text-3xl">
+            <h2 id="exercise-heading" className="text-xl font-bold leading-tight">
               Escolha o exercício
             </h2>
-            <span className="hidden text-sm text-muted-foreground sm:inline">
-              {EXERCISES.length} opções
-            </span>
+            <span className="catalog-count">{EXERCISES.length} exercícios</span>
           </div>
           <label className="exercise-search mt-3">
             <Search size={20} aria-hidden="true" />
@@ -163,7 +139,7 @@ export function HomeScreen({
               type="search"
               value={search}
               onChange={(event) => onSearch(event.target.value)}
-              placeholder="Buscar exercício"
+              placeholder="Qual exercício você procura?"
             />
           </label>
           {search.trim() && (
@@ -171,6 +147,16 @@ export function HomeScreen({
               <p role="status" className="mb-3 text-sm text-muted-foreground">
                 {results.length} exercícios encontrados
               </p>
+              {!results.length && (
+                <div className="search-empty">
+                  <Mascot decorative />
+                  <h3>Vamos tentar outro nome?</h3>
+                  <p>Busque por um movimento, como agachamento ou flexão.</p>
+                  <button type="button" className="torvik-secondary" onClick={() => onSearch("")}>
+                    Limpar busca
+                  </button>
+                </div>
+              )}
               <div className="exercise-list">
                 {results.map((exercise) => (
                   <ExerciseRow
@@ -221,18 +207,6 @@ export function HomeScreen({
             ))}
           </fieldset>
         </section>
-        <div aria-hidden={!!openGroup} inert={!!openGroup} className="home-action mt-6">
-          <div className="mx-auto max-w-6xl">
-            <button
-              type="button"
-              className="torvik-primary w-full sm:w-auto sm:min-w-56"
-              disabled={!interactive || !selected}
-              onClick={onStart}
-            >
-              Preparar câmera
-            </button>
-          </div>
-        </div>
         <section className="home-preparation" aria-labelledby="preparation-heading">
           <h2 id="preparation-heading" className="torvik-kicker">
             Preparação
@@ -243,7 +217,7 @@ export function HomeScreen({
               aria-labelledby="current-exercise-heading"
             >
               <h3 id="current-exercise-heading" className="text-base font-bold">
-                Exercício atual
+                Seu próximo exercício
               </h3>
               {currentExercise ? (
                 <div className="current-exercise-content">
@@ -269,9 +243,19 @@ export function HomeScreen({
                 </div>
               ) : (
                 <p className="mt-3 text-sm text-muted-foreground">
-                  Selecione um exercício para ver a demonstração.
+                  Escolha uma categoria acima para encontrar seu exercício.
                 </p>
               )}
+              <div aria-hidden={!!openGroup} inert={!!openGroup} className="home-action">
+                <button
+                  type="button"
+                  className="torvik-primary w-full"
+                  disabled={!interactive || !selected}
+                  onClick={onStart}
+                >
+                  Preparar câmera <ArrowRight size={18} aria-hidden="true" />
+                </button>
+              </div>
             </section>
             <section
               className="preparation-guidance torvik-panel"
@@ -293,16 +277,14 @@ export function HomeScreen({
             </section>
           </div>
         </section>
-        <footer className="mt-6 max-w-3xl border-t border-border/70 pt-5 text-xs leading-relaxed text-muted-foreground">
+        <footer className="home-footer">
           <p>
-            O vídeo é analisado neste dispositivo e não é gravado pelo Torvik. O navegador baixa o
-            modelo e as fontes pela internet. A hospedagem e o editor podem registrar diagnósticos
-            técnicos, sem imagens da câmera.
+            Seu vídeo não é gravado. Salve o resumo ao terminar para acompanhar seus treinos neste
+            dispositivo.
           </p>
-          <p className="mt-2">
-            As orientações são estimativas baseadas em regras automáticas, sem validação clínica.
-            Adapte o exercício às suas condições e procure orientação profissional quando
-            necessário.
+          <p>
+            O feedback é uma estimativa do movimento. Respeite seus limites e procure orientação
+            profissional quando precisar.
           </p>
         </footer>
       </div>
@@ -425,7 +407,9 @@ function ExerciseCard({
         className="exercise-details-button torvik-secondary"
         onClick={onDetails}
       >
-        Ver detalhes de {exercise.name.toLocaleLowerCase("pt-BR")}
+        <span className="sr-only">Ver detalhes de {exercise.name.toLocaleLowerCase("pt-BR")}</span>
+        <span aria-hidden="true">Instruções e demonstração</span>
+        <ArrowRight size={16} aria-hidden="true" />
       </button>
       <div
         id={previewId}

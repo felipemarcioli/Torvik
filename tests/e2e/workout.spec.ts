@@ -172,12 +172,12 @@ test("início automático tolera movimento, cancela perda e não reinicia sessã
   test.setTimeout(45000);
   await setup(page);
   await prepareExercise(page);
-  await expect(page.getByRole("heading", { name: /Posicione-se na câmera/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Vamos encontrar sua posição/ })).toBeVisible();
   await expect(
     page.getByText("Prepare-se. O treino já vai começar.", { exact: true }),
   ).toBeVisible();
   await tracking(page, false);
-  await expect(page.getByRole("heading", { name: /Posicione-se na câmera/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Vamos encontrar sua posição/ })).toBeVisible();
   await expect(page.getByRole("button", { name: "Iniciar em 5 segundos" })).toBeEnabled();
   await tracking(page, true);
   await expect(

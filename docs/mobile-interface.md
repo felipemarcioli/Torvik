@@ -1,78 +1,39 @@
-# Interface e navegação para celular
+# Interface do Torvik
 
-A alteração fica na apresentação. `use-workout`, aquisição da câmera, analisadores,
-catálogo, voz, ledger, IndexedDB e formatos de exportação mantêm o comportamento
-existente. Nenhum pacote Capacitor foi instalado.
+A interface usa azul profundo (`#0c1727`), superfícies azuis (`#142338`) e laranja
+(`#ff914d`) para as ações principais. Inter e Archivo continuam sendo as fontes
+existentes. Os tokens, controles e layouts ficam em `src/styles.css`.
 
-- **Treinar:** composição da home anterior (`be849cb`): hero “Cada repetição conta.”
-  no desktop, mascote com balão no celular, quatro cards de categorias com contagem
-  e expansão animada, seleção, instruções e sprites. Preparação mostra Exercício
-  atual e Antes de começar; Preparar câmera usa a escolha explícita da pessoa.
-  Busca local e acesso aos detalhes completos continuam disponíveis, sem exercício
-  selecionado automaticamente. Detalhes preservam equipamento, três instruções do
-  catálogo e preparação identificada pelo nome. Explicações ficam em Ver mais.
-- **Treino:** navegação própria; voltar durante execução/contagem leva à pausa.
-  Continuar mantém a preparação e contagem regressiva existentes. Finalizar gera
-  o relatório. Sair com progresso exige confirmação. Câmera, lado e voz ficam
-  no painel Controles, com ajuda de posicionamento e limitações da análise.
-- **Relatório:** resultado, até três pontos de atenção em destaque e salvamento
-  opcional explícito antes de Novo treino. Outros pontos, explicações e exportação
-  são secundários. A confirmação de salvamento leva à sessão em Progresso.
-- **Progresso:** convite antes de qualquer indicador no estado vazio; resumo e
-  cinco sessões recentes quando há registros, com paginação. Filtros em painel
-  exibem somente exercícios registrados e Todos. Gráficos e calendário começam
-  recolhidos. Consulta, ordenação, comparação, exportação e exclusão continuam
-  disponíveis, incluindo sessões antigas sem detalhamento.
-- **Ajustes:** preferências de voz já existentes, ajuda, privacidade e armazenamento.
+`TorvikUI.tsx` reúne marca, mascote responsivo, títulos e carregamento. A navegação
+principal mantém Treinar, Progresso e Ajustes: inferior no celular, no cabeçalho a
+partir de 768 px. Preparação, treino e relatório ocupam uma área própria.
 
-`AppNavigator` é a fronteira da navegação de apresentação. O adaptador web mantém
-os metadados do TanStack e as posições de rolagem; um adaptador nativo futuro pode
-usar o mesmo método `back()` e seus guardas. Finalizar substitui a entrada de treino
-pelo relatório para que voltar nunca restaure uma câmera encerrada. Uma recarga
-inicia uma nova pilha de apresentação; as sessões salvas continuam em IndexedDB.
-Categorias usam a pilha atual para fechar com Voltar/Escape e preservam a rolagem
-da home e da lista ao retornar de detalhes ou preparação. A barra inferior aparece
-abaixo de 768 px. A partir de 768 px, TORVIK e Treinar/Progresso/Ajustes ficam no
-cabeçalho. Detalhes e relatório usam colunas; progresso usa um contêiner mais amplo.
-A partir de 1024 px, o treino exibe câmera e controles lado a lado. As regras de
-pausa, retomada, confirmação de saída e salvamento explícito foram mantidas.
+## Telas e estados
 
-## Validação desta alteração
+| Área      | Telas e estados preservados                                                                                                                           |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Acesso    | Login, cadastro básico, recuperação, nova senha, senha visível, envio, erro, sucesso e modo sem conta                                                 |
+| Treinar   | Boas-vindas, quatro categorias, busca com e sem resultados, seleção, demonstração, instruções e detalhes dos 30 exercícios                            |
+| Câmera    | Carregamento do modelo e vídeo, solicitação e recusa de permissão, erro, nova tentativa, escolha de câmera e posicionamento                           |
+| Treino    | Preparação, início automático e manual, contagem regressiva, repetições, sustentação, feedback, pausa, retomada, voz, lados e confirmação de descarte |
+| Resultado | Sessão sem movimentos, repetições, sustentação, resultados por lado, pontos de atenção, salvar, erro, sucesso, exportar e sair sem salvar             |
+| Progresso | Carregando, erro, vazio, resumos locais, filtros, ordenação, mais sessões, gráficos, calendário, detalhe, comparação, exportação e exclusão           |
+| Ajustes   | Conta ou visitante, saída, voz, volume, ajuda de câmera e privacidade                                                                                 |
 
-- Tipos: `tsc --noEmit` e `tsc -p tsconfig.tests.json` passaram.
-- Lint: passou, com seis avisos preexistentes de Fast Refresh em componentes UI.
-- Builds Vite de produção e Vercel: passaram. A resposta SSR do build retornou
-  HTTP 200 com o hero, balão, Preparação, quatro cards e 30 exercícios, sem seleção
-  inicial. O CSS anterior à reformulação foi preservado integralmente.
-- 162 testes passaram na restauração: 156 regressões existentes e seis testes de navegação.
-  Bun não estava disponível no executor. Para validar, cópias temporárias dos
-  testes usaram `test`/`expect` do Playwright sob Node 24; `describe` foi mapeado
-  para `test.describe`. Os testes originais continuam usando Bun, sem alterações
-  de dependências ou de lockfile.
-- Os E2E foram adaptados para a home restaurada, incluindo seleção direta,
-  categorias, instruções, detalhes, busca, Voltar/Escape e rolagem. A reexecução foi bloqueada
-  na inicialização do Chromium por `setsockopt: Operation not permitted`; o sandbox
-  também impediu o servidor local. As asserções visuais não chegaram a executar.
-  Portanto, layouts de 360/390/768/1366/1920 px, tela baixa, orientação horizontal,
-  texto ampliado e câmera real ainda precisam de confirmação em ambiente com
-  navegador habilitado. Esses cenários estão na suíte de navegação/treino; os testes
-  capturam e anexam screenshots da home quando o navegador está disponível.
-  Nenhuma screenshot desta restauração pôde ser produzida no executor atual.
+Os gestos de navegação preservam a seleção e a posição das listas. Diálogos usam
+os componentes Radix existentes ou o diálogo nativo das categorias. Os controles
+principais têm 48–54 px de altura; campos mantêm 16 px para leitura e teclado
+móvel. Áreas seguras, paisagem, texto ampliado, foco visível e movimento reduzido
+são tratados nos estilos. Animações de categorias duram 180–240 ms e são omitidas
+com movimento reduzido; demonstrações usam as imagens estáticas existentes.
 
-Para executar os checks habituais em um ambiente habilitado:
+## Dados e limites
 
-```sh
-bun run check
-bun run test:e2e
-```
+A renovação não altera os motores de pose, regras, relógio de sessão, Supabase ou
+armazenamento. O cadastro continua com entrada imediata quando a confirmação de
+e-mail está desativada no Supabase. O histórico é local e separado por usuário;
+registros do visitante continuam no banco original. Não há sincronização de
+sessões, novas métricas, vídeos salvos ou recursos sociais.
 
-A suíte também aceita validação do build Cloudflare padrão sem servidor HTTP:
-
-```sh
-bun run build
-TORVIK_BUILD_VALIDATION=1 TORVIK_CHROMIUM_PATH=/usr/bin/chromium bun run test:e2e
-```
-
-Esse modo entrega a resposta SSR e os assets reais via interceptação do Playwright.
-Não substitui validação de HTTPS, câmera e voz em aparelhos reais. Sem essas
-variáveis, a configuração E2E mantém o servidor de desenvolvimento habitual.
+Os testes de navegador usam câmera sintética e estimadores controlados. A
+verificação responsiva em Chromium não substitui a câmera real em iOS e Android.

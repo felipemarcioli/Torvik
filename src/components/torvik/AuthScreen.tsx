@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from "react";
 import {
-  Activity,
   ArrowRight,
   ChartNoAxesCombined,
   Eye,
@@ -10,6 +9,7 @@ import {
   ScanLine,
   UserRound,
 } from "lucide-react";
+import { Brand, Mascot } from "./TorvikUI";
 import { useAuth } from "@/hooks/use-auth";
 import { getSupabase } from "@/lib/supabase";
 import { authErrorMessage, authRedirect, passwordError, MIN_PASSWORD_LENGTH } from "@/lib/auth";
@@ -111,10 +111,7 @@ export function AuthScreen({ onGuest }: { onGuest: () => void }) {
       <div className="auth-layout">
         <section className="auth-intro" aria-label="Torvik">
           <div className="auth-brand">
-            <span className="auth-brand-symbol">
-              <Activity size={24} aria-hidden="true" />
-            </span>
-            <span>TORVIK</span>
+            <Brand />
           </div>
           <div className="auth-intro-copy">
             <p className="auth-eyebrow">Seu treino, no seu ritmo</p>
@@ -128,13 +125,7 @@ export function AuthScreen({ onGuest }: { onGuest: () => void }) {
             </p>
           </div>
           <div className="auth-mascot-scene">
-            <div className="auth-mascot-orbit" aria-hidden="true" />
-            <img
-              src="/torvik-image-2d.webp"
-              width="200"
-              height="300"
-              alt="Torvik, mascote do treino"
-            />
+            <Mascot />
             <div className="auth-scene-note">
               <span>
                 <ScanLine size={18} aria-hidden="true" />
@@ -318,7 +309,7 @@ export function AuthScreen({ onGuest }: { onGuest: () => void }) {
           )}
           <p className="auth-footnote">
             <LockKeyhole size={14} aria-hidden="true" />
-            <span>Seu histórico fica nesta conta, neste dispositivo.</span>
+            <span>Histórico local, separado por conta. Sem sincronização.</span>
           </p>
         </section>
       </div>

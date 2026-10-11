@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Mascot } from "./TorvikUI";
 import { BackButton } from "./AppNavigation";
 import {
   AlertDialog,
@@ -116,12 +117,7 @@ export function ReportScreen({
       <div className="report-content">
         <BackButton onClick={() => requestLeave("back")}>Voltar ao exercício</BackButton>
         <header className={`report-header${hasReps ? "" : " report-header-empty"}`}>
-          <img
-            src="/torvik-image-2d.webp"
-            width="160"
-            height="240"
-            alt="Torvik, mascote do treino"
-          />
+          <Mascot decorative />
           <div>
             <p className="torvik-kicker">{hasReps ? "Seu resultado" : "Resumo da sessão"}</p>
             <h1>{hasReps ? "Treino concluído!" : "Sessão encerrada"}</h1>

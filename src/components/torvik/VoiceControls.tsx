@@ -15,10 +15,7 @@ export function VoiceControls({
 }) {
   const { settings, update, status, activate } = voice;
   return (
-    <details
-      open={expanded || undefined}
-      className="mx-auto mt-2 max-w-3xl rounded-lg border border-border text-sm"
-    >
+    <details open={expanded || undefined} className="voice-controls">
       <summary className="cursor-pointer px-3 py-2 font-semibold focus-visible:outline-2 focus-visible:outline-primary">
         {settings.enabled ? "Voz ligada" : "Voz desligada"}
         {settings.enabled && status !== "ready" && (

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { SlidersHorizontal } from "lucide-react";
+import { Mascot } from "./TorvikUI";
+import { SlidersHorizontal, LoaderCircle, Pause, Play, Check } from "lucide-react";
 import { BackButton } from "./AppNavigation";
 import {
   Sheet,
@@ -90,7 +91,7 @@ export function WorkoutScreen({
           {["running", "countdown"].includes(w.phase) ? "Voltar à pausa" : "Voltar"}
         </BackButton>
         <div className="min-w-0">
-          <p className="torvik-kicker text-[0.625rem]">Torvik · treino local</p>
+          <p className="torvik-kicker text-[0.625rem]">Torvik · seu movimento</p>
           <h1 className="truncate text-lg font-bold leading-tight sm:text-xl">{details.name}</h1>
         </div>
         <div className="shrink-0 text-right">
@@ -116,6 +117,11 @@ export function WorkoutScreen({
           aria-hidden="true"
           className={`pointer-events-none absolute inset-0 size-full object-contain ${w.mirrored ? "-scale-x-100" : ""}`}
         />
+        {["preparing", "countdown", "running", "paused"].includes(w.phase) && (
+          <span className="camera-status">
+            <i aria-hidden="true" /> Câmera local · sem gravação
+          </span>
+        )}
         {w.phase === "countdown" && (
           <div
             role="status"
@@ -135,31 +141,25 @@ export function WorkoutScreen({
           </div>
         )}
         {w.phase === "loading" && (
-          <div
-            role="status"
-            className="torvik-panel relative mx-4 max-w-sm p-6 text-center shadow-xl"
-          >
-            <span
-              aria-hidden="true"
-              className="mb-3 inline-block size-3 animate-pulse rounded-full bg-accent"
-            />
+          <div role="status" className="workout-state relative">
+            <Mascot decorative />
+            <LoaderCircle className="loading-spinner mx-auto mb-3" size={22} aria-hidden="true" />
             <h2 className="text-xl font-bold">Preparando a câmera</h2>
             <p className="mt-2 text-sm text-muted-foreground">{stages[w.stage]}</p>
           </div>
         )}
         {w.phase === "paused" && (
-          <div className="torvik-panel relative mx-4 max-w-sm bg-card/95 p-6 text-center shadow-xl">
-            <p className="torvik-kicker">Sessão em espera</p>
+          <div className="workout-state relative">
+            <Pause className="mx-auto mb-3 text-primary" size={28} aria-hidden="true" />
+            <p className="torvik-kicker">Respire um pouco</p>
             <h2 className="mt-1 text-xl font-bold">Treino pausado</h2>
             <p className="mt-2 text-sm text-muted-foreground">Seu progresso está preservado.</p>
           </div>
         )}
         {w.phase === "error" && (
-          <div
-            role="alert"
-            className="torvik-panel relative mx-4 max-w-lg border-destructive/50 bg-card p-6 shadow-xl"
-          >
-            <p className="torvik-kicker text-destructive">Atenção</p>
+          <div role="alert" className="workout-state relative">
+            <Mascot decorative />
+            <p className="torvik-kicker text-destructive">Vamos ajustar</p>
             <h2 className="mt-1 text-xl font-bold">Não foi possível continuar</h2>
             <p className="mt-2 text-sm text-muted-foreground">{w.error}</p>
             <button type="button" className="torvik-primary mt-4" onClick={w.retry}>
@@ -210,9 +210,7 @@ export function WorkoutScreen({
         {w.phase === "preparing" && (
           <div className="workout-preparation mx-auto mb-3 max-w-3xl">
             <p className="torvik-kicker">Início automático</p>
-            <h2 className="mt-1 text-lg font-bold leading-tight">
-              Posicione-se na câmera para iniciar automaticamente
-            </h2>
+            <h2 className="mt-1 text-lg font-bold leading-tight">Vamos encontrar sua posição</h2>
             <p className="mt-1 text-sm leading-snug text-muted-foreground">
               {details.cameraGuidance ?? details.instructions[0]} {details.initialPosition}
             </p>
@@ -243,20 +241,20 @@ export function WorkoutScreen({
           )}
           {w.phase === "running" && (
             <button type="button" className="torvik-primary flex-1" onClick={w.pause}>
-              Pausar
+              <Pause size={18} aria-hidden="true" /> Pausar
             </button>
           )}
           {w.phase === "paused" && (
             <>
               <button type="button" className="torvik-primary w-full" onClick={w.resume}>
-                Continuar
+                <Play size={18} aria-hidden="true" /> Continuar
               </button>
               <button
                 type="button"
                 className="torvik-secondary flex-1"
                 onClick={() => onFinish(w.finish())}
               >
-                Finalizar treino
+                <Check size={18} aria-hidden="true" /> Finalizar treino
               </button>
               <button type="button" className="torvik-secondary flex-1" onClick={requestExit}>
                 Sair
@@ -341,7 +339,7 @@ export function WorkoutScreen({
                   className="torvik-secondary mt-3"
                   onClick={() => onFinish(w.finish())}
                 >
-                  Finalizar treino
+                  <Check size={18} aria-hidden="true" /> Finalizar treino
                 </button>
               )}
               <VoiceControls voice={voice} expanded />
