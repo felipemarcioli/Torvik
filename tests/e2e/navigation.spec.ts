@@ -194,7 +194,11 @@ for (const [width, height] of [
     await expect(page.locator(".current-exercise-preview img")).toBeVisible();
     const start = page.getByRole("button", { name: "Preparar câmera", exact: true });
     await expect(start).toBeEnabled();
-    await start.scrollIntoViewIfNeeded();
+    // Center explicitly: the browser's "if needed" scroll can leave a control
+    // within the viewport but covered by the fixed bottom navigation.
+    await start.evaluate((button) =>
+      button.scrollIntoView({ block: "center", behavior: "instant" }),
+    );
     if (mobile) {
       const box = await start.boundingBox(),
         nav = await page.locator(".app-bottom-nav").boundingBox();
