@@ -3011,3 +3011,43 @@ textarea {
 .lab-screen .app-content {
   max-width: 56rem;
 }
+
+.voice-controls > div {
+  grid-template-columns: minmax(0, 1fr);
+}
+.voice-controls > div > * {
+  min-width: 0;
+}
+.voice-controls input[type="checkbox"] {
+  flex: none;
+}
+.voice-mode {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+.voice-mode select {
+  width: 100%;
+  max-width: 100%;
+}
+.voice-volume {
+  display: grid;
+  grid-column: 1/-1;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem 0.75rem;
+  align-items: center;
+}
+.voice-volume > input {
+  grid-column: 1/-1;
+  width: 100%;
+  min-height: 44px;
+}
+.voice-volume > .tabular-nums {
+  text-align: right;
+}
+@media (min-width: 640px) {
+  .voice-controls > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

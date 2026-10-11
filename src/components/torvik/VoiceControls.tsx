@@ -34,7 +34,7 @@ export function VoiceControls({
           />
           Feedback por voz
         </label>
-        <label className="flex items-center justify-between gap-3">
+        <label className="voice-mode">
           Modo de voz
           <select
             className="torvik-control min-w-0"
@@ -45,8 +45,9 @@ export function VoiceControls({
             <option value="full">Completo</option>
           </select>
         </label>
-        <label className="flex min-h-11 items-center gap-3">
-          Volume{" "}
+        <label className="voice-volume">
+          <span>Volume</span>
+          <span className="tabular-nums">{Math.round(settings.volume * 100)}%</span>
           <input
             type="range"
             min="0"
@@ -56,7 +57,6 @@ export function VoiceControls({
             onChange={(e) => update({ volume: Number(e.target.value) })}
             className="min-w-0 flex-1 accent-primary"
           />
-          <span className="w-10 tabular-nums">{Math.round(settings.volume * 100)}%</span>
         </label>
         <div className="sm:col-span-2">
           {settings.enabled && (

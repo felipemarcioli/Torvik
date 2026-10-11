@@ -10,20 +10,22 @@ partir de 768 px. Preparação, treino e relatório ocupam uma área própria.
 
 ## Telas e estados
 
-| Área      | Telas e estados preservados                                                                                                                           |
-| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Acesso    | Login, cadastro básico, recuperação, nova senha, senha visível, envio, erro, sucesso e modo sem conta                                                 |
-| Treinar   | Boas-vindas, quatro categorias, busca com e sem resultados, seleção, demonstração, instruções e detalhes dos 30 exercícios                            |
-| Câmera    | Carregamento do modelo e vídeo, solicitação e recusa de permissão, erro, nova tentativa, escolha de câmera e posicionamento                           |
-| Treino    | Preparação, início automático e manual, contagem regressiva, repetições, sustentação, feedback, pausa, retomada, voz, lados e confirmação de descarte |
-| Resultado | Sessão sem movimentos, repetições, sustentação, resultados por lado, pontos de atenção, salvar, erro, sucesso, exportar e sair sem salvar             |
-| Progresso | Carregando, erro, vazio, resumos locais, filtros, ordenação, mais sessões, gráficos, calendário, detalhe, comparação, exportação e exclusão           |
-| Ajustes   | Conta ou visitante, saída, voz, volume, ajuda de câmera e privacidade                                                                                 |
+| Área           | Telas e estados preservados                                                                                                                           |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Acesso         | Login, cadastro básico, recuperação, nova senha, senha visível, envio, erro, sucesso e modo sem conta                                                 |
+| Treinar        | Boas-vindas, quatro categorias, busca com e sem resultados, seleção, demonstração, instruções e detalhes dos 30 exercícios                            |
+| Câmera         | Carregamento do modelo e vídeo, solicitação e recusa de permissão, erro, nova tentativa, escolha de câmera e posicionamento                           |
+| Treino         | Preparação, início automático e manual, contagem regressiva, repetições, sustentação, feedback, pausa, retomada, voz, lados e confirmação de descarte |
+| Resultado      | Sessão sem movimentos, repetições, sustentação, resultados por lado, pontos de atenção, salvar, erro, sucesso, exportar e sair sem salvar             |
+| Progresso      | Carregando, erro, vazio, resumos locais, filtros, ordenação, mais sessões, gráficos, calendário, detalhe, comparação, exportação e exclusão           |
+| Ajustes        | Conta ou visitante, saída, voz, volume, ajuda de câmera e privacidade                                                                                 |
+| Outras páginas | Página não encontrada, erro de carregamento, fallback SSR e laboratório experimental (ativo ou desativado)                                            |
 
 Os gestos de navegação preservam a seleção e a posição das listas. Diálogos usam
 os componentes Radix existentes ou o diálogo nativo das categorias. Os controles
 principais têm 48–54 px de altura; campos mantêm 16 px para leitura e teclado
-móvel. Áreas seguras, paisagem, texto ampliado, foco visível e movimento reduzido
+móvel. Os controles de voz usam colunas que podem encolher e volume em uma linha
+própria para acomodar texto ampliado. Áreas seguras, paisagem, texto ampliado, foco visível e movimento reduzido
 são tratados nos estilos. Animações de categorias duram 180–240 ms e são omitidas
 com movimento reduzido; demonstrações usam as imagens estáticas existentes.
 
