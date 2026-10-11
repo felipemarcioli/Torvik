@@ -6,10 +6,18 @@ apenas neste dispositivo. Treinar sem conta continua disponível.
 
 ## Conectar um projeto
 
+O projeto do Torvik é `https://tmzwgwfiysqyvsxksmpt.supabase.co`.
+O arquivo `.env.example` contém sua configuração pública pronta para copiar.
+A publishable key identifica o projeto no frontend e não concede acesso de
+administração. Em 11/10/2026, o endpoint público de Auth confirmou que cadastro
+e login por e-mail estão habilitados e que a confirmação de e-mail é obrigatória.
+As URLs de retorno e o envio de e-mail ainda precisam ser validados no painel.
+
 1. Crie um projeto no plano Free em https://supabase.com/dashboard.
 2. Copie a URL do projeto e a **publishable key** em Connect/API Keys. Nunca use
    uma chave `secret` ou `service_role` no frontend.
-3. Copie `.env.example` para `.env.local` e preencha:
+3. Para o projeto do Torvik, copie `.env.example` para `.env.local`.
+   Para outro projeto, substitua os valores:
 
    ```dotenv
    VITE_SUPABASE_URL=https://SEU-PROJETO.supabase.co
