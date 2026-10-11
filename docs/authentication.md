@@ -1,0 +1,82 @@
+# Login do Torvik
+
+Supabase Auth no navegador: cadastro com nome, e-mail e senha, confirmação de
+e-mail, login, recuperação/redefinição de senha, sessão persistente e saída
+apenas neste dispositivo. Treinar sem conta continua disponível.
+
+## Conectar um projeto
+
+1. Crie um projeto no plano Free em https://supabase.com/dashboard.
+2. Copie a URL do projeto e a **publishable key** em Connect/API Keys. Nunca use
+   uma chave `secret` ou `service_role` no frontend.
+3. Copie `.env.example` para `.env.local` e preencha:
+
+   ```dotenv
+   VITE_SUPABASE_URL=https://SEU-PROJETO.supabase.co
+   VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+   ```
+
+4. Em Authentication, habilite o provider Email e mantenha a confirmação de
+   e-mail. Configure senha mínima de 8 caracteres ou mais.
+5. Em Authentication → URL Configuration, use como Site URL
+   `https://torvik-ai.vercel.app` e autorize os retornos exatos:
+   - `https://torvik-ai.vercel.app/`
+   - `https://torvik-ai.vercel.app/?auth=recovery`
+   - `http://localhost:4173/`
+   - `http://localhost:4173/?auth=recovery`
+     Adicione também as URLs exatas do Vercel Preview usado para testar. Ajuste a
+     porta local conforme o Vite. O código retorna à origem atual, nunca a uma URL
+     fornecida pelo usuário.
+6. Configure as duas variáveis também na Vercel para Preview e, quando validado,
+   Production. Faça um novo build: variáveis `VITE_*` são incorporadas ao frontend
+   na compilação. Reinicie o Vite depois de alterá-las.
+
+Sem as duas variáveis, o app mantém o funcionamento sem cadastro e informa em
+Ajustes que o login ainda não está disponível.
+
+Confirmação e recuperação dependem de envio de e-mail. O serviço padrão do
+Supabase só envia para membros autorizados da equipe e limita os envios; é
+restrito a testes. Configure SMTP para os usuários reais. Não desative a
+confirmação para contornar a entrega. Consulte as restrições atuais em
+https://supabase.com/docs/guides/auth/auth-smtp.
+
+## Dados e limites desta etapa
+
+- E-mail, nome escolhido e autenticação ficam no Supabase; o SDK guarda e renova
+  a sessão no navegador. O Torvik não guarda a senha.
+- O cliente Supabase é criado somente no navegador. A renderização SSR é pública
+  e não lê sessões de outros usuários. Não há endpoints privados nesta etapa.
+- Treinos continuam em IndexedDB, separados por ID de usuário. Dados anteriores
+  permanecem no modo sem conta e não são atribuídos automaticamente a ninguém.
+  Sair ou trocar de conta desmonta a interface anterior, encerra a câmera/voz e
+  limpa os resultados em memória; os registros locais permanecem guardados.
+- Essa separação evita misturar contas na interface; não é criptografia ou
+  controle de acesso contra alguém com acesso ao perfil do navegador. Exporte ou
+  exclua sessões antes de compartilhar esse perfil.
+- Não há sincronização de treinos, tabela de perfis, ranking, login social ou
+  integração nativa de links do Capacitor. Para armazenamento na nuvem, implemente
+  tabelas e políticas RLS que validem `auth.uid()`; esconder uma tela não protege
+  dados de backend. A análise da câmera continua local.
+
+## Verificação
+
+Execute `bun run check`. Os testes unitários incluem isolamento de contas,
+preservação dos dados sem conta, validação de senha e mensagens sanitizadas.
+
+Os testes de UI usam o SDK real com respostas HTTP simuladas:
+
+```sh
+TORVIK_AUTH_TEST=1 VITE_SUPABASE_URL=https://torvik-auth-test.supabase.co \
+VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_test bun run test:e2e tests/e2e/auth.spec.ts
+```
+
+Use um servidor novo, sem outro Vite na porta 4173. Não configure esses valores
+na Vercel. Os outros testes de UI devem usar o app sem essas variáveis.
+
+No Preview conectado ao projeto real, verifique cadastro, e-mail de confirmação,
+senha incorreta, recuperação, link expirado, recarregamento da página, saída e
+duas contas no mesmo navegador. Esse teste real permanece necessário: respostas
+simuladas não validam SMTP nem a configuração do projeto remoto.
+
+Referências: https://supabase.com/docs/guides/auth/passwords e
+https://supabase.com/docs/reference/javascript/auth-onauthstatechange.

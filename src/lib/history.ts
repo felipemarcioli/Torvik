@@ -121,11 +121,16 @@ export function isHistorySession(value: unknown): value is HistorySession {
     trackingLosses: v["trackingLosses"] === undefined ? 0 : v["trackingLosses"],
   });
 }
-export function createHistoryStore(factory: IDBFactory | undefined = globalThis.indexedDB) {
+export function createHistoryStore(
+  factory: IDBFactory | undefined = globalThis.indexedDB,
+  userId?: string,
+) {
+  // Keep anonymous records in their existing database. Never claim them for a new account.
+  const database = userId ? `${DATABASE}:${encodeURIComponent(userId)}` : DATABASE;
   async function open(): Promise<IDBDatabase> {
     if (!factory) throw new Error("O armazenamento local não está disponível neste navegador.");
     return new Promise((resolve, reject) => {
-      const request = factory.open(DATABASE, 1);
+      const request = factory.open(database, 1);
       let done = false;
       const fail = () => {
         if (done) return;

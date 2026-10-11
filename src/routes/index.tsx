@@ -13,10 +13,12 @@ import { AppNavigation, AppHeader, type MainTab } from "@/components/torvik/AppN
 import { ExerciseDetailScreen } from "@/components/torvik/ExerciseDetailScreen";
 import { SettingsScreen } from "@/components/torvik/SettingsScreen";
 import type { ExerciseId } from "@/lib/biomech";
+import { AuthProvider, useAuth } from "@/hooks/use-auth";
+import { AuthScreen } from "@/components/torvik/AuthScreen";
 
 const title = "Torvik — Acompanhe seu movimento pela câmera";
 const description =
-  "Acompanhe 30 exercícios, por repetições ou tempo, com análise local de movimento. Sem cadastro.";
+  "Acompanhe 30 exercícios com análise local de movimento. Treine com sua conta ou sem cadastro.";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -31,6 +33,37 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  return (
+    <AuthProvider>
+      <AuthEntry />
+    </AuthProvider>
+  );
+}
+
+function AuthEntry() {
+  const { session, loading, configured, recovery } = useAuth();
+  const [guest, setGuest] = useState(false);
+  const [open, setOpen] = useState(false);
+  if (loading)
+    return (
+      <main className="auth-screen hero-glow">
+        <p role="status">Carregando Torvik…</p>
+      </main>
+    );
+  if (recovery || (!session && (open || (configured && !guest)))) {
+    return (
+      <AuthScreen
+        onGuest={() => {
+          setGuest(true);
+          setOpen(false);
+        }}
+      />
+    );
+  }
+  return <TorvikApp key={session?.user.id ?? "guest"} onLogin={() => setOpen(true)} />;
+}
+
+function TorvikApp({ onLogin }: { onLogin: () => void }) {
   const voice = useWorkoutVoice();
   const navigation = useAppNavigation();
   const { view, navigate, back, guard } = navigation;
@@ -112,7 +145,7 @@ function Index() {
           />
         </Suspense>
       ) : view.screen === "settings" ? (
-        <SettingsScreen voice={voice} />
+        <SettingsScreen voice={voice} onLogin={onLogin} />
       ) : view.screen === "details" && view.exercise ? (
         <ExerciseDetailScreen
           exercise={view.exercise}

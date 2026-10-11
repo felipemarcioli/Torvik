@@ -22,6 +22,11 @@ jobs:
           NITRO_PRESET: vercel
       - run: bunx playwright install --with-deps chromium
       - run: bun run test:e2e
+      - run: bun run test:e2e tests/e2e/auth.spec.ts
+        env:
+          TORVIK_AUTH_TEST: "1"
+          VITE_SUPABASE_URL: https://torvik-auth-test.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_test
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

@@ -7,7 +7,8 @@ import {
 } from "@/components/ui/sheet";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, Activity, CheckCheck, Clock3, Layers, GitCompareArrows } from "lucide-react";
-import { createHistoryStore, type HistorySession } from "@/lib/history";
+import type { HistorySession } from "@/lib/history";
+import { useHistoryStore } from "@/hooks/use-history-store";
 import { durationLabel, filterHistory, historyTotals, type HistorySort } from "@/lib/progress";
 import type { ExerciseId } from "@/lib/biomech";
 import { EXERCISES } from "./data";
@@ -24,6 +25,7 @@ export function HistoryScreen({
   initialDetailId?: string | null;
   registerBack: (handler: () => boolean) => () => void;
 }) {
+  const history = useHistoryStore();
   const [sessions, setSessions] = useState<HistorySession[]>([]),
     [loading, setLoading] = useState(true),
     [error, setError] = useState(""),
@@ -53,7 +55,7 @@ export function HistoryScreen({
     let disposed = false;
     setLoading(true);
     setError("");
-    void createHistoryStore()
+    void history
       .list()
       .then((rows) => {
         if (!disposed) setSessions(rows);
@@ -70,7 +72,7 @@ export function HistoryScreen({
     return () => {
       disposed = true;
     };
-  }, [attempt]);
+  }, [attempt, history]);
   useEffect(() => {
     if (!loading && !detail && !comparing) {
       const target = returnFocus.current
@@ -92,7 +94,7 @@ export function HistoryScreen({
     .filter((r): r is HistorySession => !!r)
     .sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt));
   async function remove(id: string) {
-    await createHistoryStore().remove(id);
+    await history.remove(id);
     setSessions((rows) => rows.filter((r) => r.id !== id));
     setSelected((ids) => ids.filter((value) => value !== id));
     setDetail(null);
