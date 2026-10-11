@@ -26,6 +26,8 @@ test("histórico de contas e visitante permanece isolado, inclusive exclusão e 
 test("mensagens não exibem respostas brutas nem detalhes de conta", () => {
   expect(authErrorMessage({ code: "invalid_credentials" })).toBe("E-mail ou senha incorretos.");
   expect(authErrorMessage({ code: "email_not_confirmed" })).toContain("Confirme seu e-mail");
+  expect(authErrorMessage({ code: "user_already_exists" })).toContain("Já existe uma conta");
+  expect(authErrorMessage({ code: "email_exists" })).toContain("Já existe uma conta");
   expect(authErrorMessage({ code: "over_email_send_rate_limit" })).toContain("Muitas tentativas");
   expect(
     authErrorMessage({ code: "unknown", message: "private@example.com token=secret" }),

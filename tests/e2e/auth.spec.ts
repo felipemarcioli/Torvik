@@ -112,6 +112,42 @@ test("cadastro: confirma senha e envia nome e URL de retorno", async ({ page }) 
   await expect(page.getByLabel("Senha", { exact: true })).toHaveValue("");
 });
 
+test("cadastro sem confirmação: e-mail duplicado, entrada imediata e sessão persistente", async ({
+  page,
+}) => {
+  let duplicate = true;
+  await page.route(`${endpoint}/signup**`, async (route) => {
+    if (duplicate) {
+      duplicate = false;
+      await route.fulfill({
+        status: 400,
+        headers: {
+          "X-Supabase-Api-Version": "2024-01-01",
+          "Access-Control-Expose-Headers": "X-Supabase-Api-Version",
+        },
+        json: { code: "user_already_exists", msg: "User already registered" },
+      });
+    } else await route.fulfill({ json: session() });
+  });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Ainda não tem conta? Cadastre-se" }).click();
+  await page.getByLabel("Como você quer ser chamado?").fill("Felipe");
+  await page.getByLabel("E-mail", { exact: true }).fill(user.email);
+  await page.getByLabel("Senha", { exact: true }).fill("correct-password");
+  await page.getByLabel("Confirmar senha").fill("correct-password");
+  await page.getByRole("button", { name: "Criar conta", exact: true }).click();
+  await expect(page.getByRole("alert")).toHaveText(
+    "Já existe uma conta com esse e-mail. Entre ou recupere sua senha.",
+  );
+  await page.getByRole("button", { name: "Criar conta", exact: true }).click();
+  await settings(page);
+  await expect(page.getByText(user.email, { exact: true })).toBeVisible();
+  await expect(page.getByText(/Confira seu e-mail para confirmar/)).toHaveCount(0);
+  await page.reload();
+  await settings(page);
+  await expect(page.getByText(user.email, { exact: true })).toBeVisible();
+});
+
 test("recuperação: mensagem neutra e link expirado permite continuar sem conta", async ({
   page,
 }) => {

@@ -8,6 +8,9 @@ export function authErrorMessage(error: unknown): string {
       return "E-mail ou senha incorretos.";
     case "email_not_confirmed":
       return "Confirme seu e-mail antes de entrar. Confira também a pasta de spam.";
+    case "user_already_exists":
+    case "email_exists":
+      return "Já existe uma conta com esse e-mail. Entre ou recupere sua senha.";
     case "weak_password":
       return "Use uma senha mais forte, com pelo menos 8 caracteres.";
     case "same_password":

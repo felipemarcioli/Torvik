@@ -1,17 +1,18 @@
 # Login do Torvik
 
-Supabase Auth no navegador: cadastro com nome, e-mail e senha, confirmação de
-e-mail, login, recuperação/redefinição de senha, sessão persistente e saída
-apenas neste dispositivo. Treinar sem conta continua disponível.
+Supabase Auth no navegador: cadastro com nome, e-mail e senha, entrada imediata,
+sessão persistente e saída apenas neste dispositivo. O escopo atual usa cadastro
+sem confirmação de e-mail. Treinar sem conta continua disponível. O código também
+suporta confirmação e recuperação/redefinição de senha, caso sejam usadas depois.
 
 ## Conectar um projeto
 
 O projeto do Torvik é `https://tmzwgwfiysqyvsxksmpt.supabase.co`.
 O arquivo `.env.example` contém sua configuração pública pronta para copiar.
 A publishable key identifica o projeto no frontend e não concede acesso de
-administração. Em 11/10/2026, o endpoint público de Auth confirmou que cadastro
-e login por e-mail estão habilitados e que a confirmação de e-mail é obrigatória.
-As URLs de retorno e o envio de e-mail ainda precisam ser validados no painel.
+administração. Cadastro e login por e-mail estão habilitados. Para o fluxo básico,
+desative a confirmação no painel conforme o passo 4. Essa configuração é remota;
+o código não pode alterá-la usando uma chave pública.
 
 1. Crie um projeto no plano Free em https://supabase.com/dashboard.
 2. Copie a URL do projeto e a **publishable key** em Connect/API Keys. Nunca use
@@ -24,8 +25,10 @@ As URLs de retorno e o envio de e-mail ainda precisam ser validados no painel.
    VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
    ```
 
-4. Em Authentication, habilite o provider Email e mantenha a confirmação de
-   e-mail. Configure senha mínima de 8 caracteres ou mais.
+4. Em Authentication → Sign In / Providers → Email, mantenha Email habilitado,
+   desative **Confirm email** e salve. Mantenha novos cadastros permitidos.
+   Configure senha mínima de 8 caracteres ou mais. Sem confirmação, `signUp`
+   devolve a sessão e o Torvik abre o app imediatamente, sem exigir um e-mail.
 5. Em Authentication → URL Configuration, use como Site URL
    `https://torvik-ai.vercel.app` e autorize os retornos exatos:
    - `https://torvik-ai.vercel.app/`
@@ -42,10 +45,11 @@ As URLs de retorno e o envio de e-mail ainda precisam ser validados no painel.
 Sem as duas variáveis, o app mantém o funcionamento sem cadastro e informa em
 Ajustes que o login ainda não está disponível.
 
-Confirmação e recuperação dependem de envio de e-mail. O serviço padrão do
-Supabase só envia para membros autorizados da equipe e limita os envios; é
-restrito a testes. Configure SMTP para os usuários reais. Não desative a
-confirmação para contornar a entrega. Consulte as restrições atuais em
+O cadastro e o login básicos não precisam de SMTP com **Confirm email** desativado.
+A recuperação de senha por e-mail é um recurso adicional e continua dependendo
+de entrega de e-mail. O serviço padrão do Supabase só envia para membros da
+organização e limita os envios. Se usar recuperação para outros usuários ou
+reativar confirmação no futuro, configure SMTP. Consulte as restrições atuais em
 https://supabase.com/docs/guides/auth/auth-smtp.
 
 ## Dados e limites desta etapa
@@ -81,10 +85,11 @@ VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_test bun run test:e2e tests/e2e/aut
 Use um servidor novo, sem outro Vite na porta 4173. Não configure esses valores
 na Vercel. Os outros testes de UI devem usar o app sem essas variáveis.
 
-No Preview conectado ao projeto real, verifique cadastro, e-mail de confirmação,
-senha incorreta, recuperação, link expirado, recarregamento da página, saída e
-duas contas no mesmo navegador. Esse teste real permanece necessário: respostas
-simuladas não validam SMTP nem a configuração do projeto remoto.
+No Preview conectado ao projeto real, verifique cadastro sem confirmação e
+entrada imediata, e-mail já cadastrado, senha incorreta, recarregamento da página,
+saída e duas contas no mesmo navegador. Se usar confirmação ou recuperação por
+e-mail, valide também os links reais: respostas simuladas não validam SMTP nem a
+configuração do projeto remoto.
 
 Referências: https://supabase.com/docs/guides/auth/passwords e
 https://supabase.com/docs/reference/javascript/auth-onauthstatechange.
