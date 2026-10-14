@@ -123,7 +123,7 @@ A percentage shown in a report describes the proportion of evaluated repetitions
 | Charts | Recharts |
 | Tooling | Bun, Vite, Nitro, ESLint, Prettier |
 | Testing and CI | Bun test, Playwright, GitHub Actions |
-| Hosting and development integration | Vercel, Lovable |
+| Hosting | Vercel |
 
 ## 🚀 Getting Started
 
@@ -233,7 +233,7 @@ For a dedicated evaluation build, use `VITE_ENABLE_POSE_LAB=true`. The lab is di
 - **Saved workouts:** summaries are written to IndexedDB only when you choose to save a session.
 - **Accounts:** optional authentication sends account information to Supabase. Signing in does not sync workouts to the cloud.
 - **History separation:** accounts and guest mode use separate local history. This is not encryption against someone with access to the same browser profile.
-- **External requests:** model assets and fonts are fetched from external services. The Lovable editor may receive sanitized technical diagnostics.
+- **External requests:** model assets and fonts are fetched from external services.
 - **Voice:** uses an available local Portuguese voice; guidance may be unavailable on some devices.
 - **Backups:** browser storage can be cleared or evicted. Export important records before clearing data or changing devices.
 
@@ -257,7 +257,7 @@ NITRO_PRESET=vercel bun run build
 
 This builds the application; it does not publish it. Configure Node 22 and any required environment variables in your hosting environment, then test a preview before promoting it.
 
-The project retains Lovable's shared Vite configuration. Follow [`AGENTS.md`](AGENTS.md), preserve published Git history, and use new commits for corrections or reversions. Confirm the connected production branch in the hosting dashboard.
+The project uses the official Vite, TanStack Start, React, Tailwind CSS, and Nitro plugins configured in [`vite.config.ts`](vite.config.ts). Confirm the connected production branch in the hosting dashboard.
 
 ## 🤝 Contributing
 
@@ -280,7 +280,7 @@ When reporting a camera issue, include your device, browser, exercise, orientati
 
 The detailed implementation notes are currently in Portuguese.
 
-Torvik uses MediaPipe's pretrained pose-estimation technology and the open-source libraries listed in [`package.json`](package.json). The application also retains its Lovable development integration.
+Torvik uses MediaPipe's pretrained pose-estimation technology and the open-source libraries listed in [`package.json`](package.json).
 
 ## 📄 License
 

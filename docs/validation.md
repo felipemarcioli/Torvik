@@ -2,7 +2,7 @@
 
 ## Entrega local
 
-A implementação preserva o framework, a configuração compartilhada do Lovable e a identidade visual. Não adiciona contas, backend de treinos ou upload de vídeo.
+A implementação preserva o framework e a identidade visual. Esta entrega inicial não adicionava contas, backend de treinos ou upload de vídeo.
 
 | Área               | Resultado                                                                                                                                                  |
 | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -16,7 +16,7 @@ A implementação preserva o framework, a configuração compartilhada do Lovabl
 | Histórico          | Salvamento explícito, IndexedDB v1, exportação JSON, exclusão e comparação apenas entre versões compatíveis                                                |
 | Interface          | Frame completo com vídeo/canvas alinhados, áreas próprias para ações, seleção por radio, instruções independentes, pt-BR e foco visível                    |
 | Desempenho         | Canvas redimensionado apenas quando necessário, frames repetidos ignorados, atualização seletiva do HUD e mascotes WebP responsivos                        |
-| Diagnóstico        | Removida correlação global de erros entre requisições; não registrar frames, landmarks ou erro bruto no bridge de preview                                  |
+| Diagnóstico        | Removida correlação global de erros entre requisições; não registrar frames, landmarks ou erro bruto nos diagnósticos                                      |
 | Evolução do modelo | Adaptador comum e laboratório isolado; Tasks Vision ainda experimental, sem promoção ao treino                                                             |
 
 ## Regras iniciais, sem validação científica
@@ -44,11 +44,11 @@ Resultado da execução local em 22/09/2026: **24 testes unitários/integração
 
 A aprovação da primeira fase depende de preview e aparelhos reais. A emulação não prova permissões, campo de visão, WASM, temperatura, bateria ou desempenho da câmera. Nenhum teste físico Android/iPhone, avaliação profissional ou comparação com vídeos consentidos foi realizado nesta entrega. O novo adaptador foi compilado e tipado; sua compatibilidade de Worker/WASM deve ser comprovada antes de uso fora do laboratório.
 
-1. Confirmar branches e runtime nos painéis Lovable/Vercel e criar um Preview da branch de implementação. Não presumir equivalência com a publicação atual.
+1. Confirmar branches e runtime no painel da Vercel e criar um Preview da branch de implementação. Não presumir equivalência com a publicação atual.
 2. Em Safari/iPhone e Chrome/Android, testar permitir/negar câmera, cancelar durante permissão e carga, câmera ocupada/removida, perda/restauração de conexão, troca frontal/traseira, rotação, segundo plano e várias sessões seguidas. Verificar o indicador de câmera após sair.
 3. Conferir os quatro limites do frame e o esqueleto em retrato/paisagem, texto ampliado, teclado e VoiceOver/TalkBack. Medir contraste e legibilidade do feedback à distância.
 4. Fazer sessões prolongadas nos mesmos dispositivos, registrando versão do navegador, resolução entregue, latência, falhas, aquecimento e bateria. Comparar resolução/suavização sem mudar múltiplos fatores de uma vez.
-5. Inspecionar destinos, payloads e cabeçalhos em Preview, produção e editor. Confirmar ausência de frames/landmarks em rede e logs. Inventariar CSP e demais cabeçalhos da hospedagem antes de reforçá-los, incluindo compatibilidade com WASM, fontes e Lovable.
+5. Inspecionar destinos, payloads e cabeçalhos em Preview e produção. Confirmar ausência de frames/landmarks em rede e logs. Inventariar CSP e demais cabeçalhos da hospedagem antes de reforçá-los, incluindo compatibilidade com WASM e fontes.
 6. Confirmar remoção do histórico, armazenamento indisponível, exportação e recuperação após recarregar. O navegador pode remover dados locais; exportação serve de cópia manual.
 
 ## Protocolo para regras e estimadores
@@ -148,10 +148,9 @@ há uma única resolução de Start, na versão corrigida, sem cópia de `1.168.
 
 O Start atualizado exige Node 22.12 ou posterior. `.node-version` agora registra
 22.23.3, utilizado pela CI existente, e `engines.node` seleciona `22.x` na Vercel.
-A configuração gerada em `.vc-config.json` confirmou `nodejs22.x`. A configuração
-compartilhada do Lovable continua compatível. O componente de erro raiz usa agora
-`ErrorComponentProps`, pois o Router atualizado tipa o erro recebido como
-`unknown`; os diagnósticos continuam sanitizados.
+A configuração gerada em `.vc-config.json` confirmou `nodejs22.x`. O componente
+de erro raiz usa `ErrorComponentProps`, compatível com a tipagem do Router
+atualizado; os diagnósticos de servidor continuam sanitizados.
 
 Verificações executadas em Node 22.23.3 e Bun 1.3.10:
 
