@@ -1,153 +1,177 @@
-# Catálogo com 16 exercícios
+# Catalog of 16 Exercises
 
-Oito novos exercícios por repetição reutilizam a captura, inferência, preparação automática,
-voz, `SessionLedger`, contrato de sessão v2, IndexedDB e exportações existentes.
-Os oito detectores anteriores e suas versões permanecem inalterados. A seleção de lado e a
-distância em pixels foram apenas extraídas para um módulo compartilhado.
+Eight new repetition-based exercises reuse the existing capture, inference,
+automatic preparation, voice guidance, `SessionLedger`, v2 session contract,
+IndexedDB, and exports. The previous eight detectors and their versions remain
+unchanged. Side selection and pixel distance were simply extracted into a shared
+module.
 
-## Detectores e câmera
+## Detectors and Camera
 
-| Exercício / ID | Câmera | Evidência e fechamento do ciclo |
-| --- | --- | --- |
-| Ponte de glúteos / `glutebridge` | Lateral, próxima ao chão | Joelhos dobrados, extensão ombro–quadril–joelho e elevação relativa aos apoios; conta ao voltar com o quadril baixo. |
-| Panturrilha em pé / `calfraise` | Lateral, corpo e pés nítidos | Elevação calcanhar–ponta normalizada pelo pé e projetada no eixo inicial do corpo; conta ao recuperar apoio. Inclinar o tronco com o pé plano não simula elevação. |
-| Afundo reverso / `reverselunge` | Lateral levemente oblíqua; ambos os pés visíveis | Confirma passo para trás pela orientação dos pés e deslocamento relativo, flexão do joelho dianteiro e descida do traseiro; só fecha com os pés próximos novamente. |
-| Desenvolvimento de ombros / `shoulderpress` | Frontal, dois braços inteiros | Extensão dos cotovelos e elevação dos punhos acima dos ombros, bilateralmente; conta no retorno à posição flexionada. |
-| Elevação frontal / `frontraise` | Lateral, rosto e braço visíveis | Elevação anterior relativa ao tronco; direção inferida pela projeção do rosto. Acompanha um braço e sinaliza flexão persistente do cotovelo ou elevação excessiva. |
-| Remada curvada / `bentoverrow` | Lateral, braço, quadril e joelho visíveis | Tronco inclinado, flexão do cotovelo com deslocamento em direção ao quadril e aproximação da mão; conta ao estender. Movimento do tronco sozinho não satisfaz o ciclo. |
-| Tríceps kickback / `tricepskickback` | Lateral, braço, quadril e joelho visíveis | Tronco inclinado e braço superior junto ao corpo; extensão do cotovelo e retorno, com avaliação da estabilidade do braço superior. |
-| Mountain Climber / `mountainclimber` | Lateral levemente oblíqua, mãos e dois joelhos visíveis | Prancha alta, aproximação de um joelho e retorno. Cada joelho vale uma repetição; depois do retorno, exige o lado oposto. |
+| Exercise / ID                        | Camera                                                            | Evidence and cycle completion                                                                                                                                                          |
+| ------------------------------------ | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Glute bridge / `glutebridge`         | Side view, close to the floor                                     | Bent knees, shoulder–hip–knee extension, and elevation relative to support points; counts when the hips return to the low position.                                                    |
+| Standing calf raise / `calfraise`    | Side view, with the body and feet clear                           | Heel-to-toe elevation normalized by the foot and projected onto the initial body axis; counts when support is restored. Leaning the torso with a flat foot does not imitate elevation. |
+| Reverse lunge / `reverselunge`       | Slightly oblique side view; both feet visible                     | Confirms a backward step using foot orientation and relative displacement, front-knee flexion, and rear-knee descent; completes only when the feet are close together again.           |
+| Shoulder press / `shoulderpress`     | Front view, with both arms fully visible                          | Bilateral elbow extension and wrist elevation above the shoulders; counts on the return to the bent position.                                                                          |
+| Front raise / `frontraise`           | Side view, with the face and arm visible                          | Forward elevation relative to the torso; direction is inferred from the face's projection. Tracks one arm and flags persistent elbow flexion or excessive elevation.                   |
+| Bent-over row / `bentoverrow`        | Side view, with the arm, hip, and knee visible                    | Inclined torso, elbow flexion with displacement toward the hip, and the hand moving closer; counts on extension. Torso movement alone does not satisfy the cycle.                      |
+| Triceps kickback / `tricepskickback` | Side view, with the arm, hip, and knee visible                    | Inclined torso and upper arm alongside the body; elbow extension and return, with upper-arm stability evaluated.                                                                       |
+| Mountain climber / `mountainclimber` | Slightly oblique side view, with the hands and both knees visible | High plank, one knee moving closer, then return. Each knee counts as one repetition; after the return, the opposite side is required.                                                  |
 
-Os exercícios de um lado escolhem a maior visibilidade antes do ciclo e não trocam de lado
-durante sua execução. No afundo reverso a interface identifica o joelho dianteiro inferido;
-no Mountain Climber identifica o lado do ciclo; no desenvolvimento bilateral não indica
-um lado isolado.
+Single-side exercises choose the side with greater visibility before the cycle
+and do not switch sides during execution. For reverse lunges, the interface
+identifies the inferred front knee; for mountain climbers, it identifies the side
+of the cycle; for bilateral shoulder presses, it does not indicate a single side.
 
-As novas regras têm versão `1.0.0`, definida no catálogo. Os parâmetros estão em `NEW_RULES`.
-Exigem posição inicial por 300 ms, transições por 150 ms (250 ms na panturrilha), amplitude
-por 100 ms e ao menos duas amostras com timestamps distintos. Também confirmam excursão
-mínima para que um pico isolado não registre uma repetição.
+The new rules use version `1.0.0`, defined in the catalog. Parameters are in
+`NEW_RULES`. They require a 300 ms starting position, 150 ms transitions (250 ms
+for calf raises), 100 ms range-of-motion confirmation, and at least two samples
+with distinct timestamps. They also confirm a minimum excursion so that an
+isolated peak does not register a repetition.
 
-Perda de visibilidade, dimensões inválidas, NaN, pausa, troca de câmera e lacunas acima de
-750 ms descartam evidência parcial. Preparação e countdown não contam. Ciclos com excursão
-suficiente, mas sem amplitude alvo, são classificados fora dos critérios; ruído e retorno
-incompleto não contam. Interrupções preservam os totais concluídos.
+Visibility loss, invalid dimensions, NaN, pause, camera changes, and gaps above
+750 ms discard partial evidence. Preparation and countdown do not count. Cycles
+with enough excursion but without the target range of motion are classified as
+outside the criteria; noise and incomplete returns do not count. Interruptions
+preserve completed totals.
 
-## Interface e dados
+## Interface and Data
 
-O catálogo foi ordenado por categoria sem mudar componentes, estilos ou controles. As 16
-opções usam os cards e o accordion existentes. `back` foi acrescentada como categoria;
-kickback usa `arms` com o rótulo Tríceps. Não foram acrescentados filtros.
+The catalog was sorted by category without changing components, styles, or
+controls. All 16 options use the existing cards and accordion. `back` was added
+as a category; kickbacks use `arms` with the label "Tríceps" (triceps). No filters
+were added.
 
-Novos relatórios continuam `schemaVersion: 2`, `type: REP_BASED`, com eventos deduplicados,
-mesmos totais, motivos, tempo ativo e versões. Não houve alteração de schema ou migração.
-A prancha conserva sua modalidade de sustentação. A voz usa o dicionário compartilhado:
-amplitude após duas repetições com o motivo, postura persistente e marcos a cada cinco reps.
+New reports remain `schemaVersion: 2`, `type: REP_BASED`, with deduplicated
+events and the same totals, reasons, active time, and versions. There was no
+schema change or migration. Planks retain their hold-based mode. Voice guidance
+uses the shared dictionary: range-of-motion feedback after two repetitions with
+that reason, persistent posture feedback, and milestones every five repetitions.
 
 ## Assets
 
-Foram gerados sprites com a ferramenta integrada de imagens, usando o mascote atual como
-referência, e montados pelo conversor Pillow existente. Prompts e critérios de montagem
-estão em `exercise-preview-prompts.json`.
+Sprites were generated with the built-in image tool using the current mascot as
+a reference, then assembled with the existing Pillow converter. Prompts and
+assembly criteria are in `exercise-preview-prompts.json`.
 
-Oito conjuntos foram aprovados: ponte, panturrilha, afundo reverso, desenvolvimento,
-elevação frontal, remada, kickback e Mountain Climber. Cada conjunto em `public/exercise-previews/` contém:
+Eight sets were approved: glute bridge, calf raise, reverse lunge, shoulder press,
+front raise, row, kickback, and mountain climber. Each set in
+`public/exercise-previews/` contains:
 
-- `torvik-{id}.webp`: oito quadros 256 × 256, loop de 1.600 ms com alpha real.
-- `torvik-{id}-still.webp`: primeiro quadro para movimento reduzido.
-- `torvik-{id}-sprite.webp`: faixa normalizada lossless para reprodução do processo.
+- `torvik-{id}.webp`: eight 256 × 256 frames, a 1,600 ms loop, and actual alpha
+  transparency.
+- `torvik-{id}-still.webp`: the first frame for reduced motion.
+- `torvik-{id}-sprite.webp`: a normalized lossless strip for reproducing the
+  process.
 
-Os arquivos animados ficam abaixo de 122 KB. Usam poses discretas, sem interpolação ou
-mistura de transparência. A escala é única por sequência; não há redimensionamento individual
-para preencher cada quadro. A revisão usa fundos claro e escuro e verifica margens, cauda,
-orelhas, mãos, pés e halteres. Os assets antigos não foram alterados.
+Animated files are below 122 KB. They use discrete poses without interpolation or
+transparency blending. Each sequence uses a single scale; individual frames are
+not resized to fill their cells. Review uses light and dark backgrounds and checks
+margins, tail, ears, hands, feet, and dumbbells. Existing assets were not changed.
 
-O Mountain Climber usa uma vista frontal elevada para mostrar a alternância dos joelhos:
-prancha alta, aproximação e retorno de um joelho, depois do outro. O conjunto foi gerado
-com `torvik-lunge-still.webp` como referência de identidade; a extração do fundo foi feita
-pela ferramenta integrada antes da montagem. São oito quadros, 1.600 ms por ciclo e
-121.444 bytes no arquivo animado. A configuração agora habilita o preview real; o fallback
-genérico permanece intacto. Nenhuma regra do exercício ou componente visual foi alterado.
+The mountain climber uses an elevated front view to show alternating knees:
+high plank, one knee moving closer and returning, then the other. The set was
+generated with `torvik-lunge-still.webp` as the identity reference; the built-in
+tool removed the background before assembly. It has eight frames, 1,600 ms per
+cycle, and 121,444 bytes in the animated file. Configuration now enables the real
+preview; the generic fallback remains intact. No exercise rule or visual
+component was changed.
 
-Para reencodar um conjunto aprovado, com Python e Pillow 12.x:
+To re-encode an approved set with Python and Pillow 12.x:
 
 ```sh
 python3 scripts/build-exercise-preview.py public/exercise-previews/torvik-glutebridge-sprite.webp glutebridge --rows 1 --output /tmp/torvik-preview-check
 ```
 
-O conversor rejeita silhuetas sobrepostas, componentes grandes sem atribuição e personagens
-tocando a borda; requer revisão visual da folha original antes da extração. Nunca corta
-automaticamente por células fixas. As poses geradas podem conter pequenas variações de
-aparência entre quadros; não são uma referência biomecânica validada.
+The converter rejects overlapping silhouettes, large unassigned components, and
+characters touching the edges; it requires visual review of the original sheet
+before extraction. It never crops automatically using fixed cells. Generated
+poses may contain small appearance variations between frames; they are not a
+validated biomechanical reference.
 
-## Arquivos
+## Files
 
-- `src/lib/exercises/catalog.ts`: oito definições, categorias e previews.
-- `src/lib/exercises/expansion.ts` (novo): regras e máquina de ciclos dos novos exercícios.
-- `src/lib/exercises/side.ts` (novo): auxiliares extraídos sem alterar o comportamento anterior.
-- `src/lib/exercises/analyzers.ts`: registro das novas fábricas e importação dos auxiliares.
-- `src/lib/exercises/core.ts`: nomes dos landmarks de calcanhar e ponta do pé.
-- `src/lib/exercises/feedback.ts`: mensagens compartilhadas com voz e relatórios.
-- `scripts/build-exercise-preview.py`: novos identificadores aceitos pelo conversor.
-- `tests/fixtures/expansion.ts`, `tests/expansion.test.ts`, `tests/e2e/expansion.spec.ts` (novos).
-- `tests/exercises.test.ts`, `tests/voice.test.ts`, `tests/e2e/exercises.spec.ts`: catálogo,
-  feedback e seleção inequívoca entre Afundo e Afundo reverso.
-- 24 arquivos WebP, este documento e o registro de prompts.
+- `src/lib/exercises/catalog.ts`: eight definitions, categories, and previews.
+- `src/lib/exercises/expansion.ts` (new): rules and cycle state machines for the
+  new exercises.
+- `src/lib/exercises/side.ts` (new): extracted helpers without changes to previous
+  behavior.
+- `src/lib/exercises/analyzers.ts`: registration of new factories and helper
+  imports.
+- `src/lib/exercises/core.ts`: heel and toe landmark names.
+- `src/lib/exercises/feedback.ts`: messages shared with voice guidance and reports.
+- `scripts/build-exercise-preview.py`: new identifiers accepted by the converter.
+- `tests/fixtures/expansion.ts`, `tests/expansion.test.ts`, and
+  `tests/e2e/expansion.spec.ts` (new).
+- `tests/exercises.test.ts`, `tests/voice.test.ts`, and
+  `tests/e2e/exercises.spec.ts`: catalog, feedback, and unambiguous selection
+  between Lunge ("Afundo") and Reverse lunge ("Afundo reverso").
+- 24 WebP files, this document, and the prompt record.
 
-## Limitações e validação física
+## Limitations and Physical Validation
 
-Heurísticas em imagem 2D não medem carga, força, profundidade real, precisão clínica ou
-segurança de execução. Oclusão de membros, pouca luz, pés pequenos no frame e perspectiva
-podem impedir ou distorcer a contagem. Panturrilha é particularmente sensível à resolução
-dos pés. Elevação frontal depende da orientação lateral e da projeção do rosto; afundo
-reverso depende da orientação visível dos pés. Mountain Climber exige ver os dois joelhos
-e retornar à prancha entre aproximações, podendo rejeitar cadências muito rápidas.
+Heuristics based on 2D images do not measure load, force, actual depth, clinical
+accuracy, or execution safety. Limb occlusion, low light, small feet in the frame,
+and perspective can prevent or distort counts. Calf raises are particularly
+sensitive to foot resolution. Front raises depend on side orientation and the
+face's projection; reverse lunges depend on visible foot orientation. Mountain
+climbers require both knees to be visible and a return to plank between knee
+movements, which can reject very fast cadences.
 
-Não há detecção de velocidade de descida, ritmo, carga, impulso ou alinhamento tridimensional
-dos joelhos. Esses itens não são apresentados como erros detectados.
+There is no detection of descent speed, rhythm, load, momentum, or three-dimensional
+knee alignment. These items are not presented as detected errors.
 
-Testes sintéticos e câmera simulada não substituem validação com pessoas e vídeos consentidos.
-Continuam pendentes sessões físicas em Chrome/Android e Safari/iPhone, diferentes corpos,
-cadências e posições de câmera, bem como som real e desempenho térmico.
+Synthetic tests and a simulated camera do not replace validation with people and
+consented videos. Physical sessions in Chrome/Android and Safari/iPhone,
+different bodies, cadences, and camera positions, as well as real audio and
+thermal performance, remain pending.
 
-## Resultado da verificação local — 27/09/2026
+## Local Verification Results — September 27, 2026
 
-Ambiente: Node 20.20.2, Bun 1.3.10 e Pillow 12.3.0. Dependências instaladas pelo lockfile
-congelado; manifesto e lockfile não foram alterados.
+Environment: Node 20.20.2, Bun 1.3.10, and Pillow 12.3.0. Dependencies were installed
+with the frozen lockfile; the manifest and lockfile were not changed.
 
-- `bun run typecheck`: aprovado, incluindo os tipos dos testes.
-- `bun run lint`: zero erros; seis avisos de Fast Refresh nos componentes UI preexistentes.
-- `bun test tests/*.test.ts`: **115 testes aprovados**, incluindo regressões dos oito
-  exercícios anteriores, geometria, contagem, câmera, preparação, voz e persistência.
-- `bun run test:e2e --workers=2 --reporter=line`: **66 cenários aprovados** em Chromium mobile
-  e desktop. Abrangem seleção, enquadramento, countdown, repetições, pausa, cancelamento,
-  voz ligada/desligada, relatórios, histórico, exportação, teclado, layouts e movimento reduzido.
-- `bun run build`: aprovado para cliente, SSR e Nitro, com avisos existentes de configuração
-  de plugins. Nenhuma implantação foi executada.
-- Assets: os sete arquivos animados têm alpha real, oito quadros, duração de 1.600 ms,
-  loop infinito, 256 × 256 e margens transparentes em todos os quadros. Revisão visual em
-  fundos claro/escuro concluída; assets originais anteriores preservados.
+- `bun run typecheck`: passed, including test types.
+- `bun run lint`: zero errors; six Fast Refresh warnings in existing UI components.
+- `bun test tests/*.test.ts`: **115 tests passed**, including regressions for the
+  previous eight exercises, geometry, counting, camera, preparation, voice, and
+  persistence.
+- `bun run test:e2e --workers=2 --reporter=line`: **66 scenarios passed** in mobile
+  and desktop Chromium. They cover selection, framing, countdown, repetitions,
+  pause, cancellation, voice on/off, reports, history, exports, keyboard, layouts,
+  and reduced motion.
+- `bun run build`: passed for client, SSR, and Nitro, with existing plugin
+  configuration warnings. No deployment was performed.
+- Assets: the seven animated files have actual alpha transparency, eight frames,
+  a 1,600 ms duration, infinite looping, 256 × 256 dimensions, and transparent
+  margins in every frame. Visual review on light/dark backgrounds was completed;
+  previous original assets were preserved.
 
-Na revisão foram acrescentadas regressões para impedir uma rosca de cotovelo estacionário
-de contar como remada e para o feedback não inventar um problema de amplitude quando o
-único motivo registrado é postural. A mensagem positiva também usa o estado visual positivo.
-O ajuste final de apresentação do feedback teve nova execução unitária, tipos, lint e build,
-seguida de quatro testes direcionados aprovados dos fluxos de ponte e elevação frontal no navegador.
+The review added regressions to prevent a curl with a stationary elbow from
+counting as a row and to keep feedback from inventing a range-of-motion problem
+when the only recorded reason is posture. Positive messages also use the positive
+visual state. The final feedback presentation adjustment had another unit test,
+type, lint, and build run, followed by four passing targeted browser tests for
+glute bridge and front raise flows.
 
-Os seletores E2E de Afundo passaram a usar o identificador para não confundir o nome com
-Afundo reverso; o seletor de Métrica usa o papel de combobox, mantendo sua verificação.
-Não foram feitas alterações em componentes de interface, hooks de câmera, MediaPipe,
-armazenamento ou algoritmos dos exercícios anteriores. Sem commit, push ou deploy.
+The Lunge E2E selectors now use the identifier to avoid confusing the name with
+Reverse lunge; the Metric ("Métrica") selector uses the combobox role, preserving
+its verification. No changes were made to interface components, camera hooks,
+MediaPipe, storage, or the previous exercises' algorithms. No commit, push, or
+deployment was performed.
 
-### Complemento: preview do Mountain Climber
+### Addendum: Mountain Climber Preview
 
-- `npm run typecheck` e `npm run build`: aprovados.
-- `npm run lint`: zero erros, os mesmos seis avisos de Fast Refresh preexistentes.
-- Quatro testes E2E direcionados a cards/previews aprovados em Chromium mobile e desktop,
-  incluindo 360 × 800, 390 × 844 e movimento reduzido.
-- Reprodução no card confirmada por três capturas consecutivas com quadros diferentes;
-  caminho correto, sem aviso de indisponibilidade e sem overflow horizontal.
-- Oito quadros decodificados, alpha real e margens transparentes verificados em fundos
-  claro e escuro. Os arquivos dos demais previews permanecem idênticos (SHA-256).
-- Nesta entrega foram acrescentados somente os três WebP do Mountain Climber, habilitado
-  seu mapeamento e atualizados testes/documentação. Não houve commit, push ou deploy.
+- `npm run typecheck` and `npm run build`: passed.
+- `npm run lint`: zero errors and the same six existing Fast Refresh warnings.
+- Four targeted E2E tests for cards/previews passed in mobile and desktop Chromium,
+  including 360 × 800, 390 × 844, and reduced motion.
+- Card playback was confirmed by three consecutive captures showing different
+  frames; the path was correct, with no unavailable message or horizontal overflow.
+- Eight decoded frames, actual alpha transparency, and transparent margins were
+  verified on light and dark backgrounds. Other preview files remain identical
+  by SHA-256.
+- This delivery added only the three mountain climber WebP files, enabled their
+  mapping, and updated tests/documentation. No commit, push, or deployment was
+  performed.

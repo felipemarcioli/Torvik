@@ -1,181 +1,254 @@
-# Implementação e validação do Torvik
+# Torvik Implementation and Validation
 
-## Entrega local
+## Local Delivery
 
-A implementação preserva o framework e a identidade visual. Esta entrega inicial não adicionava contas, backend de treinos ou upload de vídeo.
+The implementation preserves the framework and visual identity. This initial
+delivery did not add accounts, a workout backend, or video uploads.
 
-| Área               | Resultado                                                                                                                                                  |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Câmera             | Controle por tentativa, limpeza idempotente, descarte de streams/modelos tardios, resultados ignorados após cancelamento, inferência sequencial e watchdog |
-| Carregamento       | Script compartilhado entre chamadas simultâneas, timeout, remoção após erro e nova tentativa real                                                          |
-| Geometria          | Coordenadas convertidas pelas dimensões reais do vídeo; medições não finitas ou degeneradas rejeitadas                                                     |
-| Contagem           | Posição inicial confirmada, histerese, confirmação temporal, descarte de ciclos parciais após perda ou intervalo excessivo                                 |
-| Exercícios         | Lado mais visível escolhido e mantido durante o ciclo de agachamento/flexão; abertura simultânea no polichinelo                                            |
-| Sessão             | Preparação, câmera selecionável quando disponível, contagem regressiva, pausa, retomada consciente e pausa ao ocultar a página                             |
-| Relatório          | Eventos deduplicados, duração ativa, critérios do app, interrupções separadas e estado de dados insuficientes                                              |
-| Histórico          | Salvamento explícito, IndexedDB v1, exportação JSON, exclusão e comparação apenas entre versões compatíveis                                                |
-| Interface          | Frame completo com vídeo/canvas alinhados, áreas próprias para ações, seleção por radio, instruções independentes, pt-BR e foco visível                    |
-| Desempenho         | Canvas redimensionado apenas quando necessário, frames repetidos ignorados, atualização seletiva do HUD e mascotes WebP responsivos                        |
-| Diagnóstico        | Removida correlação global de erros entre requisições; não registrar frames, landmarks ou erro bruto nos diagnósticos                                      |
-| Evolução do modelo | Adaptador comum e laboratório isolado; Tasks Vision ainda experimental, sem promoção ao treino                                                             |
+| Area            | Result                                                                                                                                             |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Camera          | Control per attempt, idempotent cleanup, disposal of late streams/models, results ignored after cancellation, sequential inference, and a watchdog |
+| Loading         | Shared script across simultaneous calls, timeout, removal after errors, and an actual retry                                                        |
+| Geometry        | Coordinates converted using actual video dimensions; non-finite or degenerate measurements rejected                                                |
+| Counting        | Confirmed starting position, hysteresis, temporal confirmation, and partial cycles discarded after tracking loss or excessive gaps                 |
+| Exercises       | The most visible side is chosen and retained during squat/push-up cycles; simultaneous opening is required for jumping jacks                       |
+| Session         | Preparation, camera selection when available, countdown, pause, deliberate resume, and pause when the page is hidden                               |
+| Report          | Deduplicated events, active duration, app criteria, separate interruptions, and an insufficient-data state                                         |
+| History         | Explicit saving, IndexedDB v1, JSON export, deletion, and comparisons only between compatible versions                                             |
+| Interface       | Full frame with aligned video/canvas, dedicated action areas, radio selection, independent instructions, pt-BR, and visible focus                  |
+| Performance     | Canvas resized only when needed, repeated frames ignored, selective HUD updates, and responsive WebP mascots                                       |
+| Diagnostics     | Global error correlation across requests removed; no frames, landmarks, or raw errors in diagnostics                                               |
+| Model evolution | Common adapter and isolated lab; Tasks Vision remains experimental and is not used for workouts                                                    |
 
-## Regras iniciais, sem validação científica
+## Initial Rules Without Scientific Validation
 
-A versão `2.0.0` define posição inicial estável por 300 ms; transições por 150 ms; amplitude por 100 ms; interrupção após intervalo superior a 750 ms. Agachamento e flexão iniciam abaixo de 150°, terminam a partir de 160° e usam 90° para o critério inicial de amplitude. As regras mantêm limites de inclinação/alinhamento de 40°/25°. Esses valores são parâmetros de engenharia para avaliação, não prescrição de exercício.
+Version `2.0.0` specifies a stable starting position for 300 ms, transitions for
+150 ms, range-of-motion confirmation for 100 ms, and interruption after a gap
+above 750 ms. Squats and push-ups start below 150°, finish at 160° or above, and
+use 90° for the initial range-of-motion criterion. The rules retain
+inclination/alignment limits of 40°/25°. These values are engineering parameters
+for evaluation, rather than exercise prescriptions.
 
-A duração ativa começa após a contagem regressiva e inclui somente períodos com rastreamento e posição inicial reconhecidos. Pausas, preparação e carregamento ficam excluídos. Frames congelados suspendem o relógio após a tolerância de 750 ms; o watchdog encerra a tentativa sem novos resultados após 20 segundos. A rotação que altera as dimensões do frame solicita nova preparação.
+Active duration begins after the countdown and includes only periods with
+recognized tracking and starting position. Pauses, preparation, and loading are
+excluded. Frozen frames suspend the clock after the 750 ms tolerance; the
+watchdog ends an attempt after 20 seconds without new results. Rotation that
+changes frame dimensions requests new preparation.
 
-Se a inferência legada nunca resolver, as tracks são encerradas e seus resultados descartados, mas o fechamento do WASM aguarda essa operação terminar para evitar fechamento concorrente. Não há API de aborto do `send` legado. A requisição de permissão pode permanecer pendente até resposta do navegador; o cancelamento da tela é imediato e qualquer stream recebido depois é encerrado.
+If legacy inference never resolves, tracks are stopped and results discarded,
+but WASM shutdown waits for that operation to finish to avoid concurrent closure.
+There is no abort API for the legacy `send`. A permission request can remain
+pending until the browser responds; screen cancellation is immediate, and any
+stream received afterward is stopped.
 
-A suavização extra da aplicação foi removida; permanece a suavização do estimador legado. O efeito na latência e na qualidade precisa ser medido em aparelhos reais. A correção de escala 2D não corrige perspectiva ou oclusão, e coordenadas 3D estimadas não são adotadas nas regras.
+Extra application smoothing was removed; the legacy estimator's smoothing remains.
+Its effect on latency and quality must be measured on real devices. Correcting
+2D scale does not correct perspective or occlusion, and estimated 3D coordinates
+are not used in the rules.
 
-## Verificações reproduzíveis
+## Reproducible Checks
 
-Ambiente utilizado: Node 20.20.2 e Bun 1.3.10. O baseline anterior passava em tipos/build, mas tinha 17 erros e 7 avisos de lint. A implementação elimina os erros; permanecem avisos de Fast Refresh em componentes auxiliares existentes.
+Environment used: Node 20.20.2 and Bun 1.3.10. The previous baseline passed
+type/build checks but had 17 lint errors and 7 warnings. The implementation
+eliminates the errors; Fast Refresh warnings remain in existing helper components.
 
-Resultado da execução local em 22/09/2026: **24 testes unitários/integração e 8 E2E aprovados**, tipos aprovados, lint com zero erros e seis avisos, build Vercel aprovado. Os testes do laboratório cobrem métricas e cancelamento com modelos simulados, sem validar a inferência real dos motores.
+Local results on September 22, 2026: **24 unit/integration tests and 8 E2E tests
+passed**, type checks passed, lint reported zero errors and six warnings, and the
+Vercel build passed. Lab tests cover metrics and cancellation with mocked models,
+without validating the engines' actual inference.
 
-- Unitários/integração: geometria conhecida em diferentes proporções; pontos inválidos; pequenas oscilações; início no meio do ciclo; amplitude parcial; ciclos completos; lado fixo; perdas e intervalos longos; polichinelo sem simultaneidade; permissões tardias; cancelamento durante criação/inferência; falha de reprodução; desconexão; timeout; repetição de frames; retry de script; eventos únicos; relógio e IndexedDB.
-- E2E: seleção/instruções por teclado; preparação → contagem regressiva → repetição → pausa → retomada; sinal simulado de página oculta; relatório; salvamento; recarregamento; exclusão; relatório vazio; reinício; retry e enquadramento em 360×800, 390×844 e 844×390.
-- Instalação congelada e build com `NITRO_PRESET=vercel`. O preset foi testado sem duplicar plugins Nitro na configuração Vite.
-- Auditoria de dependências: correções limitadas no lockfile para `brace-expansion` (1.1.18 e 5.0.9), `nanoid` (3.3.18) e `js-yaml` (4.3.2); `bun audit` sem vulnerabilidades reportadas na execução local. Isso não constitui certificação de segurança.
+- Unit/integration: known geometry at different aspect ratios; invalid points;
+  small fluctuations; starting mid-cycle; partial range of motion; complete
+  cycles; fixed side; tracking losses and long gaps; jumping jacks without
+  simultaneous opening; late permissions; cancellation during creation/inference;
+  playback failure; disconnection; timeout; repeated frames; script retry; unique
+  events; clock and IndexedDB.
+- E2E: keyboard selection/instructions; preparation → countdown → repetition →
+  pause → resume; simulated page-hidden signal; reports; saving; reload; deletion;
+  empty reports; restart; retry and framing at 360 × 800, 390 × 844, and 844 × 390.
+- Frozen installation and build with `NITRO_PRESET=vercel`. The preset was tested
+  without duplicating Nitro plugins in the Vite configuration.
+- Dependency audit: limited lockfile fixes for `brace-expansion` (1.1.18 and
+  5.0.9), `nanoid` (3.3.18), and `js-yaml` (4.3.2); `bun audit` reported no
+  vulnerabilities in the local run. This is not a security certification.
 
-## Validação ainda necessária antes de produção
+## Validation Still Required Before Production
 
-A aprovação da primeira fase depende de preview e aparelhos reais. A emulação não prova permissões, campo de visão, WASM, temperatura, bateria ou desempenho da câmera. Nenhum teste físico Android/iPhone, avaliação profissional ou comparação com vídeos consentidos foi realizado nesta entrega. O novo adaptador foi compilado e tipado; sua compatibilidade de Worker/WASM deve ser comprovada antes de uso fora do laboratório.
+First-phase approval depends on a preview and real devices. Emulation does not
+establish permission behavior, field of view, WASM compatibility, temperature,
+battery use, or camera performance. No physical Android/iPhone testing,
+professional evaluation, or comparison with consented videos was performed in
+this delivery. The new adapter was compiled and type-checked; its Worker/WASM
+compatibility must be established before use outside the lab.
 
-1. Confirmar branches e runtime no painel da Vercel e criar um Preview da branch de implementação. Não presumir equivalência com a publicação atual.
-2. Em Safari/iPhone e Chrome/Android, testar permitir/negar câmera, cancelar durante permissão e carga, câmera ocupada/removida, perda/restauração de conexão, troca frontal/traseira, rotação, segundo plano e várias sessões seguidas. Verificar o indicador de câmera após sair.
-3. Conferir os quatro limites do frame e o esqueleto em retrato/paisagem, texto ampliado, teclado e VoiceOver/TalkBack. Medir contraste e legibilidade do feedback à distância.
-4. Fazer sessões prolongadas nos mesmos dispositivos, registrando versão do navegador, resolução entregue, latência, falhas, aquecimento e bateria. Comparar resolução/suavização sem mudar múltiplos fatores de uma vez.
-5. Inspecionar destinos, payloads e cabeçalhos em Preview e produção. Confirmar ausência de frames/landmarks em rede e logs. Inventariar CSP e demais cabeçalhos da hospedagem antes de reforçá-los, incluindo compatibilidade com WASM e fontes.
-6. Confirmar remoção do histórico, armazenamento indisponível, exportação e recuperação após recarregar. O navegador pode remover dados locais; exportação serve de cópia manual.
+1. Confirm branches and runtime in the Vercel dashboard and create a Preview of
+   the implementation branch. Do not assume equivalence with the current deployment.
+2. On Safari/iPhone and Chrome/Android, test granting/denying camera permission,
+   cancellation during permission requests and loading, busy/removed cameras,
+   connection loss/restoration, front/rear switching, rotation, backgrounding, and
+   multiple consecutive sessions. Check the camera indicator after leaving.
+3. Check all four frame boundaries and the skeleton in portrait/landscape,
+   enlarged text, keyboard navigation, and VoiceOver/TalkBack. Measure contrast
+   and feedback legibility at a distance.
+4. Run extended sessions on the same devices, recording browser version, delivered
+   resolution, latency, failures, heating, and battery use. Compare resolution
+   and smoothing without changing multiple factors at once.
+5. Inspect destinations, payloads, and headers in Preview and production. Confirm
+   the absence of frames/landmarks in network traffic and logs. Inventory CSP and
+   other hosting headers before tightening them, accounting for WASM and fonts.
+6. Confirm history deletion, unavailable storage behavior, export, and recovery
+   after reload. The browser may remove local data; export provides a manual copy.
 
-## Protocolo para regras e estimadores
+## Protocol for Rules and Estimators
 
-Formar um conjunto de vídeos com consentimento documentado, anotação por ciclo e revisão profissional. Separar desenvolvimento e avaliação; registrar exercício, aparelho, orientação, enquadramento, cadência, oclusão, contagem, início/fim e critérios por repetição. Não incluir vídeo ou dados pessoais no repositório. Começar cada vídeo com a posição inicial visível por pelo menos 300 ms.
+Build a video dataset with documented consent, cycle annotations, and professional
+review. Separate development and evaluation; record the exercise, device,
+orientation, framing, cadence, occlusion, count, start/end, and criteria by
+repetition. Do not include video or personal data in the repository. Start each
+video with the starting position visible for at least 300 ms.
 
-Executar os dois motores sobre os mesmos arquivos e instantes. O laboratório fornece erro absoluto de contagem, proporção de frames rastreados e latências média/p95 internamente (p95 na interface). Para falsos positivos/negativos e concordância por repetição, é necessário acrescentar anotações temporais e correspondência de eventos; uma diferença de totais sozinha não mede esses indicadores.
+Run both engines on the same files and timestamps. The lab provides absolute
+count error, the proportion of tracked frames, and mean/p95 latencies internally
+(p95 in the interface). False positives/negatives and agreement by repetition
+require additional temporal annotations and event matching; a difference in
+totals alone does not measure those indicators.
 
-Definir critérios de aceitação por aparelho/exercício antes de comparar: erro de contagem, falsos positivos/negativos, tempo sem rastreamento, concordância de critérios, latência e falhas. Promover Tasks Vision somente após satisfazê-los, mantendo reversão para o legado. Avaliar distribuição local de WASM/modelos e comparação 2D/3D como experimentos separados. Não divulgar precisão científica sem protocolo, dados e revisão que sustentem a alegação.
+Define acceptance criteria per device/exercise before comparing: count error,
+false positives/negatives, time without tracking, agreement on criteria, latency,
+and failures. Promote Tasks Vision only after meeting them, retaining a rollback
+to the legacy engine. Evaluate local WASM/model distribution and 2D/3D comparisons
+as separate experiments. Do not publish scientific accuracy claims without a
+supporting protocol, data, and review.
 
-## Entrega e reversão
+## Delivery and Rollback
 
-A CI valida Pull Requests; não faz deploy. O trabalho local não confirma a branch de produção nem altera serviços externos. Após aprovação do Preview e dos dispositivos, integrar sem reescrever histórico publicado. Reverter por novo commit e, se necessário, restaurar a implantação anterior na Vercel. O schema persistido é versionado; futuras migrações devem preservar dados ou apresentar recuperação explícita antes de mudar a versão do banco.
+CI validates Pull Requests; it does not deploy. Local work does not confirm the
+production branch or change external services. After Preview and device approval,
+integrate without rewriting published history. Revert through a new commit and,
+if necessary, restore the previous deployment in Vercel. The persisted schema is
+versioned; future migrations must preserve data or provide explicit recovery
+before changing the database version.
 
-## Expansão para 30 exercícios — 06/10/2026
+## Expansion to 30 Exercises — October 6, 2026
 
-Implementação em `codex/catalog-30`. O código confirma 30 IDs únicos e grupos
-8 pernas/glúteos, 8 superiores, 7 core e 7 cardio. Os 16 IDs anteriores, suas regras
-e 48 arquivos de preview foram preservados. Regras específicas, câmeras, parâmetros
-e limitações dos 14 novos exercícios estão em [catalog-30.md](catalog-30.md).
+Implementation in `codex/catalog-30`. The code confirms 30 unique IDs and groups
+of 8 legs/glutes, 8 upper body, 7 core, and 7 cardio exercises. The previous 16 IDs,
+their rules, and 48 preview files were preserved. Specific rules, camera guidance,
+parameters, and limitations for the 14 new exercises are in
+[catalog-30.md](catalog-30.md).
 
-Ambiente: Node 20.20.2, Bun 1.3.10, Pillow 12.3 e Chromium instalado no ambiente.
-Manifesto e lockfile não foram alterados. As verificações finais foram:
+Environment: Node 20.20.2, Bun 1.3.10, Pillow 12.3, and Chromium installed in the
+environment. The manifest and lockfile were not changed. Final checks were:
 
-| Verificação                            | Resultado                                                                                                                                               |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `bun run typecheck`                    | Aprovado, incluindo os testes.                                                                                                                          |
-| `bun run lint`                         | Zero erros, seis avisos de Fast Refresh preexistentes nos componentes UI.                                                                               |
-| `bun run test`                         | **156 testes aprovados**, 944 asserções, incluindo 41 testes novos e regressões anteriores.                                                             |
-| `bun run build`                        | Aprovado para cliente, SSR e Nitro.                                                                                                                     |
-| `NITRO_PRESET=vercel bun run build`    | Aprovado, sem publicação.                                                                                                                               |
-| Playwright em Chromium móvel e desktop | **110 cenários únicos aprovados em execuções por grupos**: 74 anteriores e 36 novos.                                                                    |
-| Assets novos                           | 42 arquivos presentes e decodificados: 14 animações, 14 miniaturas e 14 faixas lossless. Alpha, margens, loop, dimensões, duração e hashes verificados. |
-| Assets anteriores                      | Os 48 arquivos permanecem idênticos por SHA-256.                                                                                                        |
-| Largura e reprodução                   | 14 previews animados em 360/390px, movimento reduzido, troca de lado e cronômetros; inspeção visual adicional em 390×844.                               |
-| Layout final do treino                 | Seis cenários direcionados aprovados após limitar a coluna do grid: isometrias em 360/390px e câmera/ações em retrato e paisagem.                       |
-| `git diff --check`                     | Aprovado.                                                                                                                                               |
+| Check                                     | Result                                                                                                                                                |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bun run typecheck`                       | Passed, including tests.                                                                                                                              |
+| `bun run lint`                            | Zero errors; six existing Fast Refresh warnings in UI components.                                                                                     |
+| `bun run test`                            | **156 tests passed**, with 944 assertions, including 41 new tests and previous regressions.                                                           |
+| `bun run build`                           | Passed for client, SSR, and Nitro.                                                                                                                    |
+| `NITRO_PRESET=vercel bun run build`       | Passed, without publishing.                                                                                                                           |
+| Playwright in mobile and desktop Chromium | **110 unique scenarios passed across grouped runs**: 74 existing and 36 new.                                                                          |
+| New assets                                | 42 files present and decoded: 14 animations, 14 thumbnails, and 14 lossless strips. Alpha, margins, loops, dimensions, duration, and hashes verified. |
+| Previous assets                           | All 48 files remain identical by SHA-256.                                                                                                             |
+| Width and playback                        | 14 animated previews at 360/390 px, reduced motion, side changes, and timers; additional visual inspection at 390 × 844.                              |
+| Final workout layout                      | Six targeted scenarios passed after constraining the grid column: isometrics at 360/390 px and camera/actions in portrait and landscape.              |
+| `git diff --check`                        | Passed.                                                                                                                                               |
 
-O ambiente usou `node_modules/.cloud-playwright.mjs` para apontar ao Chromium
-instalado, câmera sintética e estimador controlado. O servidor local e o navegador
-exigiram permissão de execução fora do sandbox; isso não publica o aplicativo.
-As regressões finais corrigem seletores ambíguos de Agachamento/Polichinelo e a
-contagem anterior de sete membros superiores. Os prazos de execução locais foram
-ajustados para incluir recarregamento e revisão de todos os previews.
+The environment used `node_modules/.cloud-playwright.mjs` to select the installed
+Chromium, a synthetic camera, and a controlled estimator. The local server and
+browser required execution permission outside the sandbox; this does not publish
+the application. Final regressions correct ambiguous Squat/Jumping jack
+("Agachamento"/"Polichinelo") selectors and the previous count of seven upper body
+exercises. Local execution timeouts were adjusted to include reload and review
+of all previews.
 
-Os testes cobrem ciclos completos/parciais, preparação, ausência de pose, confiança
-baixa, valores inválidos, lacunas, jitter, espelhamento, lados alternados/selecionados,
-membros opostos, flexão simultânea indevida nas corridas, aquisição/pausa das
-isometrias, troca de lado com tempos separados, persistência, exportação e evolução.
-Nenhuma mudança promoveu Tasks Vision ao treino.
+Tests cover complete/partial cycles, preparation, missing poses, low confidence,
+invalid values, gaps, jitter, mirroring, alternating/selected sides, opposite
+limbs, incorrect simultaneous flexion during running movements, isometric
+acquisition/pause, side changes with separate times, persistence, export, and
+progress. No change promoted Tasks Vision to workouts.
 
-**Análise implementada e verificada com dados sintéticos; não validada com
-movimentos reais.** Continuam pendentes vídeos consentidos anotados por ciclo/lado,
-calibração dos limiares, avaliação de falsos positivos/negativos e erro do tempo
-válido, além de câmera, desempenho e acessibilidade em Android/Chrome e iPhone/Safari.
-O patinador não comprova fase aérea; o agachamento com salto estima elevação em 2D e
-pode confundir movimento vertical da câmera. Ambos exigem câmera fixa. As demais
-limitações específicas são apresentadas antes do início e na documentação.
+**Analysis implemented and verified with synthetic data; not validated against
+real movements.** Consented videos annotated by cycle/side, threshold calibration,
+evaluation of false positives/negatives and valid time error, and camera,
+performance, and accessibility checks on Android/Chrome and iPhone/Safari remain
+pending. Skaters do not establish an airborne phase; jump squats estimate elevation
+in 2D and may confuse vertical camera movement with body elevation. Both require
+a fixed camera. Other specific limitations are presented before starting and in
+the documentation.
 
-Na entrega local inicial, ainda não havia commit, push ou deploy. Arquivos temporários de revisão permanecem fora
-do repositório em `/workspace/work/torvik-catalog30`.
+At the initial local delivery, no commit, push, or deployment had been performed.
+Temporary review files remain outside the repository at
+`/workspace/work/torvik-catalog30`.
 
-### Revalidação para integrar à main — 06/10/2026
+### Revalidation for Integration into Main — October 6, 2026
 
-A implementação foi salva no commit `9a840b1`. Após atualizar as referências,
-`origin/main` estava em `01470b61187ae30f00a017a817e6ff52f204e4c5`, ancestral da
-implementação. A integração local foi por fast-forward, sem conflitos ou
-reescrita de histórico, conforme autorização para publicação direta na main.
+The implementation was saved in commit `9a840b1`. After refreshing references,
+`origin/main` was at `01470b61187ae30f00a017a817e6ff52f204e4c5`, an ancestor of
+the implementation. Local integration used a fast-forward, without conflicts or
+history rewriting, following authorization to publish directly to main.
 
-Foram repetidos tipos, lint, os 156 testes unitários, os builds padrão e Vercel,
-a decodificação e os hashes dos 42 assets novos, além da integridade dos 48
-anteriores. Todos passaram; o lint manteve os seis avisos preexistentes.
+Type checks, lint, the 156 unit tests, default and Vercel builds, decoding and
+hashes of the 42 new assets, and integrity checks for the previous 48 assets
+were repeated. All passed; lint retained the six existing warnings.
 
-A execução simultânea de dois navegadores foi interrompida após falhas de início
-automático sob limitação de CPU. Com um único worker, a suíte completa teve
-108 aprovações e duas falhas: amostragem do ciclo sintético de calcanhares aos
-glúteos e rolagem da orientação sob a ação fixa. Os testes agora aguardam amostras
-contínuas de cada pose, incluindo a posição inicial, e centralizam a orientação
-antes de avaliar sua posição em relação ao botão. Os limiares e as regras do
-produto não foram alterados.
+Running two browsers simultaneously was interrupted after automatic-start
+failures under CPU constraints. With a single worker, the full suite had
+108 passes and two failures: sampling the synthetic butt-kick cycle and scrolling
+the guidance beneath the fixed action. Tests now wait for continuous samples of
+each pose, including the starting position, and center the guidance before
+checking its position relative to the button. Product thresholds and rules were
+not changed.
 
-Após esses ajustes, tipos e lint passaram novamente. A repetição direcionada
-teve **12 aprovações**, cobrindo os dois cenários que falharam, patinador, salto e
-trocas de lado nos perfis móvel e desktop. Somando a suíte completa e a repetição,
-os **110 cenários únicos** tiveram execuções aprovadas. Não houve uma única
-execução da suíte completa com 110 aprovações. A validação prática com movimentos
-reais e dispositivos físicos continua pendente, conforme descrito acima.
+After these adjustments, type checks and lint passed again. The targeted rerun
+had **12 passes**, covering both failed scenarios, skaters, jump squats, and side
+changes in mobile and desktop profiles. Across the full suite and rerun, all
+**110 unique scenarios** had passing executions. There was no single full-suite
+run with 110 passes. Practical validation with real movements and physical
+devices remains pending, as described above.
 
-### Atualização de segurança do TanStack Start — 06/10/2026
+### TanStack Start Security Update — October 6, 2026
 
-Para corrigir o bloqueio de implantação informado para CVE-2026-102989,
-`@tanstack/react-start` foi atualizado de `1.168.32` para `1.168.60`.
-`@tanstack/react-router` passou a `1.170.41` e `@tanstack/router-plugin` a
-`1.168.42`, acompanhando as dependências exatas do Start e compartilhando
-`@tanstack/router-core@1.171.34`. O `bun.lock` foi regenerado com Bun 1.3.10;
-há uma única resolução de Start, na versão corrigida, sem cópia de `1.168.32`.
+To address the reported deployment block for CVE-2026-102989,
+`@tanstack/react-start` was updated from `1.168.32` to `1.168.60`.
+`@tanstack/react-router` moved to `1.170.41` and `@tanstack/router-plugin` to
+`1.168.42`, following Start's exact dependencies and sharing
+`@tanstack/router-core@1.171.34`. The `bun.lock` file was regenerated with
+Bun 1.3.10; there is a single Start resolution at the corrected version, with no
+copy of `1.168.32`.
 
-O Start atualizado exige Node 22.12 ou posterior. `.node-version` agora registra
-22.23.3, utilizado pela CI existente, e `engines.node` seleciona `22.x` na Vercel.
-A configuração gerada em `.vc-config.json` confirmou `nodejs22.x`. O componente
-de erro raiz usa `ErrorComponentProps`, compatível com a tipagem do Router
-atualizado; os diagnósticos de servidor continuam sanitizados.
+The updated Start requires Node 22.12 or later. `.node-version` now records
+22.23.3, used by the existing CI, and `engines.node` selects `22.x` in Vercel.
+The generated `.vc-config.json` confirmed `nodejs22.x`. The root error component
+uses `ErrorComponentProps`, compatible with the updated Router's types; server
+diagnostics remain sanitized.
 
-Verificações executadas em Node 22.23.3 e Bun 1.3.10:
+Checks performed with Node 22.23.3 and Bun 1.3.10:
 
-- Instalação com `bun install --frozen-lockfile`: aprovada, sem alterar o lockfile.
-- Tipos: aprovados após ajustar o tipo do componente de erro.
-- Lint: zero erros; os mesmos seis avisos de Fast Refresh dos componentes UI.
-- Testes unitários: **156 aprovados**, com 944 asserções.
-- Builds padrão e `NITRO_PRESET=vercel`: aprovados para cliente, SSR e Nitro.
-- SSR da saída Vercel, servido localmente por adaptador HTTP: página inicial
-  respondeu 200 e rota inexistente respondeu 404, com os respectivos conteúdos.
-- Playwright: **oito cenários direcionados aprovados**, quatro em Chromium móvel
-  e quatro em desktop, usando essa saída de produção. Cobrem supino no chão,
-  troca de lado e tempos separados da prancha lateral, filtros/gráfico/calendário
-  do histórico, preparação, treino, pausa, relatório, salvamento e reinício.
-  Nesta atualização não foi repetida a suíte completa de 110 cenários.
-- `git diff --check`: aprovado.
+- Installation with `bun install --frozen-lockfile`: passed without changing the
+  lockfile.
+- Type checks: passed after adjusting the error component's type.
+- Lint: zero errors; the same six Fast Refresh warnings in UI components.
+- Unit tests: **156 passed**, with 944 assertions.
+- Default and `NITRO_PRESET=vercel` builds: passed for client, SSR, and Nitro.
+- SSR from the Vercel output, served locally through an HTTP adapter: the home
+  page responded with 200 and a nonexistent route with 404, with their respective
+  content.
+- Playwright: **eight targeted scenarios passed**, four in mobile Chromium and
+  four on desktop, using that production output. They cover floor press, side
+  changes and separate side-plank times, history filters/chart/calendar,
+  preparation, workout, pause, reports, saving, and restart. The full
+  110-scenario suite was not repeated for this update.
+- `git diff --check`: passed.
 
-`bun audit --json` não reportou vulnerabilidades no TanStack Start ou nos demais
-pacotes TanStack resolvidos. O comando continua retornando status 1 por avisos
-preexistentes em `brace-expansion` (1.1.18 e 5.0.9), `shell-quote` (1.10.0) e
-`source-map-js` (1.2.1), cujas versões já estavam no lockfile anterior e foram
-preservadas. Esses achados independentes permanecem pendentes.
+`bun audit --json` did not report vulnerabilities in TanStack Start or any other
+resolved TanStack packages. The command still returns status 1 due to existing
+warnings for `brace-expansion` (1.1.18 and 5.0.9), `shell-quote` (1.10.0), and
+`source-map-js` (1.2.1), whose versions were already in the previous lockfile and
+were preserved. These independent findings remain pending.
 
-No ambiente local, a resolução inicial de metadados em cache ficou parada;
-`bun install --no-cache --network-concurrency=1` concluiu a atualização pela mesma
-origem npm e pelo proxy configurado. A instalação congelada posterior não precisou
-desse ajuste. Ferramentas, logs e adaptadores usados na revisão permanecem fora
-dos arquivos versionados.
+In the local environment, the initial resolution of cached metadata stalled;
+`bun install --no-cache --network-concurrency=1` completed the update using the
+same npm source and configured proxy. The subsequent frozen installation did not
+need that adjustment. Tools, logs, and adapters used in the review remain outside
+tracked files.

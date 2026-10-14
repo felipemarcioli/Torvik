@@ -1,5 +1,8 @@
 # 🦘 Torvik — Real-Time Exercise Tracking with Computer Vision
 
+> [!NOTE]
+> **This project is currently under development.**
+
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
 ![MediaPipe](https://img.shields.io/badge/MediaPipe-Pose-0097A7)
@@ -54,7 +57,7 @@ Torvik explores how computer vision can make exercise tracking accessible throug
 
 The project connects several areas of software development: pose estimation, geometry, temporal state machines, browser media APIs, responsive interfaces, and local data storage. The goal is to turn a stream of estimated body landmarks into understandable feedback and useful session records.
 
-**Torvik is under active development.** Its results describe the application's programmed criteria. They are not a clinical assessment, a guarantee of safe technique, or a replacement for qualified guidance.
+Its results describe the application's programmed criteria. They are not a clinical assessment, a guarantee of safe technique, or a replacement for qualified guidance.
 
 ### Key Highlights
 
@@ -278,7 +281,7 @@ When reporting a camera issue, include your device, browser, exercise, orientati
 - [Mobile interface notes](docs/mobile-interface.md)
 - [Validation records and evaluation protocol](docs/validation.md)
 
-The detailed implementation notes are currently in Portuguese.
+The documentation and detailed implementation notes are available in English. The application interface and voice guidance remain in Brazilian Portuguese.
 
 Torvik uses MediaPipe's pretrained pose-estimation technology and the open-source libraries listed in [`package.json`](package.json).
 

@@ -1,137 +1,143 @@
-# Expansão para 30 exercícios
+# Expansion to 30 Exercises
 
-A base inspecionada continha 16 IDs: 5 pernas, 7 superiores, 2 core e 2 cardio.
-Foram acrescentados 14, sem remoções ou substituições, chegando a **8/8/7/7**.
-Peito, costas, braços e ombros continuam subcategorias no grupo superior. Os
-analisadores e arquivos de imagem dos 16 exercícios anteriores foram preservados.
+The inspected baseline contained 16 IDs: 5 legs, 7 upper body, 2 core, and 2 cardio.
+Another 14 were added, without removals or replacements, bringing the totals to
+**8/8/7/7**. Chest, back, arms, and shoulders remain subcategories within the upper
+body group. The analyzers and image files for the previous 16 exercises were
+preserved.
 
-## Cadastro e integração
+## Definitions and Integration
 
-`additions.ts` contém nomes em português, equipamentos, preparação, execução,
-definição de repetição/tempo, câmera e limitações específicas. `catalog.ts` combina
-as definições e `data.ts` conserva os grupos da seleção. Todas as novas opções usam
-os mesmos fluxos de preparação, countdown, treino, voz, relatório e salvamento.
+`additions.ts` contains Portuguese names, equipment, preparation, execution,
+repetition/hold definitions, camera guidance, and specific limitations.
+`catalog.ts` combines the definitions, and `data.ts` preserves the selection
+groups. All new options use the same preparation, countdown, workout, voice,
+report, and save flows.
 
-| ID                 | Medição                                    | Evidência observável e câmera                                                                                                                                    |
-| ------------------ | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `romaniandeadlift` | Repetições                                 | Flexão do quadril com braços estendidos, tronco inclinado e joelhos pouco flexionados; retorno ereto. Câmera lateral na altura do quadril.                       |
-| `bulgariansquat`   | Repetições por perna dianteira selecionada | Base assimétrica e tornozelo traseiro elevado; flexão e extensão do joelho dianteiro. Câmera lateral diagonal mostrando ambos os pés.                            |
-| `wallsit`          | Tempo válido                               | Tronco aproximadamente vertical, quadril e joelho flexionados. Câmera lateral na altura dos joelhos. Não comprova contato com parede.                            |
-| `floorpress`       | Repetições                                 | Tronco horizontal; extensão bilateral dos cotovelos com punhos elevados, seguida do retorno flexionado. Câmera baixa lateral diagonal, ambos os braços visíveis. |
-| `sideplank`        | Tempo por lado de apoio selecionado        | Eixo corporal estendido, antebraço flexionado e ombros separados verticalmente. Câmera baixa diante da lateral exposta.                                          |
-| `deadbug`          | Repetições por perna estendida             | Tronco horizontal com membros de apoio apontando acima; extensão coordenada de braço e perna opostos e retorno. Câmera diagonal elevada.                         |
-| `birddog`          | Repetições por perna estendida             | Tronco horizontal com mão/joelho de apoio abaixo; extensão de membros opostos e retorno aos quatro apoios. Câmera diagonal lateral baixa.                        |
-| `lyinglegraise`    | Repetições                                 | Tronco horizontal; pernas estendidas sobem juntas e retornam juntas. Câmera lateral baixa diagonal.                                                              |
-| `shouldertap`      | Repetições por mão                         | Prancha alta; mão aproxima-se do ombro oposto e retorna ao apoio com braço estendido. Câmera frontal diagonal baixa. Proximidade não comprova toque.             |
-| `highknees`        | Repetições alternadas e duração ativa      | Elevação relativa ao quadril com flexão de joelho e retorno. Câmera frontal oblíqua mostrando ambas as pernas.                                                   |
-| `buttkicks`        | Repetições alternadas e duração ativa      | Flexão do joelho e aproximação tornozelo–quadril com coxa baixa; retorno estendido. Câmera lateral oblíqua.                                                      |
-| `skater`           | Cada chegada lateral concluída             | Deslocamento do quadril, troca da perna de apoio inferida e chegada estabilizada com perna cruzada. Câmera frontal fixa com espaço lateral. Não comprova salto.  |
-| `stepjack`         | Cada abertura e retorno por lado           | Um pé desloca-se enquanto outro permanece próximo da referência, braços elevados; fechamento e braços baixos. Câmera frontal fixa.                               |
-| `jumpsquat`        | Ciclo agachamento–elevação–retorno         | Flexão dos dois joelhos, elevação do quadril e dos quatro pontos dos pés, chegada e retorno ereto. Câmera fixa lateral diagonal, pés em boa resolução.           |
+| ID                 | Measurement                                 | Observable evidence and camera                                                                                                                                      |
+| ------------------ | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `romaniandeadlift` | Repetitions                                 | Hip flexion with extended arms, an inclined torso, and slightly bent knees; return upright. Side camera at hip height.                                              |
+| `bulgariansquat`   | Repetitions for the selected front leg      | Asymmetric stance and elevated rear ankle; flexion and extension of the front knee. Diagonal side camera showing both feet.                                         |
+| `wallsit`          | Valid hold time                             | Approximately vertical torso with hips and knees flexed. Side camera at knee height. Does not establish contact with the wall.                                      |
+| `floorpress`       | Repetitions                                 | Horizontal torso; bilateral elbow extension with raised wrists, followed by a return to flexion. Low diagonal side camera, with both arms visible.                  |
+| `sideplank`        | Hold time for the selected support side     | Extended body axis, bent supporting arm, and vertically separated shoulders. Low camera facing the exposed side.                                                    |
+| `deadbug`          | Repetitions by extended leg                 | Horizontal torso with supporting limbs pointing upward; coordinated extension of the opposite arm and leg, then return. Elevated diagonal camera.                   |
+| `birddog`          | Repetitions by extended leg                 | Horizontal torso with the supporting hand and knee underneath; extension of opposite limbs, then return to all fours. Low diagonal side camera.                     |
+| `lyinglegraise`    | Repetitions                                 | Horizontal torso; extended legs rise together and return together. Low diagonal side camera.                                                                        |
+| `shouldertap`      | Repetitions by hand                         | High plank; a hand approaches the opposite shoulder, then returns to support with an extended arm. Low diagonal front camera. Proximity does not establish contact. |
+| `highknees`        | Alternating repetitions and active duration | Knee lift relative to the hip with knee flexion, then return. Oblique front camera showing both legs.                                                               |
+| `buttkicks`        | Alternating repetitions and active duration | Knee flexion and reduced ankle-to-hip distance with the thigh low; return to extension. Oblique side camera.                                                        |
+| `skater`           | Each completed lateral arrival              | Hip displacement, inferred support-leg change, and a stable arrival with a crossed leg. Fixed front camera with lateral space. Does not establish a jump.           |
+| `stepjack`         | Each opening and return by side             | One foot moves while the other stays near its reference position, with arms raised; feet close and arms lower. Fixed front camera.                                  |
+| `jumpsquat`        | Squat–rise–return cycle                     | Both knees flex, hips and all four foot landmarks rise, then landing and return upright. Fixed diagonal side camera, with clearly resolved feet.                    |
 
-Nos movimentos alternados, a repetição só é emitida no retorno. O próximo ciclo exige
-o lado oposto. No patinador, a chegada é a conclusão. Os rótulos usam o lado anatômico
-do modelo, inclusive quando a imagem é espelhada. Na troca explícita de lado, a sessão
-preserva os totais concluídos, descarta evidência parcial e prepara a outra posição.
+For alternating movements, a repetition is emitted only on the return. The next
+cycle requires the opposite side. For skaters, arrival completes the cycle.
+Labels use the model's anatomical side, including when the image is mirrored.
+When the side is changed explicitly, the session preserves completed totals,
+discards partial evidence, and prepares the other position.
 
-## Regras iniciais e limites
+## Initial Rules and Limitations
 
-`catalog-analyzers.ts`, `movement-measures.ts`, `temporal.ts` e `isometrics.ts` implementam
-as novas regras `1.0.0`. São heurísticas de engenharia **sem validação com movimentos
-reais**. `PARAMETERS` reúne limiares por movimento; `MODERN_TIMING` reúne os tempos:
-posição inicial 300 ms, entrada/retorno 90 ms, alvo 70 ms, suavização exponencial de
-medidas com constante 45 ms, aquisição de isometria 500 ms, tolerância de oscilação
-250 ms e interrupção por lacuna acima de 500 ms. Transições exigem pelo menos dois
-timestamps distintos. Entrada e saída usam limiares diferentes.
+`catalog-analyzers.ts`, `movement-measures.ts`, `temporal.ts`, and `isometrics.ts`
+implement the new `1.0.0` rules. These are engineering heuristics **without
+validation against real movements**. `PARAMETERS` groups thresholds by movement;
+`MODERN_TIMING` groups timing settings: a 300 ms starting position, 90 ms
+entry/return, 70 ms target confirmation, exponential measurement smoothing with a
+45 ms time constant, 500 ms isometric acquisition, 250 ms fluctuation tolerance,
+and interruption for gaps above 500 ms. Transitions require at least two distinct
+timestamps. Entry and exit use different thresholds.
 
-Ângulos consideram a proporção do vídeo; distâncias são normalizadas pelo tronco,
-perna ou pé. São exigidos pontos relevantes dentro do quadro, finitos e com
-visibilidade >= 0,65, além de um tronco de pelo menos 20 pixels. Falta de pose ou
-confiança insuficiente interrompe evidência parcial e pede enquadramento. Oclusões
-em exercícios no chão podem tornar o enquadramento incompatível; a diagonal deve
-mostrar os dois pares de membros. Preparação, frames repetidos e ciclos parciais
-não acrescentam repetições.
+Angles account for the video's aspect ratio; distances are normalized by the
+torso, leg, or foot. Relevant landmarks must be in frame, finite, and have
+visibility >= 0.65, with a torso at least 20 pixels long. Missing poses or
+insufficient confidence interrupt partial evidence and request reframing.
+Occlusion during floor exercises can make the framing unsuitable; a diagonal view
+must show both pairs of limbs. Preparation, repeated frames, and partial cycles do
+not add repetitions.
 
-Isometrias somam somente intervalos entre dois frames válidos consecutivos após
-aquisição estável. Oscilações breves conservam a aquisição, mas **não somam tempo
-inválido nem atravessam a lacuna**. Após a tolerância, é necessário adquirir novamente.
-Perda de confiança, pausa ou troca de lado exige nova aquisição. A tolerância pode
-ser configurada no construtor do analisador.
+Isometric exercises accumulate only the intervals between two consecutive valid
+frames after stable acquisition. Brief fluctuations preserve acquisition but
+**do not add invalid time or bridge the gap**. After the tolerance expires,
+acquisition is required again. Confidence loss, pause, or a side change requires
+new acquisition. The tolerance can be configured in the analyzer constructor.
 
-Limitações especialmente relevantes:
+Particularly relevant limitations:
 
-- A prancha lateral exige separação projetada dos ombros para distingui-la de uma
-  prancha frontal; vista com ombros sobrepostos será rejeitada.
-- O patinador avalia deslocamento e chegada, não comprova fase aérea. A contagem não
-  permite afirmar que cada deslocamento foi um salto real.
-- O agachamento com salto depende de pés nítidos e câmera imóvel. Uma translação
-  vertical da imagem depois de um agachamento pode imitar a evidência de elevação;
-  a câmera de pose não determina contato físico. Saltos muito curtos podem ser perdidos.
-- Corridas alternadas muito rápidas podem ser rejeitadas pelos tempos de confirmação
-  ou pelo retorno incompleto entre lados. É necessário calibrar com vídeos reais.
-- Nenhuma regra reconhece carga, ativação muscular, estabilidade de banco, contato
-  real com chão/parede ou detalhes da coluna. Instruções gerais são apresentadas
-  separadamente das mensagens sobre evidência observada.
+- Side planks require projected shoulder separation to distinguish them from
+  front planks; views with overlapping shoulders are rejected.
+- Skaters evaluate displacement and arrival, without establishing an airborne
+  phase. Counts cannot establish that each displacement was a real jump.
+- Jump squats depend on clear feet and a stationary camera. Vertical image
+  translation after a squat can imitate elevation evidence; pose estimation
+  cannot establish physical contact. Very short jumps may be missed.
+- Very fast alternating runs can be rejected by confirmation times or an
+  incomplete return between sides. Calibration with real videos is required.
+- No rule recognizes load, muscle activation, bench stability, actual floor/wall
+  contact, or spinal details. General instructions are presented separately
+  from messages about observed evidence.
 
-## Histórico e compatibilidade
+## History and Compatibility
 
-Eventos de repetição podem incluir `side`. Sessões de exercícios com lados podem
-incluir `sideResults` com repetições, repetições dentro dos critérios e segundos
-válidos por lado. Relatório, detalhe, comparação, CSV e relatório imprimível mostram
-esses dados. O gráfico de evolução permite filtrar lado; resumos antigos sem essa
-informação não recebem valores inventados. Exportação JSON conserva os novos campos.
+Repetition events can include `side`. Sessions for exercises with sides can
+include `sideResults` with repetitions, repetitions meeting the criteria, and
+valid seconds by side. Reports, details, comparisons, CSV, and printable reports
+show these values. The progress chart supports filtering by side; older summaries
+without that information are not given invented values. JSON exports preserve
+the new fields.
 
-O contrato continua `schemaVersion: 2`, com campos opcionais validados e eventos
-deduplicados; IndexedDB continua na versão 1. Leitores antigos de schema 1 e sessões
-anteriores de schema 2 continuam cobertos pelas regressões. Duração ativa e tempo
-válido de sustentação são métricas diferentes.
+The contract remains `schemaVersion: 2`, with validated optional fields and
+deduplicated events; IndexedDB remains at version 1. Older schema 1 readers and
+previous schema 2 sessions remain covered by regression tests. Active duration
+and valid hold time are different metrics.
 
-## Animações
+## Animations
 
-Cada novo exercício tem animação própria, miniatura e faixa lossless em
-`public/exercise-previews/torvik-{id}{,-still,-sprite}.webp`. A reprodução continua
-em `ExercisePreview`, por WebP animado nativo; movimento reduzido usa a miniatura.
-O catálogo referencia os três arquivos e não usa placeholders.
+Each new exercise has its own animation, thumbnail, and lossless strip at
+`public/exercise-previews/torvik-{id}{,-still,-sprite}.webp`. Playback remains in
+`ExercisePreview`, using native animated WebP; reduced motion uses the thumbnail.
+The catalog references all three files and does not use placeholders.
 
-As folhas foram geradas com a ferramenta integrada de imagens usando o Torvik
-existente como referência. As revisões preservam o personagem, óculos, colete,
-cores e acabamento 3D e distinguem os pares alternados. Os movimentos dependentes
-incluem halteres, banco ou parede. São poses discretas para ensinar preparação,
-execução e retorno; não uma simulação anatômica contínua.
+The sheets were generated with the built-in image tool using the existing Torvik
+as a reference. Revisions preserve the character, sunglasses, vest, colors, and
+3D finish, and distinguish alternating limb pairs. Movements that need equipment
+include dumbbells, a bench, or a wall. These are discrete poses for demonstrating
+preparation, execution, and return, rather than a continuous anatomical simulation.
 
-O conversor Pillow existente recebeu modo de grade revisada, limpeza de pequenos
-fragmentos de alpha, escala única sem distorção, alinhamento das linhas e ordem
-explícita de reprodução. A origem é conservada dentro de cada linha para preservar
-altura de salto e deslocamento. Folhas que cortam corpos na borda são rejeitadas.
-Prompts, ordens e metadados de codificação estão em `catalog-30-preview-prompts.json`.
+The existing Pillow converter gained a reviewed grid mode, small alpha-fragment
+cleanup, a single scale without distortion, row alignment, and explicit playback
+ordering. The origin is preserved within each row to retain jump height and
+displacement. Sheets that cut off bodies at the edges are rejected. Prompts,
+orders, and encoding metadata are in `catalog-30-preview-prompts.json`.
 
-Os 14 arquivos animados somam 1.114.338 bytes e cada um fica abaixo de 98 KB.
-Todos têm oito quadros 256 × 256, loop infinito de 1.920 ms e alpha real. A leitura
-dos 42 arquivos verificou dimensão, margem transparente, duração e reprodução;
-os 48 assets anteriores permanecem idênticos por SHA-256. O inventário de arquivos,
-tamanhos e hashes está em `catalog-30-preview-assets.json`.
+The 14 animated files total 1,114,338 bytes, and each is below 98 KB.
+All have eight 256 × 256 frames, a 1,920 ms infinite loop, and actual alpha
+transparency. Reading the 42 files verified dimensions, transparent margins,
+duration, and playback; the previous 48 assets remain identical by SHA-256.
+The file inventory, sizes, and hashes are in `catalog-30-preview-assets.json`.
 
-Para reencodar uma faixa normalizada aprovada, sem mover ou redimensionar quadros:
+To re-encode an approved normalized strip without moving or resizing frames:
 
 ```sh
 python3 scripts/build-exercise-preview.py public/exercise-previews/torvik-birddog-sprite.webp birddog --normalized --frame-ms 240 --output /tmp/torvik-preview-check
 ```
 
-## Verificação e validação prática
+## Verification and Practical Validation
 
-`tests/catalog-30.test.ts` e suas fixtures exercitam ciclos completos/parciais,
-posição inicial, perdas de pose, confiança baixa, NaN, lacunas, timestamps repetidos,
-ruído, proporções, espelhamento, alternância, troca explícita, membros opostos,
-aquisição/pausa das isometrias, deduplicação e histórico/exportação por lado.
-`tests/e2e/catalog-30.spec.ts` cobre seleção, preparação, medição com estimador
-controlado, relatório, salvamento, recarregamento e CSV para os 14 exercícios,
-mais troca de lado, animação, movimento reduzido e larguras móveis 360/390.
+`tests/catalog-30.test.ts` and its fixtures exercise complete/partial cycles,
+starting positions, pose loss, low confidence, NaN, gaps, repeated timestamps,
+noise, aspect ratios, mirroring, alternation, explicit side changes, opposite
+limbs, isometric acquisition/pause, deduplication, and history/export by side.
+`tests/e2e/catalog-30.spec.ts` covers selection, preparation, measurement with a
+controlled estimator, reports, saving, reload, and CSV for the 14 exercises, plus
+side changes, animation, reduced motion, and mobile widths of 360/390 px.
 
-Nenhum vídeo de pessoa nem câmera real foi usado para avaliar as novas regras.
-Ainda são necessárias gravações consentidas com ciclos e lados anotados, testes
-Android/Chrome e iPhone/Safari, diferentes corpos/cadências/diagonais, oclusão e
-iluminação. Medir falsos positivos/negativos por ciclo e erro de tempo válido antes
-de divulgar precisão. Usar `/lab` para comparar contagem e cobertura no mesmo trecho;
-ele não mede concordância por repetição sem anotações temporais adicionais.
+No videos of people or real cameras were used to evaluate the new rules.
+Consented recordings with annotated cycles and sides, Android/Chrome and
+iPhone/Safari tests, different bodies, cadences, diagonal views, occlusion, and
+lighting are still required. Measure false positives/negatives by cycle and valid
+time error before publishing accuracy claims. Use `/lab` to compare counts and
+coverage over the same segment; it does not measure agreement by repetition
+without additional temporal annotations.
 
-Os resultados finais dos comandos desta entrega estão em `validation.md`.
+The final command results for this delivery are in `validation.md`.
