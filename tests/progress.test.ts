@@ -47,7 +47,7 @@ test("totais, duração e proporções usam contagens reais, inclusive sessões 
   ).toEqual({ sessions: 2, totalReps: 10, correctReps: 8, seconds: 90, validSeconds: 0 });
   expect(proportion(session())).toBe(80);
   expect(proportion(session({ totalReps: 0, correctReps: 0 }))).toBeNull();
-  expect(durationLabel(3661)).toBe("1h 1min 1s");
+  expect(durationLabel(3661)).toBe("1 h 1 min 1 s");
   expect(factualSummary(session({ totalReps: 0, correctReps: 0 }))).toContain("Nenhuma repetição");
   expect(factualSummary(withoutFeedback())).toContain("não foi registrado");
 });

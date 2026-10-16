@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { translate as t, formatNumber } from "@/lib/i18n";
 import { useEffect, useState } from "react";
 import { Mascot } from "./TorvikUI";
 import { SlidersHorizontal, LoaderCircle, Pause, Play, Check } from "lucide-react";
@@ -22,7 +24,8 @@ import { VoiceControls } from "./VoiceControls";
 import type { WorkoutVoiceControls } from "@/hooks/use-workout-voice";
 import { useWorkout } from "@/hooks/use-workout";
 import type { ExerciseId } from "@/lib/biomech";
-import { formatTime, type SessionReport } from "@/lib/session";
+import type { SessionReport } from "@/lib/session";
+import { formatTimer } from "./format";
 import { EXERCISES, CAMERA_TIPS } from "./data";
 const stages = {
   model: "Baixando modelo de movimento…",
@@ -50,6 +53,8 @@ export function WorkoutScreen({
   onCancel: () => void;
   registerBack: (handler: () => boolean) => () => void;
 }) {
+  useTranslation();
+
   const w = useWorkout(exercise, voice.controller);
   const details = EXERCISES.find((e) => e.id === exercise)!;
   const [confirmExit, setConfirmExit] = useState(false);
@@ -80,7 +85,10 @@ export function WorkoutScreen({
     }),
   );
   return (
-    <main className="workout-layout bg-background" aria-label={`Treino de ${details.name}`}>
+    <main
+      className="workout-layout bg-background"
+      aria-label={t("Treino de {{value0}}", { value0: t(details.name) })}
+    >
       <header className="workout-header flex items-center justify-between gap-4 border-b border-border bg-card px-4 py-2.5 sm:px-6">
         <BackButton
           onClick={() => {
@@ -88,28 +96,28 @@ export function WorkoutScreen({
             else requestExit();
           }}
         >
-          {["running", "countdown"].includes(w.phase) ? "Voltar à pausa" : "Voltar"}
+          {["running", "countdown"].includes(w.phase) ? t("Voltar à pausa") : t("Voltar")}
         </BackButton>
         <div className="min-w-0">
-          <p className="torvik-kicker text-[0.625rem]">Torvik · seu movimento</p>
-          <h1 className="truncate text-lg font-bold leading-tight sm:text-xl">{details.name}</h1>
+          <p className="torvik-kicker text-[0.625rem]">{t("Torvik · seu movimento")}</p>
+          <h1 className="truncate text-lg font-bold leading-tight sm:text-xl">{t(details.name)}</h1>
         </div>
-        <div className="shrink-0 text-right">
-          <p className="text-xs text-muted-foreground">Tempo ativo</p>
+        <div className="shrink-0 text-end">
+          <p className="text-xs text-muted-foreground">{t("Tempo ativo")}</p>
           <p className="font-display text-xl font-bold tabular-nums sm:text-2xl">
-            {formatTime(w.seconds)}
+            {formatTimer(w.seconds)}
           </p>
         </div>
       </header>
       <section
         className="camera-region relative flex min-h-0 items-center justify-center overflow-hidden bg-black"
-        aria-label="Prévia completa da câmera"
+        aria-label={t("Prévia completa da câmera")}
       >
         <video
           ref={w.videoRef}
           playsInline
           muted
-          aria-label="Vídeo da câmera"
+          aria-label={t("Vídeo da câmera")}
           className={`absolute inset-0 size-full object-contain ${w.mirrored ? "-scale-x-100" : ""}`}
         />
         <canvas
@@ -119,7 +127,7 @@ export function WorkoutScreen({
         />
         {["preparing", "countdown", "running", "paused"].includes(w.phase) && (
           <span className="camera-status">
-            <i aria-hidden="true" /> Câmera local · sem gravação
+            <i aria-hidden="true" /> {t("Câmera local · sem gravação")}
           </span>
         )}
         {w.phase === "countdown" && (
@@ -131,12 +139,12 @@ export function WorkoutScreen({
               key={w.countdown}
               className="countdown-number font-display font-extrabold text-primary"
             >
-              {w.countdown}
+              {formatNumber(w.countdown)}
             </p>
             <p className="mt-1 text-sm font-semibold text-foreground">
               {w.result.tracking
-                ? "Prepare-se. O treino já vai começar."
-                : "Posicione-se no quadro."}
+                ? t("Prepare-se. O treino já vai começar.")
+                : t("Posicione-se no quadro.")}
             </p>
           </div>
         )}
@@ -144,26 +152,28 @@ export function WorkoutScreen({
           <div role="status" className="workout-state relative">
             <Mascot decorative />
             <LoaderCircle className="loading-spinner mx-auto mb-3" size={22} aria-hidden="true" />
-            <h2 className="text-xl font-bold">Preparando a câmera</h2>
-            <p className="mt-2 text-sm text-muted-foreground">{stages[w.stage]}</p>
+            <h2 className="text-xl font-bold">{t("Preparando a câmera")}</h2>
+            <p className="mt-2 text-sm text-muted-foreground">{t(stages[w.stage])}</p>
           </div>
         )}
         {w.phase === "paused" && (
           <div className="workout-state relative">
             <Pause className="mx-auto mb-3 text-primary" size={28} aria-hidden="true" />
-            <p className="torvik-kicker">Respire um pouco</p>
-            <h2 className="mt-1 text-xl font-bold">Treino pausado</h2>
-            <p className="mt-2 text-sm text-muted-foreground">Seu progresso está preservado.</p>
+            <p className="torvik-kicker">{t("Respire um pouco")}</p>
+            <h2 className="mt-1 text-xl font-bold">{t("Treino pausado")}</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {t("Seu progresso está preservado.")}
+            </p>
           </div>
         )}
         {w.phase === "error" && (
           <div role="alert" className="workout-state relative">
             <Mascot decorative />
-            <p className="torvik-kicker text-destructive">Vamos ajustar</p>
-            <h2 className="mt-1 text-xl font-bold">Não foi possível continuar</h2>
-            <p className="mt-2 text-sm text-muted-foreground">{w.error}</p>
+            <p className="torvik-kicker text-destructive">{t("Vamos ajustar")}</p>
+            <h2 className="mt-1 text-xl font-bold">{t("Não foi possível continuar")}</h2>
+            <p className="mt-2 text-sm text-muted-foreground">{t(w.error)}</p>
             <button type="button" className="torvik-primary mt-4" onClick={w.retry}>
-              Tentar novamente
+              {t("Tentar novamente")}
             </button>
           </div>
         )}
@@ -180,39 +190,44 @@ export function WorkoutScreen({
             >
               <p className="font-display text-[clamp(3.5rem,12vw,4.5rem)] font-extrabold leading-none text-primary tabular-nums">
                 {details.type === "HOLD_BASED"
-                  ? formatTime(
+                  ? formatTimer(
                       w.result.measurement?.type === "HOLD_BASED"
                         ? w.result.measurement.validMs / 1000
                         : 0,
                     )
-                  : w.result.totalReps}
+                  : formatNumber(w.result.totalReps)}
               </p>
               <p className="text-sm font-semibold text-muted-foreground">
-                {details.type === "HOLD_BASED" ? "em postura válida" : "repetições"}
+                {details.type === "HOLD_BASED" ? t("em postura válida") : t("repetições")}
               </p>
             </div>
-            <div className="shrink-0 text-right">
+            <div className="shrink-0 text-end">
               <p
                 className={`font-display ${details.type === "HOLD_BASED" ? "text-sm" : "text-2xl"} font-bold text-success tabular-nums`}
               >
                 {details.type === "HOLD_BASED"
                   ? w.result.measurement?.type === "HOLD_BASED" && w.result.measurement.valid
-                    ? "Contando"
-                    : "Ajuste a postura"
-                  : w.result.correctReps}
+                    ? t("Contando")
+                    : t("Ajuste a postura")
+                  : formatNumber(w.result.correctReps)}
               </p>
               <p className="max-w-28 text-xs leading-tight text-muted-foreground">
-                {details.type === "HOLD_BASED" ? "segundo os critérios do app" : "nos critérios"}
+                {details.type === "HOLD_BASED"
+                  ? t("segundo os critérios do app")
+                  : t("nos critérios")}
               </p>
             </div>
           </div>
         )}
         {w.phase === "preparing" && (
           <div className="workout-preparation mx-auto mb-3 max-w-3xl">
-            <p className="torvik-kicker">Início automático</p>
-            <h2 className="mt-1 text-lg font-bold leading-tight">Vamos encontrar sua posição</h2>
+            <p className="torvik-kicker">{t("Início automático")}</p>
+            <h2 className="mt-1 text-lg font-bold leading-tight">
+              {t("Vamos encontrar sua posição")}
+            </h2>
             <p className="mt-1 text-sm leading-snug text-muted-foreground">
-              {details.cameraGuidance ?? details.instructions[0]} {details.initialPosition}
+              {t(details.cameraGuidance ?? details.instructions[0] ?? "")}{" "}
+              {t(details.initialPosition)}
             </p>
           </div>
         )}
@@ -222,48 +237,53 @@ export function WorkoutScreen({
           >
             <p role="status" aria-live="polite" aria-atomic="true" className="font-semibold">
               {w.phase === "preparing" && w.result.tracking
-                ? "Corpo detectado. Preparando o início automático…"
+                ? t("Corpo detectado. Preparando o início automático…")
                 : w.phase === "countdown"
-                  ? "Mantenha os pontos do corpo visíveis. Não precisa ficar imóvel."
-                  : w.result.message}
+                  ? t("Mantenha os pontos do corpo visíveis. Não precisa ficar imóvel.")
+                  : t(w.result.message)}
             </p>
             <p className="workout-feedback-detail text-xs text-muted-foreground">
-              {states[w.result.state] ?? w.result.state}
-              {w.result.side ? ` • lado ${w.result.side === "left" ? "esquerdo" : "direito"}` : ""}
+              {t(states[w.result.state] ?? w.result.state)}
+              {w.result.side
+                ? " • " +
+                  t("Lado: {{side}}", {
+                    side: t(w.result.side === "left" ? "Esquerdo" : "Direito"),
+                  })
+                : ""}
             </p>
           </div>
         )}
         <div className="workout-actions mx-auto mt-3 flex max-w-3xl flex-wrap gap-2">
           {w.phase === "preparing" && (
             <button type="button" className="torvik-primary flex-1" onClick={w.start}>
-              Iniciar em 5 segundos
+              {t("Iniciar em 5 segundos")}
             </button>
           )}
           {w.phase === "running" && (
             <button type="button" className="torvik-primary flex-1" onClick={w.pause}>
-              <Pause size={18} aria-hidden="true" /> Pausar
+              <Pause size={18} aria-hidden="true" /> {t("Pausar")}
             </button>
           )}
           {w.phase === "paused" && (
             <>
               <button type="button" className="torvik-primary w-full" onClick={w.resume}>
-                <Play size={18} aria-hidden="true" /> Continuar
+                <Play size={18} aria-hidden="true" /> {t("Continuar")}
               </button>
               <button
                 type="button"
                 className="torvik-secondary flex-1"
                 onClick={() => onFinish(w.finish())}
               >
-                <Check size={18} aria-hidden="true" /> Finalizar treino
+                <Check size={18} aria-hidden="true" /> {t("Finalizar treino")}
               </button>
               <button type="button" className="torvik-secondary flex-1" onClick={requestExit}>
-                Sair
+                {t("Sair")}
               </button>
             </>
           )}
           {["loading", "error", "countdown", "preparing"].includes(w.phase) && (
             <button type="button" className="torvik-secondary" onClick={requestExit}>
-              Sair
+              {t("Sair")}
             </button>
           )}
           <Sheet open={controlsOpen} onOpenChange={setControlsOpen}>
@@ -271,20 +291,20 @@ export function WorkoutScreen({
               <button
                 type="button"
                 className="torvik-secondary"
-                aria-label="Controles de câmera e voz"
+                aria-label={t("Controles de câmera e voz")}
               >
                 <SlidersHorizontal size={20} aria-hidden="true" />
-                <span>Controles</span>
+                <span>{t("Controles")}</span>
               </button>
             </SheetTrigger>
             <SheetContent side="bottom" className="app-sheet">
-              <SheetTitle>Câmera e voz</SheetTitle>
-              <SheetDescription>Controles do treino atual.</SheetDescription>
+              <SheetTitle>{t("Câmera e voz")}</SheetTitle>
+              <SheetDescription>{t("Controles do treino atual.")}</SheetDescription>
               {details.sideMode === "selected" &&
                 ["preparing", "running", "paused"].includes(w.phase) && (
                   <div className="mx-auto mb-2 flex max-w-3xl flex-wrap items-center gap-2 text-sm">
                     <span>
-                      {exercise === "bulgariansquat" ? "Perna dianteira:" : "Lado de apoio:"}
+                      {exercise === "bulgariansquat" ? t("Perna dianteira:") : t("Lado de apoio:")}
                     </span>
                     {(["left", "right"] as const).map((side) => (
                       <button
@@ -294,11 +314,11 @@ export function WorkoutScreen({
                         aria-pressed={w.selectedSide === side}
                         onClick={() => w.selectSide(side)}
                       >
-                        {side === "left" ? "Esquerdo" : "Direito"}
+                        {side === "left" ? t("Esquerdo") : t("Direito")}
                       </button>
                     ))}
                     <span className="text-xs text-muted-foreground">
-                      A troca preserva os resultados e prepara o outro lado.
+                      {t("A troca preserva os resultados e prepara o outro lado.")}
                     </span>
                   </div>
                 )}
@@ -306,16 +326,16 @@ export function WorkoutScreen({
               {w.devices.length > 1 &&
                 (w.phase === "preparing" || w.phase === "paused" || w.phase === "error") && (
                   <label className="mx-auto mt-3 flex max-w-3xl items-center gap-3 text-sm font-semibold">
-                    Câmera
+                    {t("Câmera")}
                     <select
                       className="torvik-control min-w-0 flex-1 font-normal"
                       value={w.deviceId}
                       onChange={(e) => w.selectCamera(e.target.value)}
                     >
-                      <option value="">Frontal / padrão</option>
+                      <option value="">{t("Frontal / padrão")}</option>
                       {w.devices.map((d, i) => (
                         <option key={d.deviceId} value={d.deviceId}>
-                          {d.label || `Câmera ${i + 1}`}
+                          {d.label || t("Câmera {{value0}}", { value0: i + 1 })}
                         </option>
                       ))}
                     </select>
@@ -324,13 +344,14 @@ export function WorkoutScreen({
 
               {w.devices.length <= 1 && (
                 <p className="mt-3 text-sm text-muted-foreground">
-                  Câmera padrão do dispositivo. A escolha aparece quando há mais de uma câmera
-                  disponível.
+                  {t(
+                    "Câmera padrão do dispositivo. A escolha aparece quando há mais de uma câmera disponível.",
+                  )}
                 </p>
               )}
               {w.devices.length > 1 && ["running", "countdown", "loading"].includes(w.phase) && (
                 <p className="mt-3 text-sm text-muted-foreground">
-                  Pause o treino para trocar de câmera.
+                  {t("Pause o treino para trocar de câmera.")}
                 </p>
               )}
               {w.phase === "preparing" && (
@@ -339,29 +360,34 @@ export function WorkoutScreen({
                   className="torvik-secondary mt-3"
                   onClick={() => onFinish(w.finish())}
                 >
-                  <Check size={18} aria-hidden="true" /> Finalizar treino
+                  <Check size={18} aria-hidden="true" /> {t("Finalizar treino")}
                 </button>
               )}
               <VoiceControls voice={voice} expanded />
               <details className="app-disclosure">
-                <summary>Ajuda de posicionamento</summary>
+                <summary>{t("Ajuda de posicionamento")}</summary>
                 <ul className="space-y-2">
                   {CAMERA_TIPS.map((tip) => (
-                    <li key={tip}>{tip}</li>
+                    <li key={t(tip)}>{t(tip)}</li>
                   ))}
                 </ul>
               </details>
               <details className="app-disclosure">
-                <summary>Leitura da análise</summary>
+                <summary>{t("Leitura da análise")}</summary>
                 <p>
-                  {states[w.result.state] ?? w.result.state}
+                  {t(states[w.result.state] ?? w.result.state)}
                   {w.result.side
-                    ? ` · lado ${w.result.side === "left" ? "esquerdo" : "direito"}`
+                    ? " · " +
+                      t("Lado: {{side}}", {
+                        side: t(w.result.side === "left" ? "Esquerdo" : "Direito"),
+                      })
                     : ""}
                 </p>
                 <p>
-                  {details.analysisLimitations ??
-                    "A câmera estima o movimento em 2D segundo os critérios do app, sem validação clínica."}
+                  {(details.analysisLimitations ? t(details.analysisLimitations) : undefined) ??
+                    t(
+                      "A câmera estima o movimento em 2D segundo os critérios do app, sem validação clínica.",
+                    )}
                 </p>
               </details>
             </SheetContent>
@@ -369,14 +395,15 @@ export function WorkoutScreen({
         </div>
         <AlertDialog open={confirmExit} onOpenChange={setConfirmExit}>
           <AlertDialogContent className="app-confirm">
-            <AlertDialogTitle>Descartar este treino?</AlertDialogTitle>
+            <AlertDialogTitle>{t("Descartar este treino?")}</AlertDialogTitle>
             <AlertDialogDescription>
-              O progresso desta sessão será descartado. Para guardar um resultado, volte e escolha
-              Finalizar treino.
+              {t(
+                "O progresso desta sessão será descartado. Para guardar um resultado, volte e escolha Finalizar treino.",
+              )}
             </AlertDialogDescription>
             <AlertDialogFooter>
-              <AlertDialogCancel>Voltar à pausa</AlertDialogCancel>
-              <AlertDialogAction onClick={onCancel}>Descartar e sair</AlertDialogAction>
+              <AlertDialogCancel>{t("Voltar à pausa")}</AlertDialogCancel>
+              <AlertDialogAction onClick={onCancel}>{t("Descartar e sair")}</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

@@ -1,9 +1,12 @@
 import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "./tests/e2e",
+  outputDir: process.env["TORVIK_AUTH_TEST"] === "1" ? "test-results/auth" : "test-results/browser",
   fullyParallel: false,
   timeout: 30000,
+  expect: { timeout: 10000 },
   use: {
+    locale: "pt-BR",
     baseURL: "http://127.0.0.1:4173",
     trace: "retain-on-failure",
     launchOptions: {

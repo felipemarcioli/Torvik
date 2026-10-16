@@ -1,0 +1,475 @@
+[
+  {
+    "language": "pt-BR",
+    "speechLanguage": "pt-BR",
+    "realPlaybackValidated": false,
+    "humanPronunciationReviewed": false,
+    "phrases": [
+      {
+        "event": "start",
+        "key": "Vamos começar!",
+        "text": "Vamos começar!"
+      },
+      {
+        "event": "preparation",
+        "key": "Comece em pé.",
+        "text": "Comece em pé."
+      },
+      {
+        "event": "posture",
+        "key": "Mantenha o corpo alinhado.",
+        "text": "Mantenha o corpo alinhado."
+      },
+      {
+        "event": "repetitions",
+        "key": "{{count}} repetições!",
+        "text": "10 repetições!"
+      },
+      {
+        "event": "encouragement",
+        "key": "Muito bem, continue!",
+        "text": "Muito bem, continue!"
+      },
+      {
+        "event": "safety",
+        "key": "Mantenha o movimento confortável e controlado",
+        "text": "Mantenha o movimento confortável e controlado"
+      },
+      {
+        "event": "finish",
+        "key": "Treino encerrado",
+        "text": "Treino encerrado"
+      }
+    ]
+  },
+  {
+    "language": "en",
+    "speechLanguage": "en-US",
+    "realPlaybackValidated": false,
+    "humanPronunciationReviewed": false,
+    "phrases": [
+      {
+        "event": "start",
+        "key": "Vamos começar!",
+        "text": "Let's start!"
+      },
+      {
+        "event": "preparation",
+        "key": "Comece em pé.",
+        "text": "Start standing."
+      },
+      {
+        "event": "posture",
+        "key": "Mantenha o corpo alinhado.",
+        "text": "Keep your body aligned."
+      },
+      {
+        "event": "repetitions",
+        "key": "{{count}} repetições!",
+        "text": "10 repetitions!"
+      },
+      {
+        "event": "encouragement",
+        "key": "Muito bem, continue!",
+        "text": "Well done, keep going!"
+      },
+      {
+        "event": "safety",
+        "key": "Mantenha o movimento confortável e controlado",
+        "text": "Keep the movement comfortable and controlled"
+      },
+      {
+        "event": "finish",
+        "key": "Treino encerrado",
+        "text": "Workout ended"
+      }
+    ]
+  },
+  {
+    "language": "es",
+    "speechLanguage": "es-ES",
+    "realPlaybackValidated": false,
+    "humanPronunciationReviewed": false,
+    "phrases": [
+      {
+        "event": "start",
+        "key": "Vamos começar!",
+        "text": "¡Empecemos!"
+      },
+      {
+        "event": "preparation",
+        "key": "Comece em pé.",
+        "text": "Empieza de pie."
+      },
+      {
+        "event": "posture",
+        "key": "Mantenha o corpo alinhado.",
+        "text": "Mantén el cuerpo alineado."
+      },
+      {
+        "event": "repetitions",
+        "key": "{{count}} repetições!",
+        "text": "¡10 repeticiones!"
+      },
+      {
+        "event": "encouragement",
+        "key": "Muito bem, continue!",
+        "text": "¡Muy bien, continúa!"
+      },
+      {
+        "event": "safety",
+        "key": "Mantenha o movimento confortável e controlado",
+        "text": "Mantén un movimiento cómodo y controlado"
+      },
+      {
+        "event": "finish",
+        "key": "Treino encerrado",
+        "text": "Entrenamiento finalizado"
+      }
+    ]
+  },
+  {
+    "language": "fr",
+    "speechLanguage": "fr-FR",
+    "realPlaybackValidated": false,
+    "humanPronunciationReviewed": false,
+    "phrases": [
+      {
+        "event": "start",
+        "key": "Vamos começar!",
+        "text": "Commençons !"
+      },
+      {
+        "event": "preparation",
+        "key": "Comece em pé.",
+        "text": "Commencez debout."
+      },
+      {
+        "event": "posture",
+        "key": "Mantenha o corpo alinhado.",
+        "text": "Gardez le corps aligné."
+      },
+      {
+        "event": "repetitions",
+        "key": "{{count}} repetições!",
+        "text": "10 répétitions !"
+      },
+      {
+        "event": "encouragement",
+        "key": "Muito bem, continue!",
+        "text": "Très bien, continuez !"
+      },
+      {
+        "event": "safety",
+        "key": "Mantenha o movimento confortável e controlado",
+        "text": "Gardez un mouvement confortable et contrôlé"
+      },
+      {
+        "event": "finish",
+        "key": "Treino encerrado",
+        "text": "Entraînement terminé"
+      }
+    ]
+  },
+  {
+    "language": "de",
+    "speechLanguage": "de-DE",
+    "realPlaybackValidated": false,
+    "humanPronunciationReviewed": false,
+    "phrases": [
+      {
+        "event": "start",
+        "key": "Vamos começar!",
+        "text": "Los geht’s!"
+      },
+      {
+        "event": "preparation",
+        "key": "Comece em pé.",
+        "text": "Beginne im Stand."
+      },
+      {
+        "event": "posture",
+        "key": "Mantenha o corpo alinhado.",
+        "text": "Halte den Körper in einer Linie."
+      },
+      {
+        "event": "repetitions",
+        "key": "{{count}} repetições!",
+        "text": "10 Wiederholungen!"
+      },
+      {
+        "event": "encouragement",
+        "key": "Muito bem, continue!",
+        "text": "Sehr gut, weiter so!"
+      },
+      {
+        "event": "safety",
+        "key": "Mantenha o movimento confortável e controlado",
+        "text": "Halte die Bewegung angenehm und kontrolliert"
+      },
+      {
+        "event": "finish",
+        "key": "Treino encerrado",
+        "text": "Training beendet"
+      }
+    ]
+  },
+  {
+    "language": "it",
+    "speechLanguage": "it-IT",
+    "realPlaybackValidated": false,
+    "humanPronunciationReviewed": false,
+    "phrases": [
+      {
+        "event": "start",
+        "key": "Vamos começar!",
+        "text": "Cominciamo!"
+      },
+      {
+        "event": "preparation",
+        "key": "Comece em pé.",
+        "text": "Inizia in piedi."
+      },
+      {
+        "event": "posture",
+        "key": "Mantenha o corpo alinhado.",
+        "text": "Mantieni il corpo allineato."
+      },
+      {
+        "event": "repetitions",
+        "key": "{{count}} repetições!",
+        "text": "10 ripetizioni!"
+      },
+      {
+        "event": "encouragement",
+        "key": "Muito bem, continue!",
+        "text": "Molto bene, continua!"
+      },
+      {
+        "event": "safety",
+        "key": "Mantenha o movimento confortável e controlado",
+        "text": "Mantieni un movimento confortevole e controllato"
+      },
+      {
+        "event": "finish",
+        "key": "Treino encerrado",
+        "text": "Allenamento terminato"
+      }
+    ]
+  },
+  {
+    "language": "ja",
+    "speechLanguage": "ja-JP",
+    "realPlaybackValidated": false,
+    "humanPronunciationReviewed": false,
+    "phrases": [
+      {
+        "event": "start",
+        "key": "Vamos começar!",
+        "text": "始めましょう！"
+      },
+      {
+        "event": "preparation",
+        "key": "Comece em pé.",
+        "text": "立った姿勢から始めます。"
+      },
+      {
+        "event": "posture",
+        "key": "Mantenha o corpo alinhado.",
+        "text": "体を一直線に保ってください。"
+      },
+      {
+        "event": "repetitions",
+        "key": "{{count}} repetições!",
+        "text": "10回です！"
+      },
+      {
+        "event": "encouragement",
+        "key": "Muito bem, continue!",
+        "text": "いい調子です。そのまま続けましょう！"
+      },
+      {
+        "event": "safety",
+        "key": "Mantenha o movimento confortável e controlado",
+        "text": "無理のない範囲で、動きをコントロールしてください"
+      },
+      {
+        "event": "finish",
+        "key": "Treino encerrado",
+        "text": "トレーニング終了"
+      }
+    ]
+  },
+  {
+    "language": "zh-CN",
+    "speechLanguage": "zh-CN",
+    "realPlaybackValidated": false,
+    "humanPronunciationReviewed": false,
+    "phrases": [
+      {
+        "event": "start",
+        "key": "Vamos começar!",
+        "text": "开始吧！"
+      },
+      {
+        "event": "preparation",
+        "key": "Comece em pé.",
+        "text": "从站立姿势开始。"
+      },
+      {
+        "event": "posture",
+        "key": "Mantenha o corpo alinhado.",
+        "text": "保持身体对齐。"
+      },
+      {
+        "event": "repetitions",
+        "key": "{{count}} repetições!",
+        "text": "10 次了！"
+      },
+      {
+        "event": "encouragement",
+        "key": "Muito bem, continue!",
+        "text": "很好，继续！"
+      },
+      {
+        "event": "safety",
+        "key": "Mantenha o movimento confortável e controlado",
+        "text": "保持动作舒适、可控"
+      },
+      {
+        "event": "finish",
+        "key": "Treino encerrado",
+        "text": "训练已结束"
+      }
+    ]
+  },
+  {
+    "language": "ko",
+    "speechLanguage": "ko-KR",
+    "realPlaybackValidated": false,
+    "humanPronunciationReviewed": false,
+    "phrases": [
+      {
+        "event": "start",
+        "key": "Vamos começar!",
+        "text": "시작해 볼까요!"
+      },
+      {
+        "event": "preparation",
+        "key": "Comece em pé.",
+        "text": "선 자세로 시작하세요."
+      },
+      {
+        "event": "posture",
+        "key": "Mantenha o corpo alinhado.",
+        "text": "몸을 일직선으로 유지하세요."
+      },
+      {
+        "event": "repetitions",
+        "key": "{{count}} repetições!",
+        "text": "10회 반복!"
+      },
+      {
+        "event": "encouragement",
+        "key": "Muito bem, continue!",
+        "text": "잘하고 있어요. 계속하세요!"
+      },
+      {
+        "event": "safety",
+        "key": "Mantenha o movimento confortável e controlado",
+        "text": "편안한 범위에서 동작을 통제하세요"
+      },
+      {
+        "event": "finish",
+        "key": "Treino encerrado",
+        "text": "운동이 종료되었습니다"
+      }
+    ]
+  },
+  {
+    "language": "hi",
+    "speechLanguage": "hi-IN",
+    "realPlaybackValidated": false,
+    "humanPronunciationReviewed": false,
+    "phrases": [
+      {
+        "event": "start",
+        "key": "Vamos começar!",
+        "text": "चलिए शुरू करें!"
+      },
+      {
+        "event": "preparation",
+        "key": "Comece em pé.",
+        "text": "खड़े होकर शुरू करें।"
+      },
+      {
+        "event": "posture",
+        "key": "Mantenha o corpo alinhado.",
+        "text": "शरीर सीध में रखें।"
+      },
+      {
+        "event": "repetitions",
+        "key": "{{count}} repetições!",
+        "text": "10 दोहराव!"
+      },
+      {
+        "event": "encouragement",
+        "key": "Muito bem, continue!",
+        "text": "बहुत अच्छे, जारी रखें!"
+      },
+      {
+        "event": "safety",
+        "key": "Mantenha o movimento confortável e controlado",
+        "text": "गति आरामदायक और नियंत्रित रखें"
+      },
+      {
+        "event": "finish",
+        "key": "Treino encerrado",
+        "text": "वर्कआउट समाप्त"
+      }
+    ]
+  },
+  {
+    "language": "ar",
+    "speechLanguage": "ar-SA",
+    "realPlaybackValidated": false,
+    "humanPronunciationReviewed": false,
+    "phrases": [
+      {
+        "event": "start",
+        "key": "Vamos começar!",
+        "text": "لنبدأ!"
+      },
+      {
+        "event": "preparation",
+        "key": "Comece em pé.",
+        "text": "ابدأ واقفًا."
+      },
+      {
+        "event": "posture",
+        "key": "Mantenha o corpo alinhado.",
+        "text": "حافظ على استقامة الجسم."
+      },
+      {
+        "event": "repetitions",
+        "key": "{{count}} repetições!",
+        "text": "عدد التكرارات: ١٠!"
+      },
+      {
+        "event": "encouragement",
+        "key": "Muito bem, continue!",
+        "text": "أحسنت، واصل!"
+      },
+      {
+        "event": "safety",
+        "key": "Mantenha o movimento confortável e controlado",
+        "text": "حافظ على حركة مريحة ومتحكَّم بها"
+      },
+      {
+        "event": "finish",
+        "key": "Treino encerrado",
+        "text": "انتهى التمرين"
+      }
+    ]
+  }
+]

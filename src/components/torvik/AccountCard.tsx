@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { translate as t } from "@/lib/i18n";
 import { useState } from "react";
 import { LogIn, LogOut, UserRound } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
@@ -5,6 +7,8 @@ import { getSupabase } from "@/lib/supabase";
 import { authErrorMessage } from "@/lib/auth";
 
 export function AccountCard({ onLogin }: { onLogin: () => void }) {
+  useTranslation();
+
   const { session, configured } = useAuth();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
@@ -15,7 +19,7 @@ export function AccountCard({ onLogin }: { onLogin: () => void }) {
     setError("");
     try {
       const supabase = getSupabase();
-      if (!supabase) throw new Error("Login indisponível");
+      if (!supabase) throw new Error(t("Login indisponível"));
       // This device only: do not log out other devices unexpectedly.
       const result = await supabase.auth.signOut({ scope: "local" });
       if (result.error) throw result.error;
@@ -29,13 +33,13 @@ export function AccountCard({ onLogin }: { onLogin: () => void }) {
     <section className="torvik-panel account-card" aria-labelledby="account-heading">
       <div className="account-heading">
         <UserRound size={22} aria-hidden="true" />
-        <h2 id="account-heading">{session ? "Sua conta" : "Treinando sem conta"}</h2>
+        <h2 id="account-heading">{session ? t("Sua conta") : t("Treinando sem conta")}</h2>
       </div>
       {session ? (
         <>
           {typeof name === "string" && name && <p className="account-name">{name}</p>}
           <p className="account-email">{session.user.email}</p>
-          <p>Seu histórico está separado para esta conta neste dispositivo.</p>
+          <p>{t("Seu histórico está separado para esta conta neste dispositivo.")}</p>
           <button
             type="button"
             disabled={pending}
@@ -43,27 +47,27 @@ export function AccountCard({ onLogin }: { onLogin: () => void }) {
             onClick={() => void signOut()}
           >
             <LogOut size={18} aria-hidden="true" />
-            {pending ? "Saindo…" : "Sair da conta"}
+            {pending ? t("Saindo…") : t("Sair da conta")}
           </button>
         </>
       ) : (
         <>
           <p>
             {configured
-              ? "Entre ou crie uma conta para ter seu próprio histórico neste dispositivo."
-              : "O login estará disponível em breve. Seus treinos continuam disponíveis."}
+              ? t("Entre ou crie uma conta para ter seu próprio histórico neste dispositivo.")
+              : t("O login estará disponível em breve. Seus treinos continuam disponíveis.")}
           </p>
           {configured && (
             <button type="button" className="torvik-primary" onClick={onLogin}>
               <LogIn size={18} aria-hidden="true" />
-              Entrar ou criar conta
+              {t("Entrar ou criar conta")}
             </button>
           )}
         </>
       )}
       {error && (
         <p role="alert" className="auth-error">
-          {error}
+          {t(error)}
         </p>
       )}
     </section>

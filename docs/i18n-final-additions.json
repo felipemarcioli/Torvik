@@ -1,0 +1,18 @@
+{
+  "Use um ambiente bem iluminado, luz de frente": "Use a well-lit space with light in front of you",
+  "Prefira um fundo limpo, sem outras pessoas": "Choose an uncluttered background with no other people",
+  "Baixando modelo de movimento…": "Downloading the movement model…",
+  "E-mail ou senha incorretos.": "Incorrect email or password.",
+  "Use uma senha mais forte, com pelo menos 8 caracteres.": "Use a stronger password with at least 8 characters.",
+  "Muitas tentativas. Aguarde alguns minutos e tente novamente.": "Too many attempts. Wait a few minutes and try again.",
+  "Use pelo menos 8 caracteres na senha.": "Use at least 8 characters in your password.",
+  "O processamento do movimento foi interrompido. Tente novamente.": "Movement processing was interrupted. Try again.",
+  "Boa postura. Continue assim.": "Good posture. Keep it up.",
+  "Agache, salte e estabilize o retorno": "Squat, jump, and stabilize as you land",
+  "Desloque-se para o outro lado e estabilize a chegada": "Move to the other side and stabilize as you land",
+  "Deite de costas, dobre os joelhos e comece com o quadril baixo": "Lie on your back, bend your knees, and start with your hips lowered",
+  "Postura reconhecida; contando tempo": "Posture recognized; counting time",
+  "Abertura reconhecida. Feche o movimento.": "Opening movement recognized. Return to the closed position.",
+  "O download do modelo demorou demais. Tente novamente.": "The model download took too long. Try again.",
+  "O modelo experimental demorou demais para carregar.": "The experimental model took too long to load."
+}

@@ -55,7 +55,7 @@ test("animated categories contain all 30 entries and selection/details reuse the
       );
       await expect(
         page.getByRole("button", {
-          name: `Preparar ${exercise.name.toLocaleLowerCase("pt-BR")}`,
+          name: `Preparar ${exercise.name}`,
           exact: true,
         }),
       ).toBeVisible();

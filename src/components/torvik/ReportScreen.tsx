@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { translate as t, formatNumber } from "@/lib/i18n";
 import { useEffect, useState } from "react";
 import { Mascot } from "./TorvikUI";
 import { BackButton } from "./AppNavigation";
@@ -22,7 +24,8 @@ import {
 } from "lucide-react";
 import { EXERCISES } from "./data";
 import { SideResults } from "./history/SideResults";
-import { formatTime, type SessionReport } from "@/lib/session";
+import type { SessionReport } from "@/lib/session";
+import { formatTimer } from "./format";
 import { exportReport } from "@/lib/history";
 import { useHistoryStore } from "@/hooks/use-history-store";
 
@@ -41,6 +44,8 @@ export function ReportScreen({
   onViewHistory: (id?: string) => void;
   registerBack: (handler: () => boolean) => () => void;
 }) {
+  useTranslation();
+
   const history = useHistoryStore();
   const [saved, setSaved] = useState(false),
     [saving, setSaving] = useState(false),
@@ -115,13 +120,13 @@ export function ReportScreen({
   return (
     <main className="report-screen hero-glow min-h-screen">
       <div className="report-content">
-        <BackButton onClick={() => requestLeave("back")}>Voltar ao exercício</BackButton>
+        <BackButton onClick={() => requestLeave("back")}>{t("Voltar ao exercício")}</BackButton>
         <header className={`report-header${hasReps ? "" : " report-header-empty"}`}>
           <Mascot decorative />
           <div>
-            <p className="torvik-kicker">{hasReps ? "Seu resultado" : "Resumo da sessão"}</p>
-            <h1>{hasReps ? "Treino concluído!" : "Sessão encerrada"}</h1>
-            <p className="report-exercise">{exercise.name}</p>
+            <p className="torvik-kicker">{hasReps ? t("Seu resultado") : t("Resumo da sessão")}</p>
+            <h1>{hasReps ? t("Treino concluído!") : t("Sessão encerrada")}</h1>
+            <p className="report-exercise">{t(exercise.name)}</p>
           </div>
         </header>
 
@@ -132,62 +137,67 @@ export function ReportScreen({
           {hold ? (
             <>
               <h2 id="report-summary-heading" className="report-section-title">
-                {hasReps ? "Resultado da sustentação" : "Nenhum tempo válido registrado"}
+                {hasReps ? t("Resultado da sustentação") : t("Nenhum tempo válido registrado")}
               </h2>
               <dl className="report-metrics">
                 <div className="report-metric-main">
-                  <dt>Tempo em postura válida</dt>
-                  <dd>{formatTime(report.validSeconds)}</dd>
+                  <dt>{t("Tempo em postura válida")}</dt>
+                  <dd>{formatTimer(report.validSeconds)}</dd>
                 </div>
                 <div className="report-metric-secondary">
                   <div>
-                    <dt>Tempo acompanhado</dt>
-                    <dd>{formatTime(report.seconds)}</dd>
+                    <dt>{t("Tempo acompanhado")}</dt>
+                    <dd>{formatTimer(report.seconds)}</dd>
                   </div>
                 </div>
               </dl>
               <p className="report-history-note">
                 {hasReps
-                  ? "Tempo acumulado enquanto a postura atendeu aos critérios do app."
-                  : "Mantenha a postura por um instante para começar a acumular tempo."}
+                  ? t("Tempo acumulado enquanto a postura atendeu aos critérios do app.")
+                  : t("Mantenha a postura por um instante para começar a acumular tempo.")}
               </p>
             </>
           ) : hasReps ? (
             <>
               <h2 id="report-summary-heading" className="report-section-title">
-                Resultado do treino
+                {t("Resultado do treino")}
               </h2>
               <dl className="report-metrics">
                 <div className="report-metric-main">
-                  <dt>Repetições avaliadas</dt>
-                  <dd>{report.totalReps}</dd>
+                  <dt>{t("Repetições avaliadas")}</dt>
+                  <dd>{formatNumber(report.totalReps)}</dd>
                 </div>
                 <div className="report-metric-secondary">
                   <div>
                     <dt>
-                      <Clock3 size={15} aria-hidden="true" /> Tempo ativo
+                      <Clock3 size={15} aria-hidden="true" /> {t("Tempo ativo")}
                     </dt>
-                    <dd>{formatTime(report.seconds)}</dd>
+                    <dd>{formatTimer(report.seconds)}</dd>
                   </div>
                   <div>
                     <dt>
-                      <Check size={15} aria-hidden="true" /> Nos critérios
+                      <Check size={15} aria-hidden="true" /> {t("Nos critérios")}
                     </dt>
-                    <dd>{report.correctReps}</dd>
+                    <dd>{formatNumber(report.correctReps)}</dd>
                   </div>
                 </div>
               </dl>
               <div className="report-progress">
                 <div className="report-progress-label">
                   <span>
-                    {report.correctReps} de {report.totalReps} nos critérios do app
+                    {t("{{value0}} de {{value1}} nos critérios do app", {
+                      value0: report.correctReps,
+                      value1: report.totalReps,
+                    })}
                   </span>
-                  <strong>{percent}%</strong>
+                  <strong>
+                    {formatNumber(percent! / 100, { style: "percent", maximumFractionDigits: 0 })}
+                  </strong>
                 </div>
                 <progress
                   max={100}
                   value={percent!}
-                  aria-label="Proporção de repetições dentro dos critérios do app"
+                  aria-label={t("Proporção de repetições dentro dos critérios do app")}
                 />
               </div>
             </>
@@ -197,12 +207,12 @@ export function ReportScreen({
                 <Activity size={23} aria-hidden="true" />
               </span>
               <div>
-                <h2 id="report-summary-heading">Nenhuma repetição avaliada</h2>
-                <p>Complete um movimento para gerar resultados de execução.</p>
+                <h2 id="report-summary-heading">{t("Nenhuma repetição avaliada")}</h2>
+                <p>{t("Complete um movimento para gerar resultados de execução.")}</p>
                 {report.seconds > 0 && (
                   <p className="report-no-reps-time">
-                    <Clock3 size={15} aria-hidden="true" /> Tempo ativo:{" "}
-                    {formatTime(report.seconds)}
+                    <Clock3 size={15} aria-hidden="true" /> {t("Tempo ativo:")}{" "}
+                    {formatTimer(report.seconds)}
                   </p>
                 )}
               </div>
@@ -213,11 +223,13 @@ export function ReportScreen({
         {(hasReps || (hold && issues.length > 0)) && (
           <section className="report-review" aria-labelledby="report-review-heading">
             <div className="report-section-heading">
-              <h2 id="report-review-heading">Pontos de atenção</h2>
+              <h2 id="report-review-heading">{t("Pontos de atenção")}</h2>
               <span>
                 {issues.length
-                  ? `${issues.length} ${issues.length === 1 ? "tipo" : "tipos"}`
-                  : "Resumo"}
+                  ? t(issues.length === 1 ? "{{count}} tipo" : "{{count}} tipos", {
+                      count: issues.length,
+                    })
+                  : t("Resumo")}
               </span>
             </div>
             {issues.length ? (
@@ -225,7 +237,9 @@ export function ReportScreen({
                 <ReportIssues issues={issues.slice(0, 3)} />
                 {issues.length > 3 && (
                   <details className="app-disclosure">
-                    <summary>Mais pontos de atenção ({issues.length - 3})</summary>
+                    <summary>
+                      {t("Mais pontos de atenção ({{value0}})", { value0: issues.length - 3 })}
+                    </summary>
                     <ReportIssues issues={issues.slice(3)} />
                   </details>
                 )}
@@ -234,24 +248,32 @@ export function ReportScreen({
               <p className="report-review-empty">
                 <Check size={18} aria-hidden="true" />{" "}
                 {hold
-                  ? "Nenhum ponto de atenção registrado."
-                  : "Nenhum ponto de atenção registrado nas repetições avaliadas."}
+                  ? t("Nenhum ponto de atenção registrado.")
+                  : t("Nenhum ponto de atenção registrado nas repetições avaliadas.")}
               </p>
             )}
             {(report.interruptedCycles > 0 || report.trackingLosses > 0) && (
               <div className="report-interruptions">
                 {report.interruptedCycles > 0 && (
                   <p>
-                    <Activity size={16} aria-hidden="true" /> {report.interruptedCycles}{" "}
-                    {report.interruptedCycles === 1 ? "ciclo interrompido" : "ciclos interrompidos"}
+                    <Activity size={16} aria-hidden="true" />{" "}
+                    {t(
+                      report.interruptedCycles === 1
+                        ? "{{count}} ciclo interrompido"
+                        : "{{count}} ciclos interrompidos",
+                      { count: report.interruptedCycles },
+                    )}
                   </p>
                 )}
                 {report.trackingLosses > 0 && (
                   <p>
-                    <AlertCircle size={16} aria-hidden="true" /> {report.trackingLosses}{" "}
-                    {report.trackingLosses === 1
-                      ? "perda de rastreamento"
-                      : "perdas de rastreamento"}
+                    <AlertCircle size={16} aria-hidden="true" />{" "}
+                    {t(
+                      report.trackingLosses === 1
+                        ? "{{count}} perda de rastreamento"
+                        : "{{count}} perdas de rastreamento",
+                      { count: report.trackingLosses },
+                    )}
                   </p>
                 )}
               </div>
@@ -259,7 +281,7 @@ export function ReportScreen({
           </section>
         )}
 
-        <section className="report-save" aria-label="Guardar resultado" data-saved={saved}>
+        <section className="report-save" aria-label={t("Guardar resultado")} data-saved={saved}>
           <button
             type="button"
             className="torvik-primary w-full"
@@ -267,16 +289,16 @@ export function ReportScreen({
             onClick={() => void save()}
           >
             {saved ? <Check size={18} aria-hidden="true" /> : <Save size={18} aria-hidden="true" />}
-            {saved ? "Salvo neste dispositivo" : saving ? "Salvando…" : "Salvar sessão"}
+            {saved ? t("Salvo neste dispositivo") : saving ? t("Salvando…") : t("Salvar sessão")}
           </button>
           <p role="status" className="report-save-status">
             {saved
-              ? "Sessão salva. Você pode consultá-la em Progresso."
-              : "Opcional: guarde o resumo neste dispositivo."}
+              ? t("Sessão salva. Você pode consultá-la em Progresso.")
+              : t("Opcional: guarde o resumo neste dispositivo.")}
           </p>
           {error && (
             <p role="alert" className="report-error">
-              {error}
+              {t(error)}
             </p>
           )}
           {saved && (
@@ -285,7 +307,8 @@ export function ReportScreen({
               className="report-history-all"
               onClick={() => onViewHistory(report.id)}
             >
-              Ver sessão salva <ArrowRight size={16} aria-hidden="true" />
+              {t("Ver sessão salva")}
+              <ArrowRight className="directional-icon" size={16} aria-hidden="true" />
             </button>
           )}
         </section>
@@ -295,20 +318,20 @@ export function ReportScreen({
             className="torvik-secondary"
             onClick={() => requestLeave("restart")}
           >
-            {hasReps ? "Novo treino" : "Tentar novamente"}
-            <ArrowRight size={18} aria-hidden="true" />
+            {hasReps ? t("Novo treino") : t("Tentar novamente")}
+            <ArrowRight className="directional-icon" size={18} aria-hidden="true" />
           </button>
           <button
             type="button"
             className="torvik-secondary"
             onClick={() => requestLeave("history")}
           >
-            Ver Progresso
+            {t("Ver Progresso")}
           </button>
         </div>
         <button type="button" className="report-history-all" onClick={() => exportReport(report)}>
           <Download size={17} aria-hidden="true" />
-          Exportar relatório
+          {t("Exportar relatório")}
         </button>
         <AlertDialog
           open={leaving !== null}
@@ -317,19 +340,20 @@ export function ReportScreen({
           }}
         >
           <AlertDialogContent className="app-confirm">
-            <AlertDialogTitle>Sair sem salvar?</AlertDialogTitle>
+            <AlertDialogTitle>{t("Sair sem salvar?")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta sessão ainda não foi salva neste dispositivo. Volte ao resultado para salvar, se
-              quiser manter o registro.
+              {t(
+                "Esta sessão ainda não foi salva neste dispositivo. Volte ao resultado para salvar, se quiser manter o registro.",
+              )}
             </AlertDialogDescription>
             <AlertDialogFooter>
-              <AlertDialogCancel>Voltar ao resultado</AlertDialogCancel>
+              <AlertDialogCancel>{t("Voltar ao resultado")}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => {
                   if (leaving) leave(leaving);
                 }}
               >
-                Sair sem salvar
+                {t("Sair sem salvar")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -338,22 +362,27 @@ export function ReportScreen({
         <SideResults report={report} />
         <details className="report-info">
           <summary>
-            <Info size={18} aria-hidden="true" /> Sobre este relatório e seus dados
+            <Info size={18} aria-hidden="true" /> {t("Sobre este relatório e seus dados")}
           </summary>
           <div>
             <p>
               {hold
-                ? "Tempo válido é a soma de intervalos observados com postura dentro dos critérios. As ocorrências contam episódios persistentes, não repetições. Postura inválida e interrupções não somam tempo válido."
-                : "Repetições avaliadas são movimentos completos identificados pelo app; ciclos interrompidos são registrados separadamente. Um ciclo pode ter mais de um ponto de atenção."}
+                ? t(
+                    "Tempo válido é a soma de intervalos observados com postura dentro dos critérios. As ocorrências contam episódios persistentes, não repetições. Postura inválida e interrupções não somam tempo válido.",
+                  )
+                : t(
+                    "Repetições avaliadas são movimentos completos identificados pelo app; ciclos interrompidos são registrados separadamente. Um ciclo pode ter mais de um ponto de atenção.",
+                  )}
             </p>
             <p>
-              A avaliação descreve regras automáticas de movimento. Não mede precisão científica nem
-              substitui avaliação profissional. Pausas, preparação e períodos sem rastreamento não
-              entram no tempo ativo.
+              {t(
+                "A avaliação descreve regras automáticas de movimento. Não mede precisão científica nem substitui avaliação profissional. Pausas, preparação e períodos sem rastreamento não entram no tempo ativo.",
+              )}
             </p>
             <p>
-              Salvar a sessão é opcional. Nenhum vídeo é gravado. O histórico fica neste navegador e
-              dispositivo e pode ser apagado pelo navegador; exporte uma cópia para preservá-lo.
+              {t(
+                "Salvar a sessão é opcional. Nenhum vídeo é gravado. O histórico fica neste navegador e dispositivo e pode ser apagado pelo navegador; exporte uma cópia para preservá-lo.",
+              )}
             </p>
           </div>
         </details>
@@ -363,24 +392,26 @@ export function ReportScreen({
 }
 
 function ReportIssues({ issues }: { issues: [string, number][] }) {
+  useTranslation();
+
   return (
     <ul className="report-issues">
       {issues.map(([message, count]) => (
-        <li key={message}>
+        <li key={t(message)}>
           {issueDetails[message] ? (
             <details>
               <summary>
                 <AlertCircle size={18} aria-hidden="true" />
-                <span>{message}</span>
-                <strong>{count}×</strong>
+                <span>{t(message)}</span>
+                <strong>{formatNumber(count)}×</strong>
               </summary>
-              <p>{issueDetails[message]}</p>
+              <p>{t(issueDetails[message])}</p>
             </details>
           ) : (
             <div className="report-issue-plain">
               <AlertCircle size={18} aria-hidden="true" />
-              <span>{message}</span>
-              <strong>{count}×</strong>
+              <span>{t(message)}</span>
+              <strong>{formatNumber(count)}×</strong>
             </div>
           )}
         </li>

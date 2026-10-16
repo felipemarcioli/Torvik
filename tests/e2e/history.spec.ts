@@ -75,7 +75,7 @@ test("dashboard calcula totais, filtra, ordena, consulta gráfico e calendário"
   page,
 }) => {
   await seed(page);
-  await expect(page.locator(".progress-totals dd")).toHaveText(["4", "40", "34", "6min 30s"]);
+  await expect(page.locator(".progress-totals dd")).toHaveText(["4", "40", "34", "6 min 30 s"]);
   await expect(page.locator(".progress-session-card")).toHaveCount(4);
   await page.getByRole("button", { name: /^Filtrar/ }).click();
   await expect(page.getByRole("group", { name: "Filtrar sessões" }).getByRole("button")).toHaveText(

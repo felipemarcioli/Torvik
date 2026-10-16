@@ -521,7 +521,7 @@ textarea {
 }
 .workout-group-tile {
   width: 100%;
-  text-align: left;
+  text-align: start;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -567,7 +567,7 @@ textarea {
 }
 .category-chevron {
   position: absolute;
-  right: 1rem;
+  inset-inline-end: 1rem;
   top: 1.75rem;
   color: var(--muted-foreground);
 }
@@ -740,7 +740,7 @@ textarea {
   display: flex;
   align-items: center;
   gap: 0.875rem;
-  text-align: left;
+  text-align: start;
   min-height: 88px;
   padding: 1rem;
   width: 100%;
@@ -992,7 +992,7 @@ textarea {
 }
 .camera-status {
   position: absolute;
-  left: 1rem;
+  inset-inline-start: 1rem;
   bottom: 0.875rem;
   display: flex;
   align-items: center;
@@ -1066,7 +1066,7 @@ textarea {
   color: var(--muted-foreground);
 }
 .workout-feedback {
-  text-align: left;
+  text-align: start;
   padding: 0.75rem 0.875rem;
   font-size: 0.8125rem;
   border-radius: 1rem;
@@ -1143,7 +1143,7 @@ textarea {
 .auth-mascot-scene {
   position: absolute;
   top: 3.5rem;
-  right: -0.5rem;
+  inset-inline-end: -0.5rem;
   width: 28%;
 }
 .auth-mascot-scene > img {
@@ -1194,7 +1194,7 @@ textarea {
 }
 .auth-input-wrap > svg {
   color: var(--muted-foreground);
-  margin-left: 1rem;
+  margin-inline-start: 1rem;
 }
 .auth-panel input {
   padding: 0.875rem;
@@ -1495,7 +1495,7 @@ textarea {
 }
 .progress-activity summary::after {
   content: "+";
-  margin-left: auto;
+  margin-inline-start: auto;
   font-size: 1.25rem;
   color: var(--muted-foreground);
 }
@@ -1764,7 +1764,7 @@ textarea {
   color: var(--accent);
   font-size: 0.8125rem;
   font-weight: 600;
-  margin-left: auto;
+  margin-inline-start: auto;
 }
 .progress-load-more {
   display: block;
@@ -1883,7 +1883,7 @@ textarea {
   font-size: 0.8125rem;
 }
 .progress-error {
-  border-left: 2px solid var(--caution);
+  border-inline-start: 2px solid var(--caution);
   padding: 10px 12px;
   margin-top: 12px;
   color: var(--caution);
@@ -2064,8 +2064,8 @@ textarea {
   display: grid;
   gap: 12px;
   min-width: 0;
-  padding-left: 14px;
-  border-left: 1px solid var(--border);
+  padding-inline-start: 14px;
+  border-inline-start: 1px solid var(--border);
 }
 .report-metric-secondary dt {
   display: flex;
@@ -2273,7 +2273,7 @@ textarea {
   width: 100%;
   min-height: 64px;
   padding: 9px 0;
-  text-align: left;
+  text-align: start;
 }
 .report-history-item-title,
 .report-history-item-meta {
@@ -2425,7 +2425,7 @@ textarea {
     gap: 8px;
   }
   .report-metric-secondary {
-    padding-left: 8px;
+    padding-inline-start: 8px;
   }
   .report-history-actions,
   .report-actions {
@@ -2472,7 +2472,7 @@ textarea {
   border-radius: 0;
 }
 .progress-totals > div:nth-child(even) {
-  border-left: 1px solid var(--border);
+  border-inline-start: 1px solid var(--border);
 }
 .progress-totals dt {
   min-height: 36px;
@@ -2532,7 +2532,7 @@ textarea {
 }
 .progress-exercise-filters button {
   white-space: normal;
-  text-align: left;
+  text-align: start;
   min-height: 48px;
 }
 .report-content {
@@ -2766,7 +2766,7 @@ textarea {
     border: 0;
   }
   .progress-totals > div + div {
-    border-left: 1px solid var(--border);
+    border-inline-start: 1px solid var(--border);
   }
   .progress-session-list {
     gap: 0 2rem;
@@ -2833,7 +2833,7 @@ textarea {
     gap: 0.5rem;
     position: absolute;
     bottom: 1rem;
-    right: 0;
+    inset-inline-end: 0;
     padding: 0.875rem;
     border-radius: 1rem;
     background: var(--card);
@@ -2890,7 +2890,7 @@ textarea {
     overflow-y: auto;
     min-height: 0;
     border-top: 0;
-    border-left: 1px solid var(--border);
+    border-inline-start: 1px solid var(--border);
     padding: 1.25rem;
   }
   .workout-controls
@@ -3044,10 +3044,26 @@ textarea {
   min-height: 44px;
 }
 .voice-volume > .tabular-nums {
-  text-align: right;
+  text-align: end;
 }
 @media (min-width: 640px) {
   .voice-controls > div {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Reading direction changes layout, never the camera, pose coordinates, or exercise sprites. */
+html[dir="rtl"] .directional-icon { transform: scaleX(-1); }
+.language-controls { display: grid; gap: .5rem; min-width: 0; }
+.language-controls select { max-width: 100%; min-width: 0; width: 100%; }
+.language-controls label { display: block; }
+html[lang="ar"] { --font-sans: "Noto Sans Arabic", Tahoma, system-ui, sans-serif; --font-display: var(--font-sans); }
+html[lang="hi"] { --font-sans: "Noto Sans Devanagari", "Nirmala UI", system-ui, sans-serif; --font-display: var(--font-sans); }
+html[lang="ja"] { --font-sans: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif; --font-display: var(--font-sans); }
+html[lang="zh-CN"] { --font-sans: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; --font-display: var(--font-sans); }
+html[lang="ko"] { --font-sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif; --font-display: var(--font-sans); }
+.app-bottom-nav button, .app-header-nav button, .torvik-primary, .torvik-secondary { white-space: normal; overflow-wrap: anywhere; }
+.workout-header > div { min-width: 0; }
+.workout-header h1 { white-space: normal; overflow-wrap: anywhere; }
+
+html[dir="rtl"] .category-chevron { transform: scaleX(-1); }

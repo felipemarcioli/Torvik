@@ -1,5 +1,8 @@
+import { translateVoice, currentLanguage } from "../i18n";
+import { speechLanguage, type Language } from "../i18n/languages";
 export type VoiceStatus = "unavailable" | "needs-activation" | "ready" | "blocked";
 export interface SpeechPort {
+  setLanguage?(language: Language): void;
   connect(change: (available: boolean) => void): () => void;
   speak(
     text: string,
@@ -12,7 +15,32 @@ export function localPortugueseVoice(voices: SpeechSynthesisVoice[]) {
   const local = voices.filter((v) => v.localService && /^pt(?:[-_]|$)/i.test(v.lang));
   return local.find((v) => /^pt[-_]br$/i.test(v.lang)) ?? local[0];
 }
+export function compatibleVoice(voices: SpeechSynthesisVoice[], language: Language) {
+  const target = speechLanguage(language).toLowerCase();
+  const base = target.split("-")[0];
+  const compatible = voices.filter(
+    (voice) => voice.lang.replaceAll("_", "-").toLowerCase().split("-")[0] === base,
+  );
+  return compatible.sort((a, b) => {
+    const score = (voice: SpeechSynthesisVoice) =>
+      (voice.lang.replaceAll("_", "-").toLowerCase() === target ? 4 : 0) +
+      (voice.localService ? 2 : 0) +
+      (voice.default ? 1 : 0);
+    return score(b) - score(a);
+  })[0];
+}
 export class BrowserSpeech implements SpeechPort {
+  private language: Language;
+  private refresh = () => {};
+  constructor(language: Language = currentLanguage()) {
+    this.language = language;
+  }
+  setLanguage(language: Language) {
+    if (this.language === language) return;
+    this.cancel();
+    this.language = language;
+    this.refresh();
+  }
   private synth: SpeechSynthesis | undefined;
   private voice: SpeechSynthesisVoice | undefined;
   private utterance: SpeechSynthesisUtterance | null = null;
@@ -28,16 +56,18 @@ export class BrowserSpeech implements SpeechPort {
     const synth = (this.synth = window.speechSynthesis);
     const update = () => {
       try {
-        this.voice = localPortugueseVoice(synth.getVoices());
+        this.voice = compatibleVoice(synth.getVoices(), this.language);
       } catch {
         this.voice = undefined;
       }
       change(!!this.voice);
     };
     synth.addEventListener("voiceschanged", update);
+    this.refresh = update;
     update();
     return () => {
       synth.removeEventListener("voiceschanged", update);
+      this.refresh = () => {};
       this.cancel();
     };
   }
@@ -49,7 +79,7 @@ export class BrowserSpeech implements SpeechPort {
     const utterance = new SpeechSynthesisUtterance(text);
     this.utterance = utterance;
     utterance.voice = this.voice;
-    utterance.lang = this.voice.lang;
+    utterance.lang = speechLanguage(this.language);
     utterance.rate = utterance.pitch = 1;
     utterance.volume = volume;
     utterance.onstart = callbacks.start;
@@ -125,6 +155,7 @@ export class SpeechQueue {
     private change = () => {},
   ) {}
   connect() {
+    this.disconnect?.();
     this.disconnect = this.port.connect((available) => {
       const changed = available !== this.available;
       this.available = available;
@@ -135,6 +166,15 @@ export class SpeechQueue {
       this.change();
     });
   }
+  setLanguage(language: Language) {
+    const wasReady = this.status === "ready";
+    this.clear();
+    this.spoken.clear();
+    this.commonAt = -Infinity;
+    this.port.setLanguage?.(language);
+    if (wasReady && this.available) this.status = "ready";
+    this.change();
+  }
   activate() {
     if (!this.available || !this.settings.enabled || this.settings.volume === 0) return;
     this.clear();
@@ -142,7 +182,7 @@ export class SpeechQueue {
     this.change();
     this.offer({
       key: "activation",
-      text: "Voz ativada",
+      text: translateVoice("Voz ativada"),
       priority: 100,
       expires: this.now() + 3000,
       valid: () => true,
@@ -154,6 +194,7 @@ export class SpeechQueue {
     else if (settings.mode === "basic") this.remove((m) => !!m.common);
   }
   offer(message: VoiceMessage) {
+    if (!message.text.trim()) return;
     if (
       !this.allowed(message) ||
       this.active?.message.key === message.key ||

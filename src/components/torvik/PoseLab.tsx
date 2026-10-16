@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { translate as t, formatNumber } from "@/lib/i18n";
 import { useEffect, useRef, useState } from "react";
 import { createPose } from "@/lib/mediapipe";
 import type { ExerciseId } from "@/lib/biomech";
@@ -5,6 +7,8 @@ import { evaluateVideo, type EvaluationResult } from "@/lib/pose/evaluation";
 import { ScreenHeading } from "./TorvikUI";
 import { EXERCISES } from "./data";
 export function PoseLab() {
+  useTranslation();
+
   const video = useRef<HTMLVideoElement>(null),
     abort = useRef<AbortController | null>(null);
   const [file, setFile] = useState<File | null>(null),
@@ -13,7 +17,9 @@ export function PoseLab() {
     [exercise, setExercise] = useState<ExerciseId>("squat"),
     [expected, setExpected] = useState(0),
     [busy, setBusy] = useState(false),
-    [progress, setProgress] = useState(""),
+    [progress, setProgress] = useState<{ engine: string; fraction?: number } | "complete" | null>(
+      null,
+    ),
     [error, setError] = useState(""),
     [results, setResults] = useState<EvaluationResult[]>([]);
   useEffect(() => {
@@ -48,18 +54,18 @@ export function PoseLab() {
       ];
       for (const item of factories) {
         signal.signal.throwIfAborted();
-        setProgress(`${item.label}: carregando…`);
+        setProgress({ engine: item.label });
         const result = await evaluateVideo(
           video.current,
           item.create,
           exercise,
           expected,
           signal.signal,
-          (fraction) => setProgress(`${item.label}: ${Math.round(fraction * 100)}%`),
+          (fraction) => setProgress({ engine: item.label, fraction }),
         );
         setResults((previous) => [...previous, result]);
       }
-      setProgress("Comparação concluída.");
+      setProgress("complete");
     } catch {
       setError(
         signal.signal.aborted
@@ -74,15 +80,19 @@ export function PoseLab() {
     <main className="lab-screen">
       <div className="app-content">
         <a href="/" className="torvik-secondary text-sm">
-          Voltar ao Torvik
+          {t("Voltar ao Torvik")}
         </a>
-        <ScreenHeading title="Laboratório local de pose" eyebrow="Ferramenta experimental">
-          Compare o mesmo vídeo nos dois motores, a 15 amostras por segundo, até 60 segundos. O
-          arquivo permanece no navegador. Os resultados não validam capacidade clínica.
+        <ScreenHeading
+          title={t("Laboratório local de pose")}
+          eyebrow={t("Ferramenta experimental")}
+        >
+          {t(
+            "Compare o mesmo vídeo nos dois motores, a 15 amostras por segundo, até 60 segundos. O arquivo permanece no navegador. Os resultados não validam capacidade clínica.",
+          )}
         </ScreenHeading>
         <div className="torvik-panel mt-6 p-5 sm:p-6">
           <label className="block font-semibold">
-            Vídeo autorizado
+            {t("Vídeo autorizado")}
             <input
               type="file"
               accept="video/*"
@@ -91,7 +101,7 @@ export function PoseLab() {
                 setFile(e.target.files?.[0] ?? null);
                 setConsent(false);
               }}
-              className="torvik-control mt-2 block w-full cursor-pointer text-sm file:mr-3 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-1 file:font-semibold file:text-foreground"
+              className="torvik-control mt-2 block w-full cursor-pointer text-sm file:me-3 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-1 file:font-semibold file:text-foreground"
             />
           </label>
           <video
@@ -113,11 +123,11 @@ export function PoseLab() {
               disabled={busy}
               className="mt-1 size-5 shrink-0 accent-primary"
             />
-            Tenho autorização para usar este vídeo nesta avaliação local.
+            {t("Tenho autorização para usar este vídeo nesta avaliação local.")}
           </label>
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
             <label className="flex flex-col gap-2 text-sm font-semibold">
-              Exercício
+              {t("Exercício")}
               <select
                 disabled={busy}
                 value={exercise}
@@ -126,15 +136,15 @@ export function PoseLab() {
               >
                 {EXERCISES.map((e) => (
                   <option key={e.id} value={e.id}>
-                    {e.name}
+                    {t(e.name)}
                   </option>
                 ))}
               </select>
             </label>
             <label className="flex flex-col gap-2 text-sm font-semibold">
               {EXERCISES.find((e) => e.id === exercise)?.type === "HOLD_BASED"
-                ? "Segundos de postura válida anotados nos primeiros 60s"
-                : "Repetições anotadas nos primeiros 60s"}
+                ? t("Segundos de postura válida anotados nos primeiros 60s")
+                : t("Repetições anotadas nos primeiros 60s")}
               <input
                 type="number"
                 min="0"
@@ -153,7 +163,7 @@ export function PoseLab() {
               disabled={!loaded || !consent || busy}
               onClick={() => void run()}
             >
-              Comparar motores
+              {t("Comparar motores")}
             </button>
             {busy && (
               <button
@@ -161,52 +171,82 @@ export function PoseLab() {
                 className="torvik-secondary"
                 onClick={() => abort.current?.abort()}
               >
-                Cancelar comparação
+                {t("Cancelar comparação")}
               </button>
             )}
           </div>
           <p role="status" className="mt-3 text-sm text-muted-foreground">
-            {progress}
+            {progress === "complete"
+              ? t("Comparação concluída.")
+              : progress
+                ? progress.fraction === undefined
+                  ? t("{{engine}}: carregando…", { engine: t(progress.engine) })
+                  : `${t(progress.engine)}: ${formatNumber(progress.fraction, { style: "percent", maximumFractionDigits: 0 })}`
+                : ""}
           </p>
         </div>
         {error && (
           <p role="alert" className="torvik-panel mt-4 border-caution/50 p-4 text-caution">
-            {error}
+            {t(error)}
           </p>
         )}
         {results.length > 0 && (
           <div className="torvik-panel mt-6 overflow-x-auto p-5 sm:p-6">
-            <table className="w-full min-w-[34rem] text-left text-sm">
-              <caption className="mb-4 text-left font-semibold">
-                Métricas deste vídeo; execução amostrada, não um teste de FPS em tempo real.
+            <table className="w-full min-w-[34rem] text-start text-sm">
+              <caption className="mb-4 text-start font-semibold">
+                {t("Métricas deste vídeo; execução amostrada, não um teste de FPS em tempo real.")}
               </caption>
               <thead>
                 <tr className="border-b border-border text-muted-foreground">
-                  <th>Motor</th>
+                  <th>{t("Motor")}</th>
                   <th>
                     {EXERCISES.find((e) => e.id === exercise)?.type === "HOLD_BASED"
-                      ? "Tempo válido"
-                      : "Contagem"}
+                      ? t("Tempo válido")
+                      : t("Contagem")}
                   </th>
-                  <th>Erro absoluto</th>
-                  <th>Frames rastreados</th>
-                  <th>Latência p95</th>
+                  <th>{t("Erro absoluto")}</th>
+                  <th>{t("Frames rastreados")}</th>
+                  <th>{t("Latência p95")}</th>
                 </tr>
               </thead>
               <tbody>
                 {results.map((r) => (
                   <tr key={r.engine} className="border-b border-border last:border-0">
-                    <td className="py-3 pr-3">{r.engine}</td>
+                    <td className="py-3 pe-3">{r.engine}</td>
                     <td>
-                      {r.type === "HOLD_BASED" ? `${r.validSeconds?.toFixed(1)} s` : r.totalReps}
+                      {r.type === "HOLD_BASED"
+                        ? formatNumber(r.validSeconds ?? 0, {
+                            style: "unit",
+                            unit: "second",
+                            minimumFractionDigits: 1,
+                            maximumFractionDigits: 1,
+                          })
+                        : formatNumber(r.totalReps)}
                     </td>
                     <td>
                       {r.type === "HOLD_BASED"
-                        ? `${r.absoluteTimeError?.toFixed(1)} s`
-                        : r.absoluteCountError}
+                        ? formatNumber(r.absoluteTimeError ?? 0, {
+                            style: "unit",
+                            unit: "second",
+                            minimumFractionDigits: 1,
+                            maximumFractionDigits: 1,
+                          })
+                        : formatNumber(r.absoluteCountError)}
                     </td>
-                    <td>{Math.round(r.trackingCoverage * 100)}%</td>
-                    <td>{r.p95Ms.toFixed(1)} ms</td>
+                    <td>
+                      {formatNumber(r.trackingCoverage, {
+                        style: "percent",
+                        maximumFractionDigits: 0,
+                      })}
+                    </td>
+                    <td>
+                      {formatNumber(r.p95Ms, {
+                        style: "unit",
+                        unit: "millisecond",
+                        minimumFractionDigits: 1,
+                        maximumFractionDigits: 1,
+                      })}
+                    </td>
                   </tr>
                 ))}
               </tbody>

@@ -365,10 +365,11 @@ test("novas correções usam a evidência temporal existente e ficam silenciosas
   const f = fixture();
   f.run();
   const issue = { message: "Mantenha o braço próximo ao tronco", level: "posture" as const };
+  const spoken = "Mantenha a parte superior do braço próxima ao tronco.";
   f.advance(1000, issue);
-  expect(f.port.calls.some((c) => c.text === issue.message + ".")).toBe(false);
+  expect(f.port.calls.some((c) => c.text === spoken)).toBe(false);
   f.advance(600, issue);
-  expect(f.port.calls.some((c) => c.text === issue.message + ".")).toBe(true);
+  expect(f.port.calls.some((c) => c.text === spoken)).toBe(true);
   f.port.end();
   f.voice.configure({ ...DEFAULT_VOICE, mode: "basic" });
   f.advance(30000, { message: "Eleve um pouco o quadril", level: "posture" });

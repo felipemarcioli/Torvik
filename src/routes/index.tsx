@@ -1,6 +1,8 @@
+import { useTranslation } from "react-i18next";
+import { translate as t } from "@/lib/i18n";
 import { useWorkoutVoice } from "@/hooks/use-workout-voice";
 import { createFileRoute } from "@tanstack/react-router";
-import { lazy, Suspense, useState, useCallback, useRef } from "react";
+import { lazy, Suspense, useState, useCallback, useRef, useEffect } from "react";
 import { LoadingState } from "@/components/torvik/TorvikUI";
 import { HomeScreen } from "@/components/torvik/HomeScreen";
 import { WorkoutScreen } from "@/components/torvik/WorkoutScreen";
@@ -24,16 +26,28 @@ const description =
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title },
-      { name: "description", content: description },
-      { property: "og:title", content: title },
-      { property: "og:description", content: description },
+      { title: t(title) },
+      { name: "description", content: t(description) },
+      { property: "og:title", content: t(title) },
+      { property: "og:description", content: t(description) },
     ],
   }),
   component: Index,
 });
 
 function Index() {
+  const { i18n } = useTranslation();
+  useEffect(() => {
+    document.title = t(title);
+    for (const [selector, content] of [
+      ['meta[name="description"]', t(description)],
+      ['meta[property="og:title"]', t(title)],
+      ['meta[property="og:description"]', t(description)],
+    ]) {
+      document.querySelector(selector!)?.setAttribute("content", content!);
+    }
+  }, [i18n.resolvedLanguage]);
+
   return (
     <AuthProvider>
       <AuthEntry />
@@ -42,13 +56,15 @@ function Index() {
 }
 
 function AuthEntry() {
+  useTranslation();
+
   const { session, loading, configured, recovery } = useAuth();
   const [guest, setGuest] = useState(false);
   const [open, setOpen] = useState(false);
   if (loading)
     return (
       <main className="auth-screen">
-        <LoadingState>Carregando Torvik…</LoadingState>
+        <LoadingState>{t("Carregando Torvik…")}</LoadingState>
       </main>
     );
   if (recovery || (!session && (open || (configured && !guest)))) {
@@ -65,6 +81,8 @@ function AuthEntry() {
 }
 
 function TorvikApp({ onLogin }: { onLogin: () => void }) {
+  useTranslation();
+
   const voice = useWorkoutVoice();
   const navigation = useAppNavigation();
   const { view, navigate, back, guard } = navigation;
@@ -131,7 +149,7 @@ function TorvikApp({ onLogin }: { onLogin: () => void }) {
           }}
         />
       ) : view.screen === "history" ? (
-        <Suspense fallback={<LoadingState>Carregando progresso…</LoadingState>}>
+        <Suspense fallback={<LoadingState>{t("Carregando progresso…")}</LoadingState>}>
           <HistoryScreen
             key={view.detailId ?? "all"}
             initialDetailId={view.detailId ?? null}

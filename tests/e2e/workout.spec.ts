@@ -231,7 +231,7 @@ test("manual fora do quadro oferece cinco segundos e cancelamento não inicia se
     await page.getByRole("button", { name: "Descartar e sair" }).click();
   await page.waitForTimeout(5500);
   await expect(
-    page.getByRole("button", { name: "Preparar agachamento", exact: true }),
+    page.getByRole("button", { name: "Preparar Agachamento", exact: true }),
   ).toBeVisible();
   await expect(page.getByRole("button", { name: "Pausar", exact: true })).toHaveCount(0);
 });
@@ -354,7 +354,7 @@ test("áudio bloqueado permite recuperação, ajustes e cancelamento sem reinici
     (window as unknown as { __voice: { blocked: boolean } }).__voice.blocked = false;
   });
   await page.getByRole("button", { name: "Ativar voz", exact: true }).click();
-  await expect(page.getByText("Voz local em português pronta.")).toBeVisible();
+  await expect(page.getByText("Voz disponível para o idioma selecionado.")).toBeVisible();
   await page.getByLabel("Modo de voz").selectOption("basic");
   await page.getByRole("slider", { name: /Volume/ }).fill("0.4");
   await page.getByRole("checkbox", { name: "Feedback por voz" }).uncheck();
@@ -377,7 +377,7 @@ test("síntese indisponível não bloqueia o treino", async ({ page }) => {
   await setup(page, false);
   await prepareExercise(page);
   await page.getByRole("button", { name: "Controles de câmera e voz" }).click();
-  await expect(page.getByText(/Voz local em português indisponível/)).toBeVisible();
+  await expect(page.getByText(/Nenhuma voz compatível disponível/)).toBeVisible();
   await page.getByRole("button", { name: "Fechar", exact: true }).click();
   await expect(page.getByRole("button", { name: "Iniciar em 5 segundos" })).toBeEnabled();
   await page.getByRole("button", { name: "Sair", exact: true }).click();

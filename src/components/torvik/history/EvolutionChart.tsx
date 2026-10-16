@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { translate as t, formatNumber } from "@/lib/i18n";
 import { useMemo, useState } from "react";
 import {
   LineChart,
@@ -21,6 +23,8 @@ import type { HistorySession as SessionReport } from "@/lib/history";
 import type { ExerciseId } from "@/lib/biomech";
 import { EXERCISES } from "../data";
 export function EvolutionChart({ sessions }: { sessions: SessionReport[] }) {
+  const { i18n } = useTranslation();
+
   const [exercise, setExercise] = useState<ExerciseId>(sessions[0]?.exercise ?? EXERCISES[0]!.id);
   const [period, setPeriod] = useState<ProgressPeriod>("30"),
     [chosenMetric, setMetric] = useState<ProgressMetric>("totalReps"),
@@ -52,8 +56,17 @@ export function EvolutionChart({ sessions }: { sessions: SessionReport[] }) {
     ? version
     : (versions[0]?.[0] ?? "");
   const { points, grouping } = useMemo(
-    () => evolution(sessions, exercise, period, activeVersion, new Date(), activeSide),
-    [sessions, exercise, period, activeVersion, activeSide],
+    () =>
+      evolution(
+        sessions,
+        exercise,
+        period,
+        activeVersion,
+        new Date(),
+        activeSide,
+        i18n.resolvedLanguage,
+      ),
+    [sessions, exercise, period, activeVersion, activeSide, i18n.resolvedLanguage],
   );
   const point = points.find((p) => p.id === selected) ?? points.at(-1);
   const hasValues = points.some((p) => p[metric] !== null);
@@ -90,16 +103,20 @@ export function EvolutionChart({ sessions }: { sessions: SessionReport[] }) {
     <section className="progress-panel" aria-labelledby="evolution-title">
       <div className="progress-section-heading">
         <div>
-          <p className="torvik-kicker">Dados registrados</p>
-          <h2 id="evolution-title">Sua evolução</h2>
+          <p className="torvik-kicker">{t("Dados registrados")}</p>
+          <h2 id="evolution-title">{t("Sua evolução")}</h2>
         </div>
         <span className="progress-tag">
-          {grouping === "session" ? "Por sessão" : grouping === "day" ? "Por dia" : "Por mês"}
+          {grouping === "session"
+            ? t("Por sessão")
+            : grouping === "day"
+              ? t("Por dia")
+              : t("Por mês")}
         </span>
       </div>
       <div className="progress-chart-filters">
         <label>
-          Exercício do gráfico
+          {t("Exercício do gráfico")}
           <select
             value={exercise}
             onChange={(e) => {
@@ -110,50 +127,53 @@ export function EvolutionChart({ sessions }: { sessions: SessionReport[] }) {
           >
             {EXERCISES.map((e) => (
               <option key={e.id} value={e.id}>
-                {e.name}
+                {t(e.name)}
               </option>
             ))}
           </select>
         </label>
         {sided && (
           <label>
-            Lado do gráfico
+            {t("Lado do gráfico")}
             <select
               value={activeSide}
               onChange={(e) => setSide(e.target.value as "all" | "left" | "right")}
             >
-              <option value="all">Todos os lados</option>
-              <option value="left">Esquerdo</option>
-              <option value="right">Direito</option>
+              <option value="all">{t("Todos os lados")}</option>
+              <option value="left">{t("Esquerdo")}</option>
+              <option value="right">{t("Direito")}</option>
             </select>
           </label>
         )}
         <label>
-          Período
+          {t("Período")}
           <select value={period} onChange={(e) => setPeriod(e.target.value as ProgressPeriod)}>
-            <option value="7">Últimos 7 dias</option>
-            <option value="30">Últimos 30 dias</option>
-            <option value="90">Últimos 90 dias</option>
-            <option value="all">Todo o histórico</option>
+            <option value="7">{t("Últimos 7 dias")}</option>
+            <option value="30">{t("Últimos 30 dias")}</option>
+            <option value="90">{t("Últimos 90 dias")}</option>
+            <option value="all">{t("Todo o histórico")}</option>
           </select>
         </label>
         <label className="progress-metric-filter">
-          Métrica
+          {t("Métrica")}
           <select value={metric} onChange={(e) => setMetric(e.target.value as ProgressMetric)}>
             {metrics.map(([key, label]) => (
               <option key={key} value={key}>
-                {label}
+                {t(label)}
               </option>
             ))}
           </select>
         </label>
         {versions.length > 1 && (
           <label className="progress-metric-filter">
-            Versão da análise
+            {t("Versão da análise")}
             <select value={activeVersion} onChange={(e) => setVersion(e.target.value)}>
               {versions.map(([key, r]) => (
                 <option value={key} key={key}>
-                  Regras {r.rulesVersion} · {r.engineVersion}
+                  {t("Regras {{value0}} · {{value1}}", {
+                    value0: r.rulesVersion,
+                    value1: r.engineVersion,
+                  })}
                 </option>
               ))}
             </select>
@@ -162,7 +182,11 @@ export function EvolutionChart({ sessions }: { sessions: SessionReport[] }) {
       </div>
       {hasValues ? (
         <>
-          <div className="progress-chart" role="group" aria-label={`Gráfico de ${METRICS[metric]}`}>
+          <div
+            className="progress-chart"
+            role="group"
+            aria-label={t("Gráfico de {{value0}}", { value0: t(METRICS[metric]) })}
+          >
             <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <LineChart
                 data={points}
@@ -184,13 +208,22 @@ export function EvolutionChart({ sessions }: { sessions: SessionReport[] }) {
                   tickFormatter={(value) =>
                     metric === "seconds" || metric === "validSeconds"
                       ? Number(value) < 60
-                        ? `${value}s`
-                        : `${(Number(value) / 60).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}m`
-                      : String(value)
+                        ? formatNumber(Number(value), {
+                            style: "unit",
+                            unit: "second",
+                            unitDisplay: "narrow",
+                          })
+                        : formatNumber(Number(value) / 60, {
+                            style: "unit",
+                            unit: "minute",
+                            unitDisplay: "narrow",
+                            maximumFractionDigits: 1,
+                          })
+                      : formatNumber(Number(value))
                   }
                 />
                 <Tooltip
-                  formatter={(value) => [metricLabel(Number(value), metric), METRICS[metric]]}
+                  formatter={(value) => [metricLabel(Number(value), metric), t(METRICS[metric])]}
                   contentStyle={{
                     background: "var(--card)",
                     border: "1px solid var(--border)",
@@ -212,7 +245,7 @@ export function EvolutionChart({ sessions }: { sessions: SessionReport[] }) {
             </ResponsiveContainer>
           </div>
           <label className="progress-point-select">
-            Consultar ponto
+            {t("Consultar ponto")}
             <select value={point?.id ?? ""} onChange={(e) => setSelected(e.target.value)}>
               {points.map((p) => (
                 <option value={p.id} key={p.id}>
@@ -224,15 +257,19 @@ export function EvolutionChart({ sessions }: { sessions: SessionReport[] }) {
           {point && (
             <output className="progress-chart-reading" aria-live="polite">
               <span>
-                {point.label} · {point.sessions} {point.sessions === 1 ? "sessão" : "sessões"}
+                {point.label} ·{" "}
+                {t(point.sessions === 1 ? "{{count}} sessão" : "{{count}} sessões", {
+                  count: point.sessions,
+                })}
               </span>
               <strong>{metricLabel(point[metric], metric)}</strong>
             </output>
           )}
           {points.length === 1 && (
             <p className="progress-caption">
-              Um registro disponível. São necessários mais registros para observar variações ao
-              longo do tempo.
+              {t(
+                "Um registro disponível. São necessários mais registros para observar variações ao longo do tempo.",
+              )}
             </p>
           )}
         </>
@@ -240,18 +277,23 @@ export function EvolutionChart({ sessions }: { sessions: SessionReport[] }) {
         <div className="progress-empty-inline">
           <p>
             {points.length
-              ? "Não há repetições avaliadas para calcular esta proporção."
-              : "Nenhum registro neste período e nesta versão."}
+              ? t("Não há repetições avaliadas para calcular esta proporção.")
+              : t("Nenhum registro neste período e nesta versão.")}
           </p>
-          <span>Experimente outro exercício ou período.</span>
+          <span>{t("Experimente outro exercício ou período.")}</span>
         </div>
       )}
       <p className="progress-caption">
-        {versions.length > 1 ? "O gráfico separa versões de regras e estimadores. " : ""}
-        {hold
-          ? "O gráfico soma os tempos registrados."
-          : "A proporção usa o total de repetições do período, não a média dos percentuais."}{" "}
-        Variações não comprovam melhora biomecânica. Dias sem registros não são tratados como zero.
+        {t(
+          "{{value0}} {{value1}} Variações não comprovam melhora biomecânica. Dias sem registros não são tratados como zero.",
+          {
+            value0:
+              versions.length > 1 ? t("O gráfico separa versões de regras e estimadores.") : "",
+            value1: hold
+              ? t("O gráfico soma os tempos registrados.")
+              : t("A proporção usa o total de repetições do período, não a média dos percentuais."),
+          },
+        )}
       </p>
     </section>
   );

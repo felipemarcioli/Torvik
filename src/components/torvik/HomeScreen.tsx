@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { translate as t, currentLanguage, formatList } from "@/lib/i18n";
 import { useEffect, useState, type MutableRefObject } from "react";
 import { Search, ChevronRight, ArrowRight, ScanLine, ShieldCheck } from "lucide-react";
 import { Brand, Mascot } from "./TorvikUI";
@@ -15,6 +17,8 @@ export function ExerciseRow({
   selected?: ExerciseId | undefined;
   onOpen: (id: ExerciseId) => void;
 }) {
+  useTranslation();
+
   return (
     <button
       type="button"
@@ -27,16 +31,18 @@ export function ExerciseRow({
         {exercise.emoji}
       </span>
       <span>
-        <strong>{exercise.name}</strong>
-        {selected === exercise.id && <small className="text-primary">Selecionado</small>}
+        <strong>{t(exercise.name)}</strong>
+        {selected === exercise.id && <small className="text-primary">{t("Selecionado")}</small>}
         {exercise.equipment && (
           <small>
-            {exercise.equipment.length ? exercise.equipment.join(" · ") : "Sem equipamento"}
+            {exercise.equipment.length
+              ? exercise.equipment.map((item) => t(item)).join(" · ")
+              : t("Sem equipamento")}
           </small>
         )}
       </span>
-      <ChevronRight size={21} aria-hidden="true" />
-      <span className="sr-only">Ver detalhes</span>
+      <ChevronRight className="directional-icon" size={21} aria-hidden="true" />
+      <span className="sr-only">{t("Ver detalhes")}</span>
     </button>
   );
 }
@@ -66,6 +72,8 @@ export function HomeScreen({
   onSearch,
   categoryPositions,
 }: Props) {
+  useTranslation();
+
   const currentExercise = selected ? EXERCISE_BY_ID[selected] : undefined;
   const [interactive, setInteractive] = useState(false);
   const openGroup = category ?? null;
@@ -74,9 +82,9 @@ export function HomeScreen({
     value
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
-      .toLocaleLowerCase("pt-BR");
+      .toLocaleLowerCase(currentLanguage());
   const results = EXERCISES.filter((item) =>
-    normalize(item.name).includes(normalize(search.trim())),
+    normalize(t(item.name)).includes(normalize(search.trim())),
   );
   useEffect(() => setInteractive(true), []);
   useEffect(() => {
@@ -102,25 +110,28 @@ export function HomeScreen({
             disabled={!interactive}
             onClick={onHistory}
           >
-            Meu histórico <ArrowRight size={17} aria-hidden="true" />
+            {t("Meu histórico")}
+            <ArrowRight className="directional-icon" size={17} aria-hidden="true" />
           </button>
         </header>
         <section className="home-welcome" aria-labelledby="welcome-title">
           <div className="welcome-copy">
             <p className="welcome-label">
-              <ScanLine size={16} aria-hidden="true" /> Seu assistente de treino
+              <ScanLine size={16} aria-hidden="true" /> {t("Seu assistente de treino")}
             </p>
             <h1 id="welcome-title">
-              Vamos nos
+              {t("Vamos nos")}
               <br />
-              movimentar<span>?</span>
+              {t("movimentar")}
+              <span>?</span>
             </h1>
             <p>
-              Você faz o movimento.
-              <br />O Torvik acompanha com você.
+              {t("Você faz o movimento.")}
+              <br />
+              {t("O Torvik acompanha com você.")}
             </p>
             <span className="welcome-privacy">
-              <ShieldCheck size={15} aria-hidden="true" /> Câmera local. Sem gravação.
+              <ShieldCheck size={15} aria-hidden="true" /> {t("Câmera local. Sem gravação.")}
             </span>
           </div>
           <Mascot className="welcome-mascot" />
@@ -128,32 +139,39 @@ export function HomeScreen({
         <section className="home-exercises" aria-labelledby="exercise-heading">
           <div className="flex items-end justify-between gap-4">
             <h2 id="exercise-heading" className="text-xl font-bold leading-tight">
-              Escolha o exercício
+              {t("Escolha o exercício")}
             </h2>
-            <span className="catalog-count">{EXERCISES.length} exercícios</span>
+            <span className="catalog-count">
+              {t("{{value0}} exercícios", { value0: EXERCISES.length })}
+            </span>
           </div>
           <label className="exercise-search mt-3">
             <Search size={20} aria-hidden="true" />
-            <span className="sr-only">Buscar exercício por nome</span>
+            <span className="sr-only">{t("Buscar exercício por nome")}</span>
             <input
               type="search"
               value={search}
               onChange={(event) => onSearch(event.target.value)}
-              placeholder="Qual exercício você procura?"
+              placeholder={t("Qual exercício você procura?")}
             />
           </label>
           {search.trim() && (
-            <section aria-label="Resultados da busca">
+            <section aria-label={t("Resultados da busca")}>
               <p role="status" className="mb-3 text-sm text-muted-foreground">
-                {results.length} exercícios encontrados
+                {t(
+                  results.length === 1
+                    ? "{{value0}} exercício encontrado"
+                    : "{{value0}} exercícios encontrados",
+                  { value0: results.length },
+                )}
               </p>
               {!results.length && (
                 <div className="search-empty">
                   <Mascot decorative />
-                  <h3>Vamos tentar outro nome?</h3>
-                  <p>Busque por um movimento, como agachamento ou flexão.</p>
+                  <h3>{t("Vamos tentar outro nome?")}</h3>
+                  <p>{t("Busque por um movimento, como agachamento ou flexão.")}</p>
                   <button type="button" className="torvik-secondary" onClick={() => onSearch("")}>
-                    Limpar busca
+                    {t("Limpar busca")}
                   </button>
                 </div>
               )}
@@ -174,7 +192,7 @@ export function HomeScreen({
             disabled={!interactive}
             className="workout-groups mt-3 sm:mt-5"
           >
-            <legend className="sr-only">Exercício para o próximo treino</legend>
+            <legend className="sr-only">{t("Exercício para o próximo treino")}</legend>
             {EXERCISE_SECTIONS.map((section) => (
               <WorkoutGroupCard
                 key={section.id}
@@ -209,7 +227,7 @@ export function HomeScreen({
         </section>
         <section className="home-preparation" aria-labelledby="preparation-heading">
           <h2 id="preparation-heading" className="torvik-kicker">
-            Preparação
+            {t("Preparação")}
           </h2>
           <div className="home-preparation-grid">
             <section
@@ -217,33 +235,33 @@ export function HomeScreen({
               aria-labelledby="current-exercise-heading"
             >
               <h3 id="current-exercise-heading" className="text-base font-bold">
-                Seu próximo exercício
+                {t("Seu próximo exercício")}
               </h3>
               {currentExercise ? (
                 <div className="current-exercise-content">
                   <div
                     className="current-exercise-preview"
                     role="img"
-                    aria-label={currentExercise.previewAlt}
+                    aria-label={t(currentExercise.previewAlt)}
                   >
                     <ExercisePreview exercise={currentExercise} animated={!openGroup} />
                   </div>
                   <div className="min-w-0">
                     <p className="font-bold">
                       <span aria-hidden="true">{currentExercise.emoji} </span>
-                      {currentExercise.name}
+                      {t(currentExercise.name)}
                     </p>
-                    <p className="mt-1 text-sm text-accent">{currentExercise.badge}</p>
+                    <p className="mt-1 text-sm text-accent">{t(currentExercise.badge)}</p>
                     {currentExercise.previewAvailable === false && (
                       <p className="mt-2 text-xs text-muted-foreground">
-                        Demonstração animada indisponível.
+                        {t("Demonstração animada indisponível.")}
                       </p>
                     )}
                   </div>
                 </div>
               ) : (
                 <p className="mt-3 text-sm text-muted-foreground">
-                  Escolha uma categoria acima para encontrar seu exercício.
+                  {t("Escolha uma categoria acima para encontrar seu exercício.")}
                 </p>
               )}
               <div aria-hidden={!!openGroup} inert={!!openGroup} className="home-action">
@@ -253,7 +271,8 @@ export function HomeScreen({
                   disabled={!interactive || !selected}
                   onClick={onStart}
                 >
-                  Preparar câmera <ArrowRight size={18} aria-hidden="true" />
+                  {t("Preparar câmera")}
+                  <ArrowRight className="directional-icon" size={18} aria-hidden="true" />
                 </button>
               </div>
             </section>
@@ -262,15 +281,15 @@ export function HomeScreen({
               aria-labelledby="camera-tips-heading"
             >
               <h3 id="camera-tips-heading" className="text-base font-bold">
-                Antes de começar
+                {t("Antes de começar")}
               </h3>
               <ul className="mt-3 space-y-3 text-sm text-muted-foreground">
                 {CAMERA_TIPS.map((tip) => (
-                  <li key={tip} className="flex gap-2">
+                  <li key={t(tip)} className="flex gap-2">
                     <span aria-hidden="true" className="font-bold text-accent">
                       •
                     </span>
-                    {tip}
+                    {t(tip)}
                   </li>
                 ))}
               </ul>
@@ -279,12 +298,14 @@ export function HomeScreen({
         </section>
         <footer className="home-footer">
           <p>
-            Seu vídeo não é gravado. Salve o resumo ao terminar para acompanhar seus treinos neste
-            dispositivo.
+            {t(
+              "Seu vídeo não é gravado. Salve o resumo ao terminar para acompanhar seus treinos neste dispositivo.",
+            )}
           </p>
           <p>
-            O feedback é uma estimativa do movimento. Respeite seus limites e procure orientação
-            profissional quando precisar.
+            {t(
+              "O feedback é uma estimativa do movimento. Respeite seus limites e procure orientação profissional quando precisar.",
+            )}
           </p>
         </footer>
       </div>
@@ -308,6 +329,8 @@ function ExerciseCard({
   previewVisible: boolean;
   onPreviewToggle: () => void;
 }) {
+  useTranslation();
+
   const [open, setOpen] = useState(false);
   const previewId = `exercise-preview-${exercise.id}`;
   return (
@@ -328,9 +351,11 @@ function ExerciseCard({
         <span className="min-w-0">
           <span className="block text-base font-bold sm:text-lg">
             <span aria-hidden="true">{exercise.emoji} </span>
-            {exercise.name}
+            {t(exercise.name)}
           </span>
-          <span className="mt-0.5 block text-xs font-semibold text-accent">{exercise.badge}</span>
+          <span className="mt-0.5 block text-xs font-semibold text-accent">
+            {t(exercise.badge)}
+          </span>
         </span>
       </label>
       <label
@@ -360,10 +385,10 @@ function ExerciseCard({
         <span className="min-w-0 flex-1">
           <span className="block text-[0.9375rem] font-bold leading-tight">
             <span aria-hidden="true">{exercise.emoji} </span>
-            {exercise.name}
+            {t(exercise.name)}
           </span>
           <span className="mt-0.5 block text-[0.6875rem] font-semibold text-accent">
-            {exercise.badge}
+            {t(exercise.badge)}
           </span>
         </span>
         <span className="exercise-preview-chevron" aria-hidden="true">
@@ -373,7 +398,7 @@ function ExerciseCard({
         </span>
       </label>
       <p className="exercise-summary mt-2 text-sm text-muted-foreground sm:mt-3">
-        {exercise.summary}
+        {t(exercise.summary)}
       </p>
       <button
         type="button"
@@ -382,8 +407,10 @@ function ExerciseCard({
         className="exercise-instructions-button mt-1 min-h-11 rounded-md text-sm font-semibold text-primary underline-offset-4 hover:underline"
         onClick={() => setOpen((v) => !v)}
       >
-        <span className="sm:hidden">{open ? "Fechar" : "Instruções"}</span>
-        <span className="hidden sm:inline">{open ? "Ocultar instruções" : "Ver instruções"}</span>
+        <span className="sm:hidden">{open ? t("Fechar") : t("Instruções")}</span>
+        <span className="hidden sm:inline">
+          {open ? t("Ocultar instruções") : t("Ver instruções")}
+        </span>
       </button>
       <ul
         id={`instructions-${exercise.id}`}
@@ -392,14 +419,18 @@ function ExerciseCard({
       >
         {exercise.equipment && (
           <li>
-            Equipamentos: {exercise.equipment.length ? exercise.equipment.join("; ") : "nenhum"}.
+            {t("Equipamentos: {{value0}}.", {
+              value0: exercise.equipment.length
+                ? formatList(exercise.equipment.map((item) => t(item)))
+                : t("nenhum"),
+            })}
           </li>
         )}
         {exercise.instructions.map((i) => (
-          <li key={i}>{i}</li>
+          <li key={t(i)}>{t(i)}</li>
         ))}
         {exercise.analysisLimitations && (
-          <li className="text-xs">{exercise.analysisLimitations}</li>
+          <li className="text-xs">{t(exercise.analysisLimitations)}</li>
         )}
       </ul>
       <button
@@ -407,9 +438,13 @@ function ExerciseCard({
         className="exercise-details-button torvik-secondary"
         onClick={onDetails}
       >
-        <span className="sr-only">Ver detalhes de {exercise.name.toLocaleLowerCase("pt-BR")}</span>
-        <span aria-hidden="true">Instruções e demonstração</span>
-        <ArrowRight size={16} aria-hidden="true" />
+        <span className="sr-only">
+          {t("Ver detalhes de {{value0}}", {
+            value0: t(exercise.name).toLocaleLowerCase(currentLanguage()),
+          })}
+        </span>
+        <span aria-hidden="true">{t("Instruções e demonstração")}</span>
+        <ArrowRight className="directional-icon" size={16} aria-hidden="true" />
       </button>
       <div
         id={previewId}
@@ -419,14 +454,14 @@ function ExerciseCard({
       >
         <div className="mobile-exercise-preview-clip">
           <div className="mobile-exercise-preview-content">
-            <div className="exercise-sprite-window" role="img" aria-label={exercise.previewAlt}>
+            <div className="exercise-sprite-window" role="img" aria-label={t(exercise.previewAlt)}>
               <ExercisePreview exercise={exercise} animated={previewOpen && previewVisible} />
             </div>
             <p>
-              {exercise.previewInstruction}
+              {t(exercise.previewInstruction)}
               {exercise.previewAvailable === false && (
                 <small className="block mt-2 text-muted-foreground">
-                  Demonstração animada indisponível.
+                  {t("Demonstração animada indisponível.")}
                 </small>
               )}
             </p>

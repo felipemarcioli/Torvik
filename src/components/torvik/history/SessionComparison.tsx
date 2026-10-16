@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { translate as t, currentLanguage, formatNumber } from "@/lib/i18n";
 import { BackButton } from "../AppNavigation";
 import { useEffect, useRef } from "react";
 import type { HistorySession } from "@/lib/history";
@@ -12,110 +14,122 @@ export function SessionComparison({
   b: HistorySession;
   onBack: () => void;
 }) {
+  useTranslation();
+
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     heading.current?.focus();
     window.scrollTo(0, 0);
   }, []);
   const values = comparison(a, b),
-    signed = (v: number | null, suffix = "") =>
-      v === null
-        ? "Não comparável"
-        : `${v > 0 ? "+" : ""}${v.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}${suffix}`;
+    signed = (v: number | null, unit?: "second" | "percentage-point") => {
+      if (v === null) return t("Não comparável");
+      const value = formatNumber(v, {
+        maximumFractionDigits: 1,
+        signDisplay: "exceptZero",
+        ...(unit === "second" ? ({ style: "unit", unit: "second" } as const) : {}),
+      });
+      return unit === "percentage-point" ? t("{{value}} p.p.", { value }) : value;
+    };
   const hold = a.type === "HOLD_BASED" && b.type === "HOLD_BASED";
   const rows = hold
     ? [
         [
-          "Tempo em postura válida",
+          t("Tempo em postura válida"),
           durationLabel(a.validSeconds!),
           durationLabel(b.validSeconds!),
-          signed(values.validSeconds, " s"),
+          signed(values.validSeconds, "second"),
         ],
         [
-          "Tempo acompanhado",
+          t("Tempo acompanhado"),
           durationLabel(a.seconds),
           durationLabel(b.seconds),
-          signed(values.seconds, " s"),
+          signed(values.seconds, "second"),
         ],
       ]
     : [
-        ["Repetições avaliadas", a.totalReps, b.totalReps, signed(values.totalReps)],
-        ["Nos critérios", a.correctReps, b.correctReps, signed(values.correctReps)],
+        [t("Repetições avaliadas"), a.totalReps, b.totalReps, signed(values.totalReps)],
+        [t("Nos critérios"), a.correctReps, b.correctReps, signed(values.correctReps)],
         [
-          "Proporção",
+          t("Proporção"),
           metricLabel(proportion(a), "proportion"),
           metricLabel(proportion(b), "proportion"),
-          signed(values.proportion, " p.p."),
+          signed(values.proportion, "percentage-point"),
         ],
         [
-          "Tempo ativo",
+          t("Tempo ativo"),
           durationLabel(a.seconds),
           durationLabel(b.seconds),
-          signed(values.seconds, " s"),
+          signed(values.seconds, "second"),
         ],
       ];
   return (
     <div>
-      <BackButton onClick={onBack}>Voltar ao progresso</BackButton>
+      <BackButton onClick={onBack}>{t("Voltar ao progresso")}</BackButton>
       <header className="progress-header">
-        <p className="torvik-kicker">{EXERCISES.find((e) => e.id === a.exercise)?.name}</p>
+        <p className="torvik-kicker">
+          {t(EXERCISES.find((e) => e.id === a.exercise)?.name ?? a.exercise)}
+        </p>
         <h1 ref={heading} tabIndex={-1}>
-          Comparar sessões
+          {t("Comparar sessões")}
         </h1>
-        <p>Diferenças entre registros, sem classificação de melhora biomecânica.</p>
+        <p>{t("Diferenças entre registros, sem classificação de melhora biomecânica.")}</p>
       </header>
       <section className="progress-panel">
         <div className="progress-comparison-dates">
           <div>
-            <strong>Sessão A</strong>
-            <time>{new Date(a.createdAt).toLocaleString("pt-BR")}</time>
+            <strong>{t("Sessão A")}</strong>
+            <time>{new Date(a.createdAt).toLocaleString(currentLanguage())}</time>
           </div>
           <div>
-            <strong>Sessão B</strong>
-            <time>{new Date(b.createdAt).toLocaleString("pt-BR")}</time>
+            <strong>{t("Sessão B")}</strong>
+            <time>{new Date(b.createdAt).toLocaleString(currentLanguage())}</time>
           </div>
         </div>
         {!values.compatible && (
           <p role="status" className="progress-error">
-            Versões diferentes de regras ou estimador. Valores de atendimento são apresentados
-            separadamente; suas diferenças não são calculadas.
+            {t(
+              "Versões diferentes de regras ou estimador. Valores de atendimento são apresentados separadamente; suas diferenças não são calculadas.",
+            )}
           </p>
         )}
         <div className="progress-comparison-labels">
-          <span>A</span>
-          <span>B</span>
-          <span>Diferença B − A</span>
+          <span>{t("A")}</span>
+          <span>{t("B")}</span>
+          <span>{t("Diferença B − A")}</span>
         </div>
         {rows.map(([label, left, right, diff]) => (
-          <div className="progress-comparison-row" key={label}>
-            <h2>{label}</h2>
+          <div className="progress-comparison-row" key={t(String(label))}>
+            <h2>{t(String(label))}</h2>
             <div>
-              <span>{left}</span>
-              <span>{right}</span>
+              <span>{typeof left === "number" ? formatNumber(left) : left}</span>
+              <span>{typeof right === "number" ? formatNumber(right) : right}</span>
               <strong>{diff}</strong>
             </div>
           </div>
         ))}
         <p className="progress-caption">
           {hold
-            ? "Tempo válido é a soma dos intervalos observados dentro dos critérios."
-            : "p.p. = pontos percentuais. Proporções sem repetições avaliadas não são comparáveis."}
+            ? t("Tempo válido é a soma dos intervalos observados dentro dos critérios.")
+            : t(
+                "p.p. = pontos percentuais. Proporções sem repetições avaliadas não são comparáveis.",
+              )}
         </p>
       </section>
       {a.sideResults && b.sideResults && (
         <section className="progress-panel">
-          <h2>Resultados por lado</h2>
+          <h2>{t("Resultados por lado")}</h2>
           {(["left", "right"] as const).map((side) => {
             const av = hold ? a.sideResults![side].validSeconds : a.sideResults![side].totalReps;
             const bv = hold ? b.sideResults![side].validSeconds : b.sideResults![side].totalReps;
             return (
               <div className="progress-comparison-row" key={side}>
-                <h3>{side === "left" ? "Esquerdo" : "Direito"}</h3>
+                <h3>{side === "left" ? t("Esquerdo") : t("Direito")}</h3>
                 <div>
-                  <span>{hold ? durationLabel(av) : av}</span>
-                  <span>{hold ? durationLabel(bv) : bv}</span>
+                  <span>{hold ? durationLabel(av) : formatNumber(av)}</span>
+                  <span>{hold ? durationLabel(bv) : formatNumber(bv)}</span>
                   <strong>
-                    {signed(values.compatible ? bv - av : null, hold ? " s" : " reps")}
+                    {signed(values.compatible ? bv - av : null, hold ? "second" : undefined)}
                   </strong>
                 </div>
               </div>
@@ -124,24 +138,24 @@ export function SessionComparison({
         </section>
       )}
       <section className="progress-panel">
-        <h2>Ocorrências por critério</h2>
+        <h2>{t("Ocorrências por critério")}</h2>
         {!values.compatible ? (
           <p className="progress-caption">
-            Comparação de ocorrências indisponível entre versões diferentes.
+            {t("Comparação de ocorrências indisponível entre versões diferentes.")}
           </p>
         ) : !a.feedbackCounts || !b.feedbackCounts ? (
           <p className="progress-caption">
-            Uma das sessões não registrou o detalhamento das ocorrências.
+            {t("Uma das sessões não registrou o detalhamento das ocorrências.")}
           </p>
         ) : !values.issues.length ? (
-          <p className="progress-caption">Nenhuma ocorrência registrada nas duas sessões.</p>
+          <p className="progress-caption">{t("Nenhuma ocorrência registrada nas duas sessões.")}</p>
         ) : (
           values.issues.map((row) => (
-            <div className="progress-comparison-row" key={row.key}>
-              <h3>{row.key}</h3>
+            <div className="progress-comparison-row" key={t(row.key)}>
+              <h3>{t(row.key)}</h3>
               <div>
-                <span>{row.a}×</span>
-                <span>{row.b}×</span>
+                <span>{formatNumber(row.a)}×</span>
+                <span>{formatNumber(row.b)}×</span>
                 <strong>{signed(row.difference)}</strong>
               </div>
             </div>
@@ -149,17 +163,25 @@ export function SessionComparison({
         )}
         <p className="progress-caption">
           {hold
-            ? "Cada número representa episódios persistentes daquela ocorrência."
-            : "Cada número representa repetições com aquela ocorrência; uma repetição pode aparecer em mais de um critério."}
+            ? t("Cada número representa episódios persistentes daquela ocorrência.")
+            : t(
+                "Cada número representa repetições com aquela ocorrência; uma repetição pode aparecer em mais de um critério.",
+              )}
         </p>
       </section>
       <details className="progress-panel">
-        <summary>Versões da análise</summary>
+        <summary>{t("Versões da análise")}</summary>
         <p className="progress-version">
-          A: regras {a.rulesVersion} · {a.engineVersion}
+          {t("A: regras {{value0}} · {{value1}}", {
+            value0: a.rulesVersion,
+            value1: a.engineVersion,
+          })}
         </p>
         <p className="progress-version">
-          B: regras {b.rulesVersion} · {b.engineVersion}
+          {t("B: regras {{value0}} · {{value1}}", {
+            value0: b.rulesVersion,
+            value1: b.engineVersion,
+          })}
         </p>
       </details>
     </div>

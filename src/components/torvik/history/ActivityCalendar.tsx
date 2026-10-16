@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { translate as t, currentLanguage, formatNumber, formatList } from "@/lib/i18n";
 import { useMemo, useState } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { activity, calendarDays, localDay } from "@/lib/progress";
@@ -12,6 +14,8 @@ export function ActivityCalendar({
   selected: string;
   onSelect: (day: string) => void;
 }) {
+  useTranslation();
+
   const [month, setMonth] = useState(() => new Date());
   const summary = useMemo(() => activity(sessions), [sessions]);
   const counts = useMemo(() => {
@@ -27,40 +31,52 @@ export function ActivityCalendar({
       <summary>
         <CalendarDays size={20} aria-hidden="true" />
         <span>
-          <strong>Seu ritmo de registros</strong>
+          <strong>{t("Seu ritmo de registros")}</strong>
           <small>
-            {summary.recent.sessions} sessões em {summary.days} dias nos últimos 7 dias
+            {t("{{value0}} sessões em {{value1}} dias nos últimos 7 dias", {
+              value0: summary.recent.sessions,
+              value1: summary.days,
+            })}
           </small>
         </span>
       </summary>
       <div className="progress-calendar-content">
         <p className="progress-caption">
-          Mais registrado:{" "}
-          {summary.most.map((id) => EXERCISES.find((e) => e.id === id)?.name ?? id).join(" e ") ||
-            "ainda sem registros"}
-          . Dias vazios indicam ausência de registros, não ausência de treino.
+          {t(
+            "Mais registrado: {{value0}} . Dias vazios indicam ausência de registros, não ausência de treino.",
+            {
+              value0:
+                formatList(
+                  summary.most.map((id) => t(EXERCISES.find((e) => e.id === id)?.name ?? id)),
+                ) || t("ainda sem registros"),
+            },
+          )}
         </p>
         <div className="progress-calendar-heading">
           <button
             type="button"
-            aria-label="Mês anterior"
+            aria-label={t("Mês anterior")}
             onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1, 12))}
           >
-            <ChevronLeft size={20} />
+            <ChevronLeft className="directional-icon" size={20} />
           </button>
           <h3 aria-live="polite">
-            {month.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}
+            {month.toLocaleDateString(currentLanguage(), { month: "long", year: "numeric" })}
           </h3>
           <button
             type="button"
-            aria-label="Próximo mês"
+            aria-label={t("Próximo mês")}
             onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1, 12))}
           >
-            <ChevronRight size={20} />
+            <ChevronRight className="directional-icon" size={20} />
           </button>
         </div>
-        <div className="progress-calendar" role="group" aria-label="Calendário de sessões">
-          {["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"].map((day) => (
+        <div className="progress-calendar" role="group" aria-label={t("Calendário de sessões")}>
+          {Array.from({ length: 7 }, (_, index) =>
+            new Intl.DateTimeFormat(currentLanguage(), { weekday: "short" }).format(
+              new Date(2026, 0, 5 + index),
+            ),
+          ).map((day) => (
             <span className="progress-weekday" key={day}>
               {day}
             </span>
@@ -76,10 +92,13 @@ export function ActivityCalendar({
                 data-outside={date.getMonth() !== month.getMonth()}
                 data-recorded={count > 0}
                 aria-pressed={selected === key}
-                aria-label={`${date.toLocaleDateString("pt-BR")}, ${count} sessões registradas`}
+                aria-label={t("{{value0}}, {{value1}} sessões registradas", {
+                  value0: date.toLocaleDateString(currentLanguage()),
+                  value1: count,
+                })}
                 onClick={() => onSelect(selected === key ? "" : key)}
               >
-                <span>{date.getDate()}</span>
+                <span>{formatNumber(date.getDate())}</span>
                 {count > 0 && <i aria-hidden="true" />}
               </button>
             );
@@ -87,7 +106,7 @@ export function ActivityCalendar({
         </div>
         {selected && (
           <button type="button" className="progress-text-button" onClick={() => onSelect("")}>
-            Limpar data selecionada
+            {t("Limpar data selecionada")}
           </button>
         )}
       </div>

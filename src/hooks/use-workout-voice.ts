@@ -8,6 +8,7 @@ import {
   type VoiceSettings,
 } from "@/lib/voice/speech";
 import { WorkoutVoice } from "@/lib/voice/workout-voice";
+import { i18n, currentLanguage } from "@/lib/i18n";
 export function useWorkoutVoice() {
   const [, refresh] = useState(0);
   const [settings, setSettings] = useState<VoiceSettings>({ ...DEFAULT_VOICE });
@@ -31,6 +32,9 @@ export function useWorkoutVoice() {
     voice.configure(saved);
     setSettings(saved);
     voice.speech.connect();
+    const languageChanged = () => voice.setLanguage(currentLanguage());
+    languageChanged();
+    i18n.on("languageChanged", languageChanged);
     const timer = window.setInterval(() => voice.tick(), 200);
     const hidden = () => {
       if (document.hidden) voice.speech.clear();
@@ -39,6 +43,7 @@ export function useWorkoutVoice() {
     return () => {
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", hidden);
+      i18n.off("languageChanged", languageChanged);
       voice.stop();
       voice.speech.dispose();
     };

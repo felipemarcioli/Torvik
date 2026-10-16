@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { translate as t } from "@/lib/i18n";
 import { useLayoutEffect, useRef, type ReactNode } from "react";
 import { ArrowLeft, ChevronRight, Dumbbell, Footprints, Flame, Zap } from "lucide-react";
 
@@ -29,6 +31,8 @@ export function WorkoutGroupCard({
   scrollPosition,
   onScroll,
 }: Props) {
+  useTranslation();
+
   const trigger = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDialogElement>(null);
   const back = useRef<HTMLButtonElement>(null);
@@ -136,8 +140,10 @@ export function WorkoutGroupCard({
           <Icon size={28} strokeWidth={1.8} />
         </span>
         <span className="workout-group-label">
-          <span className="font-bold">{title}</span>
-          <span className="text-xs text-muted-foreground">{count} exercícios</span>
+          <span className="font-bold">{t(title)}</span>
+          <span className="text-xs text-muted-foreground">
+            {t("{{value0}} exercícios", { value0: count })}
+          </span>
         </span>
         <ChevronRight className="category-chevron" size={20} aria-hidden="true" />
       </button>
@@ -159,9 +165,9 @@ export function WorkoutGroupCard({
             type="button"
             className="workout-category-back"
             onClick={onClose}
-            aria-label="Voltar às categorias"
+            aria-label={t("Voltar às categorias")}
           >
-            <ArrowLeft size={22} aria-hidden="true" />
+            <ArrowLeft className="directional-icon" size={22} aria-hidden="true" />
           </button>
           <div className="workout-category-heading">
             <span className="workout-group-icon" aria-hidden="true">
@@ -169,9 +175,11 @@ export function WorkoutGroupCard({
             </span>
             <div>
               <h2 id={`workout-title-${id}`} className="workout-category-title">
-                {title}
+                {t(title)}
               </h2>
-              <p className="text-sm text-muted-foreground">{count} exercícios</p>
+              <p className="text-sm text-muted-foreground">
+                {t("{{value0}} exercícios", { value0: count })}
+              </p>
             </div>
           </div>
         </header>
@@ -191,7 +199,7 @@ export function WorkoutGroupCard({
             disabled={!canStart}
             onClick={onStart}
           >
-            Preparar câmera
+            {t("Preparar câmera")}
           </button>
         </div>
       </dialog>

@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { translate as t, currentLanguage, formatNumber } from "@/lib/i18n";
 import { Mascot, LoadingState } from "./TorvikUI";
 import {
   Sheet,
@@ -26,6 +28,8 @@ export function HistoryScreen({
   initialDetailId?: string | null;
   registerBack: (handler: () => boolean) => () => void;
 }) {
+  useTranslation();
+
   const history = useHistoryStore();
   const [sessions, setSessions] = useState<HistorySession[]>([]),
     [loading, setLoading] = useState(true),
@@ -119,7 +123,7 @@ export function HistoryScreen({
       <main className="progress-screen hero-glow min-h-screen">
         <div className="progress-content">
           <p role="status" className="progress-panel">
-            Carregando sessão…
+            {t("Carregando sessão…")}
           </p>
         </div>
       </main>
@@ -139,44 +143,50 @@ export function HistoryScreen({
         ) : (
           <>
             <header className="progress-header">
-              <p className="torvik-kicker">Torvik · Neste dispositivo</p>
+              <p className="torvik-kicker">{t("Torvik · Neste dispositivo")}</p>
               <h1 ref={heading} tabIndex={-1}>
-                Progresso
+                {t("Progresso")}
               </h1>
-              <p>Seus treinos registrados, uma sessão de cada vez.</p>
+              <p>{t("Seus treinos registrados, uma sessão de cada vez.")}</p>
             </header>
             {loading ? (
-              <LoadingState>Carregando seu progresso…</LoadingState>
+              <LoadingState>{t("Carregando seu progresso…")}</LoadingState>
             ) : error ? (
               <section className="progress-panel">
                 <p role="alert" className="progress-error">
-                  {error}
+                  {t(error)}
                 </p>
                 <div className="progress-export-actions">
                   <button type="button" onClick={() => setAttempt((n) => n + 1)}>
-                    Tentar novamente
+                    {t("Tentar novamente")}
                   </button>
                   <button type="button" onClick={onHome}>
-                    Iniciar um treino
+                    {t("Iniciar um treino")}
                   </button>
                 </div>
               </section>
             ) : (
               <>
                 {!!sessions.length && (
-                  <dl className="progress-totals" aria-label="Resumo de todas as sessões">
+                  <dl className="progress-totals" aria-label={t("Resumo de todas as sessões")}>
                     {[
-                      [Layers, "Sessões registradas", totals.sessions],
+                      [Layers, t("Sessões registradas"), totals.sessions],
                       ...(sessions.some((r) => r.type !== "HOLD_BASED") || !sessions.length
                         ? [
-                            [Activity, "Repetições avaliadas", totals.totalReps],
-                            [CheckCheck, "Nos critérios", totals.correctReps],
+                            [Activity, t("Repetições avaliadas"), totals.totalReps],
+                            [CheckCheck, t("Nos critérios"), totals.correctReps],
                           ]
                         : []),
                       ...(sessions.some((r) => r.type === "HOLD_BASED")
-                        ? [[Clock3, "Tempo em postura válida", durationLabel(totals.validSeconds)]]
+                        ? [
+                            [
+                              Clock3,
+                              t("Tempo em postura válida"),
+                              durationLabel(totals.validSeconds),
+                            ],
+                          ]
                         : []),
-                      [Clock3, "Tempo ativo total", durationLabel(totals.seconds)],
+                      [Clock3, t("Tempo ativo total"), durationLabel(totals.seconds)],
                     ].map(([Icon, label, value]) => {
                       const Symbol = Icon as typeof Layers;
                       return (
@@ -187,7 +197,7 @@ export function HistoryScreen({
                           </dt>
                           <dd>
                             {typeof value === "number"
-                              ? value.toLocaleString("pt-BR")
+                              ? value.toLocaleString(currentLanguage())
                               : String(value)}
                           </dd>
                         </div>
@@ -198,14 +208,15 @@ export function HistoryScreen({
                 {!sessions.length ? (
                   <section className="progress-panel progress-empty">
                     <Mascot decorative />
-                    <h2>Seu próximo treino começa esta história</h2>
+                    <h2>{t("Seu próximo treino começa esta história")}</h2>
                     <p>
-                      Nenhuma sessão salva. Ao terminar um treino, escolha “Salvar sessão” para
-                      acompanhar seus registros aqui.
+                      {t(
+                        "Nenhuma sessão salva. Ao terminar um treino, escolha “Salvar sessão” para acompanhar seus registros aqui.",
+                      )}
                     </p>
                     <button type="button" className="torvik-primary" onClick={onHome}>
-                      Iniciar um treino
-                      <ArrowRight size={18} />
+                      {t("Iniciar um treino")}
+                      <ArrowRight className="directional-icon" size={18} />
                     </button>
                   </section>
                 ) : (
@@ -213,8 +224,8 @@ export function HistoryScreen({
                     <section className="progress-sessions" aria-labelledby="sessions-title">
                       <div className="progress-section-heading">
                         <div>
-                          <p className="torvik-kicker">Explore seus registros</p>
-                          <h2 id="sessions-title">Sessões recentes</h2>
+                          <p className="torvik-kicker">{t("Explore seus registros")}</p>
+                          <h2 id="sessions-title">{t("Sessões recentes")}</h2>
                         </div>
                         <button
                           type="button"
@@ -226,27 +237,29 @@ export function HistoryScreen({
                           }}
                         >
                           <GitCompareArrows size={17} />
-                          {selecting ? "Cancelar comparação" : "Comparar"}
+                          {selecting ? t("Cancelar comparação") : t("Comparar")}
                         </button>
                       </div>
                       <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
                         <SheetTrigger asChild>
                           <button type="button" className="torvik-secondary">
-                            Filtrar
-                            {exercise !== "all"
-                              ? ` · ${EXERCISES.find((item) => item.id === exercise)?.name}`
-                              : ""}
+                            {t("Filtrar {{value0}}", {
+                              value0:
+                                exercise !== "all"
+                                  ? ` · ${t(EXERCISES.find((item) => item.id === exercise)?.name ?? exercise)}`
+                                  : "",
+                            })}
                           </button>
                         </SheetTrigger>
                         <SheetContent side="bottom" className="app-sheet">
-                          <SheetTitle>Filtrar sessões</SheetTitle>
+                          <SheetTitle>{t("Filtrar sessões")}</SheetTitle>
                           <SheetDescription>
-                            Exercícios com registros neste dispositivo.
+                            {t("Exercícios com registros neste dispositivo.")}
                           </SheetDescription>
                           <div
                             className="progress-exercise-filters"
                             role="group"
-                            aria-label="Filtrar sessões por exercício"
+                            aria-label={t("Filtrar sessões por exercício")}
                           >
                             <button
                               type="button"
@@ -256,7 +269,7 @@ export function HistoryScreen({
                                 setFiltersOpen(false);
                               }}
                             >
-                              Todos
+                              {t("Todos")}
                             </button>
                             {EXERCISES.filter((e) =>
                               sessions.some((session) => session.exercise === e.id),
@@ -270,7 +283,7 @@ export function HistoryScreen({
                                   setFiltersOpen(false);
                                 }}
                               >
-                                {e.name}
+                                {t(e.name)}
                               </button>
                             ))}
                           </div>
@@ -278,14 +291,25 @@ export function HistoryScreen({
                       </Sheet>
                       <div className="progress-list-options">
                         <p role="status">
-                          {filtered.length}{" "}
-                          {filtered.length === 1 ? "sessão encontrada" : "sessões encontradas"}
+                          {t(
+                            filtered.length === 1
+                              ? "{{count}} sessão encontrada"
+                              : "{{count}} sessões encontradas",
+                            { count: filtered.length },
+                          )}
                           {day && (
-                            <> em {new Date(`${day}T12:00:00`).toLocaleDateString("pt-BR")}</>
+                            <>
+                              {" "}
+                              {t("em {{value0}}", {
+                                value0: new Date(`${day}T12:00:00`).toLocaleDateString(
+                                  currentLanguage(),
+                                ),
+                              })}
+                            </>
                           )}
                         </p>
                         <label>
-                          Ordenar
+                          {t("Ordenar")}
                           <select
                             value={sort}
                             onChange={(e) => {
@@ -293,13 +317,15 @@ export function HistoryScreen({
                               setLimit(5);
                             }}
                           >
-                            <option value="recent">Mais recentes</option>
-                            <option value="oldest">Mais antigas</option>
-                            {exercise !== "plank" && <option value="reps">Mais repetições</option>}
-                            {(exercise === "all" || exercise === "plank") && (
-                              <option value="hold">Maior tempo em postura válida</option>
+                            <option value="recent">{t("Mais recentes")}</option>
+                            <option value="oldest">{t("Mais antigas")}</option>
+                            {exercise !== "plank" && (
+                              <option value="reps">{t("Mais repetições")}</option>
                             )}
-                            <option value="time">Maior tempo ativo</option>
+                            {(exercise === "all" || exercise === "plank") && (
+                              <option value="hold">{t("Maior tempo em postura válida")}</option>
+                            )}
+                            <option value="time">{t("Maior tempo ativo")}</option>
                           </select>
                         </label>
                       </div>
@@ -309,15 +335,26 @@ export function HistoryScreen({
                           className="progress-text-button"
                           onClick={() => setDay("")}
                         >
-                          Limpar filtro de data
+                          {t("Limpar filtro de data")}
                         </button>
                       )}
                       {selecting && (
                         <div className="progress-compare-bar">
                           <p>
-                            Selecione duas sessões do mesmo exercício ({selected.length}/2).{" "}
-                            {picked[0] &&
-                              `Exercício: ${EXERCISES.find((e) => e.id === picked[0]!.exercise)?.name}.`}
+                            {t(
+                              "Selecione duas sessões do mesmo exercício ({{value0}}/2). {{value1}}",
+                              {
+                                value0: selected.length,
+                                value1: picked[0]
+                                  ? t("Exercício: {{exercise}}.", {
+                                      exercise: t(
+                                        EXERCISES.find((e) => e.id === picked[0]!.exercise)?.name ??
+                                          picked[0].exercise,
+                                      ),
+                                    })
+                                  : "",
+                              },
+                            )}
                           </p>
                           <button
                             id="compare-selected"
@@ -330,14 +367,14 @@ export function HistoryScreen({
                               setComparing(true);
                             }}
                           >
-                            Comparar selecionadas
+                            {t("Comparar selecionadas")}
                           </button>
                         </div>
                       )}
                       {!filtered.length ? (
                         <div className="progress-panel progress-empty-inline">
-                          <h3>Nenhuma sessão com estes filtros</h3>
-                          <p>Escolha outro exercício ou limpe a data selecionada.</p>
+                          <h3>{t("Nenhuma sessão com estes filtros")}</h3>
+                          <p>{t("Escolha outro exercício ou limpe a data selecionada.")}</p>
                           <button
                             type="button"
                             className="progress-text-button"
@@ -346,7 +383,7 @@ export function HistoryScreen({
                               setDay("");
                             }}
                           >
-                            Ver todas as sessões
+                            {t("Ver todas as sessões")}
                           </button>
                         </div>
                       ) : (
@@ -361,11 +398,13 @@ export function HistoryScreen({
                                 <div className="progress-card-heading">
                                   <div>
                                     <h3>
-                                      {EXERCISES.find((e) => e.id === r.exercise)?.name ??
-                                        r.exercise}
+                                      {t(
+                                        EXERCISES.find((e) => e.id === r.exercise)?.name ??
+                                          r.exercise,
+                                      )}
                                     </h3>
                                     <time dateTime={r.createdAt}>
-                                      {new Date(r.createdAt).toLocaleString("pt-BR")}
+                                      {new Date(r.createdAt).toLocaleString(currentLanguage())}
                                     </time>
                                   </div>
                                   <span aria-hidden="true" className="progress-exercise-icon">
@@ -376,26 +415,26 @@ export function HistoryScreen({
                                   {r.type === "HOLD_BASED" ? (
                                     <>
                                       <div>
-                                        <dt>Postura válida</dt>
+                                        <dt>{t("Postura válida")}</dt>
                                         <dd>{durationLabel(r.validSeconds)}</dd>
                                       </div>
                                       <div>
-                                        <dt>Tempo acompanhado</dt>
+                                        <dt>{t("Tempo acompanhado")}</dt>
                                         <dd>{durationLabel(r.seconds)}</dd>
                                       </div>
                                     </>
                                   ) : (
                                     <>
                                       <div>
-                                        <dt>Avaliadas</dt>
-                                        <dd>{r.totalReps}</dd>
+                                        <dt>{t("Avaliadas")}</dt>
+                                        <dd>{formatNumber(r.totalReps)}</dd>
                                       </div>
                                       <div>
-                                        <dt>Nos critérios</dt>
-                                        <dd>{r.correctReps}</dd>
+                                        <dt>{t("Nos critérios")}</dt>
+                                        <dd>{formatNumber(r.correctReps)}</dd>
                                       </div>
                                       <div>
-                                        <dt>Tempo ativo</dt>
+                                        <dt>{t("Tempo ativo")}</dt>
                                         <dd>{durationLabel(r.seconds)}</dd>
                                       </div>
                                     </>
@@ -411,7 +450,7 @@ export function HistoryScreen({
                                         checked={selected.includes(r.id)}
                                         onChange={() => choose(r.id)}
                                       />
-                                      Comparar esta sessão
+                                      {t("Comparar esta sessão")}
                                     </label>
                                   )}
                                   <button
@@ -423,8 +462,8 @@ export function HistoryScreen({
                                       setDetail(r.id);
                                     }}
                                   >
-                                    Ver detalhes
-                                    <ArrowRight size={16} />
+                                    {t("Ver detalhes")}
+                                    <ArrowRight className="directional-icon" size={16} />
                                   </button>
                                 </div>
                               </li>
@@ -438,12 +477,14 @@ export function HistoryScreen({
                           className="torvik-secondary progress-load-more"
                           onClick={() => setLimit((n) => n + 20)}
                         >
-                          Mostrar mais sessões ({filtered.length - limit} restantes)
+                          {t("Mostrar mais sessões ({{value0}} restantes)", {
+                            value0: filtered.length - limit,
+                          })}
                         </button>
                       )}
                     </section>
                     <details className="app-disclosure">
-                      <summary>Gráficos de evolução</summary>
+                      <summary>{t("Gráficos de evolução")}</summary>
                       <EvolutionChart sessions={sessions} />
                     </details>
                     <ActivityCalendar
@@ -460,8 +501,9 @@ export function HistoryScreen({
               </>
             )}
             <footer className="progress-footer">
-              Somente sessões salvas neste navegador e dispositivo. Nenhum vídeo é armazenado. O
-              navegador pode remover dados locais; exporte uma cópia para preservá-los.
+              {t(
+                "Somente sessões salvas neste navegador e dispositivo. Nenhum vídeo é armazenado. O navegador pode remover dados locais; exporte uma cópia para preservá-los.",
+              )}
             </footer>
           </>
         )}

@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { translate as t } from "@/lib/i18n";
 import { useState, type FormEvent } from "react";
 import {
   ArrowRight,
@@ -16,6 +18,8 @@ import { authErrorMessage, authRedirect, passwordError, MIN_PASSWORD_LENGTH } fr
 
 type Mode = "login" | "signup" | "reset";
 export function AuthScreen({ onGuest }: { onGuest: () => void }) {
+  useTranslation();
+
   const auth = useAuth();
   const [mode, setMode] = useState<Mode>("login");
   const [name, setName] = useState("");
@@ -29,19 +33,19 @@ export function AuthScreen({ onGuest }: { onGuest: () => void }) {
   const recovery = auth.recovery && Boolean(auth.session);
   const newPassword = recovery || mode === "signup";
   const heading = recovery
-    ? "Crie uma nova senha"
+    ? t("Crie uma nova senha")
     : mode === "signup"
-      ? "Comece sua jornada"
+      ? t("Comece sua jornada")
       : mode === "reset"
-        ? "Recupere sua senha"
-        : "Bom ter você de volta";
+        ? t("Recupere sua senha")
+        : t("Bom ter você de volta");
   const action = recovery
-    ? "Salvar nova senha"
+    ? t("Salvar nova senha")
     : mode === "signup"
-      ? "Criar conta"
+      ? t("Criar conta")
       : mode === "reset"
-        ? "Enviar link de recuperação"
-        : "Entrar";
+        ? t("Enviar link de recuperação")
+        : t("Entrar");
   function changeMode(next: Mode) {
     setMode(next);
     setPassword("");
@@ -64,7 +68,7 @@ export function AuthScreen({ onGuest }: { onGuest: () => void }) {
     setPending(true);
     try {
       const supabase = getSupabase();
-      if (!supabase) throw new Error("Login indisponível");
+      if (!supabase) throw new Error(t("Login indisponível"));
       if (recovery) {
         const result = await supabase.auth.updateUser({ password });
         if (result.error) throw result.error;
@@ -114,14 +118,16 @@ export function AuthScreen({ onGuest }: { onGuest: () => void }) {
             <Brand />
           </div>
           <div className="auth-intro-copy">
-            <p className="auth-eyebrow">Seu treino, no seu ritmo</p>
+            <p className="auth-eyebrow">{t("Seu treino, no seu ritmo")}</p>
             <h2>
-              Seu movimento.
+              {t("Seu movimento.")}
               <br />
-              <span>Sua evolução.</span>
+              <span>{t("Sua evolução.")}</span>
             </h2>
             <p>
-              Um treino de cada vez. Acompanhe seus movimentos e veja até onde você pode chegar.
+              {t(
+                "Um treino de cada vez. Acompanhe seus movimentos e veja até onde você pode chegar.",
+              )}
             </p>
           </div>
           <div className="auth-mascot-scene">
@@ -131,56 +137,58 @@ export function AuthScreen({ onGuest }: { onGuest: () => void }) {
                 <ScanLine size={18} aria-hidden="true" />
               </span>
               <div>
-                <strong>Treine com a câmera</strong>
-                <p>Feedback em tempo real</p>
+                <strong>{t("Treine com a câmera")}</strong>
+                <p>{t("Feedback em tempo real")}</p>
               </div>
             </div>
           </div>
           <div className="auth-intro-footer">
             <ChartNoAxesCombined size={18} aria-hidden="true" />
-            <p>Encontre seu ritmo. Construa sua rotina.</p>
+            <p>{t("Encontre seu ritmo. Construa sua rotina.")}</p>
           </div>
         </section>
         <section className="auth-panel" aria-labelledby="auth-heading">
           <div className="auth-form-heading">
             <p className="auth-eyebrow">
               {recovery
-                ? "Um novo começo"
+                ? t("Um novo começo")
                 : mode === "signup"
-                  ? "Faça parte do Torvik"
+                  ? t("Faça parte do Torvik")
                   : mode === "reset"
-                    ? "Vamos te ajudar"
-                    : "Vamos treinar?"}
+                    ? t("Vamos te ajudar")
+                    : t("Vamos treinar?")}
             </p>
             <h1 id="auth-heading">{heading}</h1>
             <p className="auth-description">
               {recovery
-                ? "Escolha uma nova senha para acessar sua conta."
+                ? t("Escolha uma nova senha para acessar sua conta.")
                 : mode === "reset"
-                  ? "Informe seu e-mail para receber o link de recuperação."
+                  ? t("Informe seu e-mail para receber o link de recuperação.")
                   : mode === "signup"
-                    ? "Crie sua conta e dê o primeiro passo no seu próximo treino."
-                    : "Entre na sua conta e continue no seu ritmo."}
+                    ? t("Crie sua conta e dê o primeiro passo no seu próximo treino.")
+                    : t("Entre na sua conta e continue no seu ritmo.")}
             </p>
           </div>
           {auth.error && (
             <p role="alert" className="auth-error">
-              {auth.error}
+              {t(auth.error)}
             </p>
           )}
           {!auth.configured && (
-            <p role="status">O login estará disponível em breve. Você já pode treinar sem conta.</p>
+            <p role="status">
+              {t("O login estará disponível em breve. Você já pode treinar sem conta.")}
+            </p>
           )}
           <form onSubmit={(event) => void submit(event)} aria-busy={pending}>
             <fieldset disabled={pending || !auth.configured}>
               {!recovery && mode === "signup" && (
                 <label htmlFor="auth-name">
-                  Como você quer ser chamado?
+                  {t("Como você quer ser chamado?")}
                   <span className="auth-input-wrap">
                     <UserRound size={18} aria-hidden="true" />
                     <input
                       id="auth-name"
-                      placeholder="Seu nome"
+                      placeholder={t("Seu nome")}
                       autoComplete="nickname"
                       required
                       maxLength={60}
@@ -192,12 +200,12 @@ export function AuthScreen({ onGuest }: { onGuest: () => void }) {
               )}
               {!recovery && (
                 <label htmlFor="auth-email">
-                  E-mail
+                  {t("E-mail")}
                   <span className="auth-input-wrap">
                     <Mail size={18} aria-hidden="true" />
                     <input
                       id="auth-email"
-                      placeholder="seu@email.com"
+                      placeholder="name@example.com"
                       type="email"
                       autoComplete="email"
                       inputMode="email"
@@ -213,12 +221,12 @@ export function AuthScreen({ onGuest }: { onGuest: () => void }) {
               {(recovery || mode !== "reset") && (
                 <>
                   <label htmlFor="auth-password">
-                    {recovery ? "Nova senha" : "Senha"}
+                    {recovery ? t("Nova senha") : t("Senha")}
                     <span className="auth-input-wrap auth-password">
                       <LockKeyhole size={18} aria-hidden="true" />
                       <input
                         id="auth-password"
-                        placeholder={newPassword ? "Crie uma senha" : "Sua senha"}
+                        placeholder={newPassword ? t("Crie uma senha") : t("Sua senha")}
                         type={visible ? "text" : "password"}
                         autoComplete={newPassword ? "new-password" : "current-password"}
                         required
@@ -228,7 +236,7 @@ export function AuthScreen({ onGuest }: { onGuest: () => void }) {
                       />
                       <button
                         type="button"
-                        aria-label={visible ? "Ocultar senha" : "Mostrar senha"}
+                        aria-label={visible ? t("Ocultar senha") : t("Mostrar senha")}
                         aria-pressed={visible}
                         onClick={() => setVisible((value) => !value)}
                       >
@@ -238,12 +246,12 @@ export function AuthScreen({ onGuest }: { onGuest: () => void }) {
                   </label>
                   {newPassword && (
                     <label htmlFor="auth-confirmation">
-                      Confirmar senha
+                      {t("Confirmar senha")}
                       <span className="auth-input-wrap">
                         <LockKeyhole size={18} aria-hidden="true" />
                         <input
                           id="auth-confirmation"
-                          placeholder="Repita sua senha"
+                          placeholder={t("Repita sua senha")}
                           type={visible ? "text" : "password"}
                           autoComplete="new-password"
                           required
@@ -252,7 +260,7 @@ export function AuthScreen({ onGuest }: { onGuest: () => void }) {
                           onChange={(event) => setConfirmation(event.target.value)}
                         />
                       </span>
-                      <span className="auth-hint">Use pelo menos 8 caracteres.</span>
+                      <span className="auth-hint">{t("Use pelo menos 8 caracteres.")}</span>
                     </label>
                   )}
                 </>
@@ -263,23 +271,23 @@ export function AuthScreen({ onGuest }: { onGuest: () => void }) {
                   className="auth-link auth-forgot"
                   onClick={() => changeMode("reset")}
                 >
-                  Esqueci minha senha
+                  {t("Esqueci minha senha")}
                 </button>
               )}
               {error && (
                 <p role="alert" className="auth-error">
-                  {error}
+                  {t(error)}
                 </p>
               )}
               {message && (
                 <p role="status" className="auth-message">
                   <Mail size={18} aria-hidden="true" />
-                  {message}
+                  {t(message)}
                 </p>
               )}
               <button type="submit" className="torvik-primary w-full">
-                {pending ? "Aguarde…" : action}
-                <ArrowRight size={18} aria-hidden="true" />
+                {pending ? t("Aguarde…") : action}
+                <ArrowRight className="directional-icon" size={18} aria-hidden="true" />
               </button>
             </fieldset>
           </form>
@@ -291,11 +299,11 @@ export function AuthScreen({ onGuest }: { onGuest: () => void }) {
                 className="auth-link auth-switch"
                 onClick={() => changeMode(mode === "login" ? "signup" : "login")}
               >
-                <span>{mode === "login" ? "Ainda não tem conta?" : "Já tem conta?"}</span>{" "}
-                <strong>{mode === "login" ? "Cadastre-se" : "Entrar"}</strong>
+                <span>{mode === "login" ? t("Ainda não tem conta?") : t("Já tem conta?")}</span>{" "}
+                <strong>{mode === "login" ? t("Cadastre-se") : t("Entrar")}</strong>
               </button>
               <div className="auth-divider" aria-hidden="true">
-                <span>ou</span>
+                <span>{t("ou")}</span>
               </div>
               <button
                 type="button"
@@ -303,13 +311,13 @@ export function AuthScreen({ onGuest }: { onGuest: () => void }) {
                 className="torvik-secondary auth-guest w-full"
                 onClick={onGuest}
               >
-                Continuar sem conta
+                {t("Continuar sem conta")}
               </button>
             </>
           )}
           <p className="auth-footnote">
             <LockKeyhole size={14} aria-hidden="true" />
-            <span>Histórico local, separado por conta. Sem sincronização.</span>
+            <span>{t("Histórico local, separado por conta. Sem sincronização.")}</span>
           </p>
         </section>
       </div>

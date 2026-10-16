@@ -1,9 +1,20 @@
-export function renderErrorPage(): string {
+import { dictionaries } from "./i18n";
+import { isLanguage, type Language } from "./i18n/languages";
+
+/** No shared language state: simultaneous server errors cannot leak another request's locale. */
+export function renderErrorPage(language: Language = "en"): string {
+  const locale = isLanguage(language) ? language : "en";
+  const text = (key: keyof typeof dictionaries.en) =>
+    String((dictionaries[locale] as Record<string, string>)[key] || dictionaries.en[key]).replace(
+      /[&<>"']/g,
+      (character) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]!,
+    );
   return `<!doctype html>
-<html lang="pt-BR">
+<html lang="${locale}" dir="${locale === "ar" ? "rtl" : "ltr"}">
   <head>
     <meta charset="utf-8" />
-    <title>Não foi possível carregar a página</title>
+    <title>${text("Não foi possível carregar a página")}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
     <style>
       * { box-sizing: border-box; }
@@ -22,11 +33,11 @@ export function renderErrorPage(): string {
   <body>
     <main class="card">
       <p class="brand">TORVIK</p>
-      <h1>Não foi possível carregar a página</h1>
-      <p>Ocorreu um problema. Tente novamente ou volte ao início.</p>
+      <h1>${text("Não foi possível carregar a página")}</h1>
+      <p>${text("Ocorreu um problema. Tente novamente ou volte ao início.")}</p>
       <div class="actions">
-        <button class="primary" onclick="location.reload()">Tentar novamente</button>
-        <a class="secondary" href="/">Voltar ao início</a>
+        <button class="primary" onclick="location.reload()">${text("Tentar novamente")}</button>
+        <a class="secondary" href="/">${text("Voltar ao início")}</a>
       </div>
     </main>
   </body>

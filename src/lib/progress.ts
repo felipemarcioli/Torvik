@@ -1,4 +1,5 @@
 import { isHold } from "./session";
+import { translate as t, currentLanguage, formatDuration, formatNumber } from "./i18n";
 import type { ExerciseId } from "./biomech";
 import { comparableReports } from "./history";
 import type { HistorySession as SessionReport } from "./history";
@@ -86,6 +87,7 @@ export function evolution(
   version: string,
   now = new Date(),
   side: "all" | "left" | "right" = "all",
+  locale: string = currentLanguage(),
 ) {
   const rows = sessions
     .filter(
@@ -105,13 +107,13 @@ export function evolution(
       key = grouping === "session" ? r.id : grouping === "month" ? day.slice(0, 7) : day;
     const label =
       grouping === "session"
-        ? new Date(r.createdAt).toLocaleString("pt-BR")
+        ? new Date(r.createdAt).toLocaleString(locale)
         : grouping === "month"
-          ? new Date(`${key}-01T12:00:00`).toLocaleDateString("pt-BR", {
+          ? new Date(`${key}-01T12:00:00`).toLocaleDateString(locale, {
               month: "long",
               year: "numeric",
             })
-          : new Date(`${key}T12:00:00`).toLocaleDateString("pt-BR");
+          : new Date(`${key}T12:00:00`).toLocaleDateString(locale);
     const point = map.get(key) ?? {
       id: key,
       date: r.createdAt,
@@ -164,12 +166,31 @@ export function occurrences(report: SessionReport) {
 export function factualSummary(report: SessionReport) {
   if (isHold(report))
     return report.validSeconds
-      ? `Você acumulou ${durationLabel(report.validSeconds)} em postura válida durante ${durationLabel(report.seconds)} de tempo acompanhado.`
-      : "Nenhum intervalo de postura válida registrado nesta sessão.";
+      ? t("Você acumulou {{valid}} em postura válida durante {{duration}} de tempo acompanhado.", {
+          valid: durationLabel(report.validSeconds),
+          duration: durationLabel(report.seconds),
+        })
+      : t("Nenhum intervalo de postura válida registrado nesta sessão.");
   if (!report.totalReps)
-    return "Nenhuma repetição completa foi avaliada nesta sessão. Não há proporção de atendimento aos critérios para calcular.";
+    return t(
+      "Nenhuma repetição completa foi avaliada nesta sessão. Não há proporção de atendimento aos critérios para calcular.",
+    );
   const top = occurrences(report)[0];
-  return `Você realizou ${report.totalReps} repetições avaliadas, das quais ${report.correctReps} atenderam aos critérios configurados para este exercício.${top ? ` Ocorrência mais frequente: ${top[0]} (${top[1]} vezes).` : report.feedbackCounts ? " Nenhuma ocorrência foi registrada nas repetições avaliadas." : " O detalhamento dos critérios não foi registrado nesta sessão."}`;
+  return (
+    t(
+      "Você realizou {{count}} repetições avaliadas, das quais {{correct}} atenderam aos critérios configurados para este exercício.",
+      { count: report.totalReps, correct: report.correctReps },
+    ) +
+    " " +
+    (top
+      ? t("Ocorrência mais frequente: {{issue}} ({{count}} vezes).", {
+          issue: t(top[0]),
+          count: top[1],
+        })
+      : report.feedbackCounts
+        ? t("Nenhuma ocorrência foi registrada nas repetições avaliadas.")
+        : t("O detalhamento dos critérios não foi registrado nesta sessão."))
+  );
 }
 export function comparison(a: SessionReport, b: SessionReport) {
   if (a.exercise !== b.exercise) throw new Error("Escolha duas sessões do mesmo exercício.");
@@ -197,25 +218,16 @@ export function comparison(a: SessionReport, b: SessionReport) {
   };
 }
 export function durationLabel(seconds: number) {
-  const hours = Math.floor(seconds / 3600),
-    minutes = Math.floor((seconds % 3600) / 60),
-    rest = Math.floor(seconds % 60);
-  return [
-    hours ? `${hours}h` : "",
-    minutes ? `${minutes}min` : "",
-    rest || (!hours && !minutes) ? `${rest}s` : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
+  return formatDuration(seconds);
 }
 export function metricLabel(value: number | null, metric: ProgressMetric) {
   return value === null
-    ? "Sem repetições avaliadas"
+    ? t("Sem repetições avaliadas")
     : metric === "proportion"
-      ? `${value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`
+      ? formatNumber(value / 100, { style: "percent", maximumFractionDigits: 1 })
       : metric === "seconds" || metric === "validSeconds"
         ? durationLabel(value)
-        : value.toLocaleString("pt-BR");
+        : formatNumber(value);
 }
 
 export function sessionStats(report: SessionReport): [string, string | number][] {

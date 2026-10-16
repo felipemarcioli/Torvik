@@ -21,7 +21,7 @@ Torvik combines MediaPipe pose estimation with exercise-specific rules, a mobile
 
 **Try Torvik: [torvik-ai.vercel.app](https://torvik-ai.vercel.app/)**
 
-The application interface and voice guidance are currently in **Brazilian Portuguese**. You can train without an account; camera permission is required to track movement.
+The interface and written exercise guidance support **11 languages**: Brazilian Portuguese, English, Spanish, French, German, Italian, Japanese, Simplified Chinese, Korean, Hindi, and Arabic. Voice guidance uses the selected language when a compatible device voice is available. You can train without an account; camera permission is required to track movement.
 
 ### Exercise Previews
 
@@ -66,7 +66,9 @@ Its results describe the application's programmed criteria. They are not a clini
 - **Repetition and hold tracking:** counts completed movement cycles or time within the configured hold criteria.
 - **Guided sessions:** preparation, countdown, pause, resume, and tracking-loss handling.
 - **Movement feedback:** exercise-specific messages based on visible landmarks and temporal rules.
-- **Voice guidance:** optional speech with basic/full modes and volume controls, when a local Portuguese voice is available.
+- **11 languages:** translated interface, exercise instructions, and movement feedback, with automatic device-language detection and a persistent manual selection in Settings.
+- **Arabic RTL support:** reading direction and layouts adapt when Arabic is selected.
+- **Voice guidance:** optional speech with basic/full modes and volume controls, when a compatible voice is available for the selected language.
 - **Animated demonstrations:** exercise previews featuring Torvik, with still images for reduced-motion preferences.
 - **Session reports:** active duration, repetitions or hold time, feedback occurrences, and side-specific results where supported.
 - **Progress history:** local records, activity calendar, charts, filters, and compatible-session comparisons.
@@ -122,7 +124,7 @@ A percentage shown in a report describes the proportion of evaluated repetitions
 | Pose estimation | MediaPipe Pose; experimental Tasks Vision adapter |
 | Authentication | Supabase Auth |
 | Local persistence | IndexedDB; localStorage for preferences |
-| Voice | Browser Speech Synthesis API with local Portuguese voices |
+| Voice | Browser Speech Synthesis API with compatible regional voices |
 | Charts | Recharts |
 | Tooling | Bun, Vite, Nitro, ESLint, Prettier |
 | Testing and CI | Bun test, Playwright, GitHub Actions |
@@ -188,7 +190,9 @@ See [authentication setup](docs/authentication.md) for email-confirmation behavi
 | `bun run lint` | Run ESLint |
 | `bun run test` | Run unit and integration tests |
 | `bun run build` | Create a production build |
-| `bun run check` | Run type checking, lint, unit tests, and build |
+| `bun run check` | Run type checking, lint, unit tests, translation validation, and build |
+| `bun run test:i18n` | Validate 11 translation catalogs and mocked voice integration |
+| `bun run test:e2e:i18n` | Exercise 11 languages in desktop/mobile Chromium; save screenshots |
 | `bun run test:e2e` | Run Playwright browser tests |
 
 Install the browser before running end-to-end tests:
@@ -201,6 +205,18 @@ bun run test:e2e
 GitHub Actions runs validation on pull requests and pushes to `main`, including a Vercel-targeted build and a separate authentication test run.
 
 Tests cover movement rules, session transitions, camera lifecycle, history, exports, authentication, and browser flows. Browser tests use a **synthetic camera and controlled estimator**; passing them does not establish real-world tracking accuracy.
+
+### Internationalization
+
+Supported languages are **Português (Brasil), English, Español, Français, Deutsch, Italiano, 日本語, 简体中文, 한국어, हिन्दी, and العربية**. Interface text and spoken exercise guidance use the same selected language. Voice can be disabled independently; if no compatible voice is installed, written guidance stays available without switching speech to another language.
+
+The first visit matches `navigator.languages` (then `navigator.language`) against the supported languages, with English as fallback. **Settings → Language** offers automatic detection and native language names. Manual choices persist across reloads; switching languages also cancels stale speech. The workout camera/voice panel includes the same selector. Arabic changes the document direction to RTL without mirroring the camera.
+
+`src/lib/i18n/` owns detection, formatting, preference persistence, and the React provider. `src/locales/<code>/translation.json` contains pretranslated UI and voice text. Validation compares catalog parity and translation keys extracted from the source, including dynamic camera/authentication errors and movement feedback. Portuguese natural-language keys also resolve legacy stored feedback identifiers; do not rename exercise IDs or stored feedback as part of translation work. Components subscribe with `useTranslation()` and display text through `translate`; the voice layer uses `translateVoice`, which refuses a fallback in another language.
+
+To add a language, register its native name and regional speech code in `languages.ts`, import a complete JSON catalog in `index.ts`, and run the translation, voice, and browser tests. Preserve every interpolation variable. `bun scripts/audio-reference.ts` regenerates the seven reference phrases per language for human listening review. Automated tests validate API calls and text, not pronunciation or real playback. The dedicated mock-auth CI step also exercises login, registration, and recovery in every language.
+
+The browser initializes locale preferences before mounting the interactive routes, keeping the SSR loading shell stable. A future Capacitor shell may pass `Device.getLanguageTag` through `LocaleProvider.nativeLanguage`; no native package is required by this web implementation. Preferences currently stay on this browser/device; account synchronization is not implemented.
 
 ### Experimental Pose Lab
 
@@ -237,7 +253,7 @@ For a dedicated evaluation build, use `VITE_ENABLE_POSE_LAB=true`. The lab is di
 - **Accounts:** optional authentication sends account information to Supabase. Signing in does not sync workouts to the cloud.
 - **History separation:** accounts and guest mode use separate local history. This is not encryption against someone with access to the same browser profile.
 - **External requests:** model assets and fonts are fetched from external services.
-- **Voice:** uses an available local Portuguese voice; guidance may be unavailable on some devices.
+- **Voice:** uses a compatible browser/system voice. Some voices need an online service; availability and offline operation depend on the device. Missing voices leave written guidance available. Language and audio preferences are stored locally, independently of your account.
 - **Backups:** browser storage can be cleared or evicted. Export important records before clearing data or changing devices.
 
 Torvik does not currently guarantee offline operation.
@@ -281,7 +297,7 @@ When reporting a camera issue, include your device, browser, exercise, orientati
 - [Mobile interface notes](docs/mobile-interface.md)
 - [Validation records and evaluation protocol](docs/validation.md)
 
-The documentation and detailed implementation notes are available in English. The application interface and voice guidance remain in Brazilian Portuguese.
+See the [internationalization implementation and test report](docs/i18n-implementation-report.md) for translation review coverage, mocked TTS results, and pending physical-device and human listening checks.
 
 Torvik uses MediaPipe's pretrained pose-estimation technology and the open-source libraries listed in [`package.json`](package.json).
 

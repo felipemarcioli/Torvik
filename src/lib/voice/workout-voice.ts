@@ -1,6 +1,8 @@
 import { FEEDBACK } from "../exercises/feedback";
 import { RULES, type AnalysisResult, type RepetitionEvent } from "../biomech";
 import { SpeechQueue, type VoiceSettings } from "./speech";
+import { translateVoice as t } from "../i18n";
+import type { Language } from "../i18n/languages";
 export type VoicePhase = "loading" | "preparing" | "countdown" | "running" | "paused" | "error";
 export type VoiceEvent =
   | { type: "phase"; phase: VoicePhase }
@@ -87,6 +89,15 @@ export class WorkoutVoice implements WorkoutVoiceSink {
     this.speech.configure(settings);
     this.resetEvidence();
   }
+  setLanguage(language: Language) {
+    // Discard pending observations and messages, while preserving rep/milestone IDs.
+    this.events = this.events.filter(
+      (event) => event.type === "phase" || event.type === "countdown",
+    );
+    this.raw = null;
+    this.resetEvidence();
+    this.speech.setLanguage(language);
+  }
   private resetEvidence() {
     this.issues.clear();
     this.repeatedIssues.clear();
@@ -122,7 +133,16 @@ export class WorkoutVoice implements WorkoutVoiceSink {
       this.milestones.add(total);
       this.speech.offer({
         key: `milestone:${total}`,
-        text: `${total} repetições!${event.side ? ` Último ciclo do lado ${event.side === "left" ? "esquerdo" : "direito"}.` : ""}`,
+        text:
+          t("{{count}} repetições!", { count: total }) +
+          (event.side
+            ? " " +
+              t(
+                event.side === "left"
+                  ? "Último ciclo do lado esquerdo."
+                  : "Último ciclo do lado direito.",
+              )
+            : ""),
         priority: 60,
         expires: this.now() + 8000,
         valid: () => this.active && this.phase === "running",
@@ -137,14 +157,19 @@ export class WorkoutVoice implements WorkoutVoiceSink {
       if (count >= 2 && corrections[key]) this.repeatedIssues.add(key);
     }
     for (const key of this.repeatedIssues) {
-      this.common(key, corrections[key]!, 20, () => this.tracked() && this.repeatedIssues.has(key));
+      this.common(
+        key,
+        t(corrections[key]!),
+        20,
+        () => this.tracked() && this.repeatedIssues.has(key),
+      );
       break;
     }
     this.goodStreak = event.correct ? this.goodStreak + 1 : 0;
     if (this.goodStreak >= 3 && total % 5 !== 0)
       this.common(
         "encouragement",
-        "Muito bem, continue!",
+        t("Muito bem, continue!"),
         10,
         () => this.tracked() && this.goodStreak >= 3,
         30000,
@@ -172,7 +197,7 @@ export class WorkoutVoice implements WorkoutVoiceSink {
           this.speech.remove((m) => m.key.startsWith("countdown:") || m.key === "activation");
           this.speech.offer({
             key: `start:${this.attempt}`,
-            text: this.started ? "Vamos continuar!" : "Vamos começar!",
+            text: t(this.started ? "Vamos continuar!" : "Vamos começar!"),
             priority: 100,
             expires: this.now() + 3000,
             valid: () => this.active && this.phase === "running",
@@ -190,7 +215,7 @@ export class WorkoutVoice implements WorkoutVoiceSink {
         this.spokenSeconds.add(key);
         this.speech.offer({
           key,
-          text: ["", "Um", "Dois", "Três"][value]!,
+          text: t(["", "Um", "Dois", "Três"][value]!),
           priority: 80,
           expires: this.now() + 1000,
           valid: () =>
@@ -209,7 +234,12 @@ export class WorkoutVoice implements WorkoutVoiceSink {
         this.goodStreak = 0;
         this.missingSince ??= this.now();
         if (this.now() - this.missingSince >= 1500)
-          this.common("tracking", "Volte ao enquadramento da câmera.", 50, () => !this.tracked());
+          this.common(
+            "tracking",
+            t("Volte ao enquadramento da câmera."),
+            50,
+            () => !this.tracked(),
+          );
       } else {
         this.missingSince = null;
         const key = this.raw!.result.message;
@@ -222,7 +252,7 @@ export class WorkoutVoice implements WorkoutVoiceSink {
           if (this.now() - this.postureSince >= 1200)
             this.common(
               key,
-              corrections[key]!,
+              t(corrections[key]!),
               20,
               () => this.tracked() && this.raw?.result.message === key,
             );
@@ -239,7 +269,7 @@ export class WorkoutVoice implements WorkoutVoiceSink {
         this.lastHoldMilestone = milestone;
         this.speech.offer({
           key: `hold:${milestone}`,
-          text: `${milestone} segundos em postura válida!`,
+          text: t("{{count}} segundos em postura válida!", { count: milestone }),
           priority: 60,
           expires: this.now() + 8000,
           valid: () => this.active && this.phase === "running" && this.tracked(),
@@ -254,7 +284,7 @@ export class WorkoutVoice implements WorkoutVoiceSink {
     this.terminal = true;
     this.speech.offer({
       key: "finish",
-      text: "Treino encerrado",
+      text: t("Treino encerrado"),
       priority: 100,
       expires: this.now() + 3000,
       valid: () => this.terminal,
