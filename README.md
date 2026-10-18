@@ -13,7 +13,7 @@ A web application that uses your camera to **track exercise repetitions, time su
 
 Torvik combines MediaPipe pose estimation with exercise-specific rules, a mobile-first interface, and a kangaroo mascot that demonstrates each movement.
 
-**[Live Demo](https://torvik-ai.vercel.app/) · [Getting Started](#-getting-started) · [Repository Structure](#-repository-structure) · [Contact](#-contact)**
+**[License](#-license) · [Live Demo](https://torvik-ai.vercel.app/) · [Getting Started](#-getting-started) · [Repository Structure](#-repository-structure) · [Contact](#-contact)**
 
 ---
 
@@ -142,6 +142,10 @@ A percentage shown in a report describes the proportion of evaluated repetitions
 Camera access requires **HTTPS or localhost**. For testing on a phone, use an HTTPS preview.
 
 ### Installation & Execution
+
+> [!IMPORTANT]
+> The following local setup instructions are provided for technical evaluation only. They do not grant any license to reuse, redistribute, modify, or commercially deploy Torvik. See [LICENSE](LICENSE) and GitHub's Terms of Service.
+
 
 1. **Clone the repository:**
 
@@ -278,14 +282,11 @@ This builds the application; it does not publish it. Configure Node 22 and any r
 
 The project uses the official Vite, TanStack Start, React, Tailwind CSS, and Nitro plugins configured in [`vite.config.ts`](vite.config.ts). Confirm the connected production branch in the hosting dashboard.
 
-## 🤝 Contributing
+## 🤝 Feedback & Contributions
 
-Bug reports, reproducible examples, and focused improvements are welcome through [Issues](https://github.com/felipemarcioli/Torvik/issues) and pull requests.
+Torvik is a proprietary, source-available portfolio project. The repository is public so its implementation can be reviewed, but it is **not open-source** and does not grant permission to reuse, modify, redistribute, or commercialize the code.
 
-1. Create a branch for the change.
-2. Keep the change focused and explain its purpose.
-3. Run `bun run check` and relevant browser tests.
-4. For tracking changes, document the rule version, affected exercises, and evidence used to evaluate the result.
+Bug reports and reproducible feedback are welcome through [Issues](https://github.com/felipemarcioli/Torvik/issues). Contributions and pull requests are **not currently solicited**; please contact the author before proposing code contributions.
 
 When reporting a camera issue, include your device, browser, exercise, orientation, and reproduction steps. Do not include credentials or identifiable workout footage in a public issue.
 
@@ -303,7 +304,11 @@ Torvik uses MediaPipe's pretrained pose-estimation technology and the open-sourc
 
 ## 📄 License
 
-No project license has been specified in this repository yet.
+**© 2026 Felipe Marcioli. All Rights Reserved.** Torvik is proprietary, **source-available** software, not open-source.
+
+The code is publicly visible for portfolio review and demonstration only. No permission is granted to reuse, modify, redistribute, sublicense, commercialize, or create derivative works without prior written authorization, except for rights provided by GitHub's Terms of Service and applicable law. Public GitHub repositories can still be forked under GitHub's platform terms; this notice does not disable that feature.
+
+See the full [LICENSE](LICENSE). Third-party components retain their own licenses.
 
 ## 📞 Contact
 
